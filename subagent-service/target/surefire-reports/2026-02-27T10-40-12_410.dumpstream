@@ -1,0 +1,5 @@
+# Created at 2026-02-27T10:40:20.009
+Boot Manifest-JAR contains absolute paths in classpath 'D:\metaspace\trae\java_swarm\subagent-service\target\test-classes'
+Hint: <argLine>-Djdk.net.URLClassPath.disableClassPathURLCheck=true</argLine>
+'other' has different root
+

@@ -1,0 +1,228 @@
+index-BOvIvun6.js:34 2026-02-26T06:13:38.416Z - LLM Chat API检测: true
+index-BOvIvun6.js:34 2026-02-26T06:13:38.416Z - 最终流式响应设置: true
+index-BOvIvun6.js:34 2026-02-26T06:13:38.416Z - 完整请求URL: https://course-dev.aimkeji.com/mall-ai/llm/chat/reactive
+index-BOvIvun6.js:34 2026-02-26T06:13:38.416Z - 请求方法: POST
+index-BOvIvun6.js:34 2026-02-26T06:13:38.416Z - 是否流式响应: true
+index-BOvIvun6.js:34 2026-02-26T06:13:38.416Z - 添加Authorization头: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXJ0bmVyX2lkIjpudWxsLCJkZXZpY2VfaWQiOiJjbGllbnQtYXBwMSIsInVzZXJfbmFtZSI6IjI1MDkwMTAwMDAwMDAxIiwic2NvcGUiOlsiYWxsIl0sImlkIjoyMDYsIm1lcmNoYW50X2lkIjpudWxsLCJleHAiOjE3NzIxNzI4MDcsImF1dGhvcml0aWVzIjpbIuWJjeWPsOS8muWRmCJdLCJqdGkiOiI5NTZlYTA2Yy1kNGI2LTRiNGMtODljNi1kZTEyOTIyY2FhMzIiLCJjbGllbnRfaWQiOiJjbGllbnQtYXBwIn0.iz7ORKpEuPmtjnPSm96A3Argq1Q4BlO7LwIKT-Tb7Xz8Pmao_zNQXVH38hIYI-CpjgNcHAT1UTCoxsMTS5_oT47J5trezF10SwpmQPBD9UWQJ8v0LkCHnwycwhCWu7aF_jnNZuQ1g9pecfw26yG7-pDImF_y13LOGKyzYKur8NM
+index-BOvIvun6.js:34 2026-02-26T06:13:38.416Z - 用于签名的JSON字符串: {"conversationId":"conv_20260226061338_e94f57a1-14bf-4c36-b424-c17b1a3c310b","precision":0,"question":"你好，我想买个口红\n"}
+index-BOvIvun6.js:34 2026-02-26T06:13:38.416Z - 添加签名头: 0DDA147EAA684B1182BB80B01B642404 1772086418417 384a5a0faf3b61dd581d046e9f723928c38a37eec2b83615b03377f4084cfd0c
+index-BOvIvun6.js:34 2026-02-26T06:13:38.416Z - 请求头: {Authorization: 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJwYXJ0bmVyX…CWu7aF_jnNZuQ1g9pecfw26yG7-pDImF_y13LOGKyzYKur8NM', Content-Type: 'application/json', X-AIM-Client-Id: '0DDA147EAA684B1182BB80B01B642404', X-AIM-Timestamp: '1772086418417', X-AIM-Sign: '384a5a0faf3b61dd581d046e9f723928c38a37eec2b83615b03377f4084cfd0c'}
+index-BOvIvun6.js:34 2026-02-26T06:13:38.416Z - 请求体: {"conversationId":"conv_20260226061338_e94f57a1-14bf-4c36-b424-c17b1a3c310b","precision":0,"question":"你好，我想买个口红\n"}
+index-BOvIvun6.js:34 2026-02-26T06:13:38.416Z - credentials配置: omit
+index-BOvIvun6.js:34 2026-02-26T06:13:38.416Z - 发起请求: https://course-dev.aimkeji.com/mall-ai/llm/chat/reactive {method: 'POST', headers: {…}, body: '{"conversationId":"conv_20260226061338_e94f57a1-14…1a3c310b","precision":0,"question":"你好，我想买个口红\\n"}'}
+index-BOvIvun6.js:34 2026-02-26T06:13:38.416Z - 响应状态: 200
+index-BOvIvun6.js:34 2026-02-26T06:13:38.416Z - 响应头: Headers {}
+index-BOvIvun6.js:34 2026-02-26T06:13:38.416Z - 开始处理流式响应（SSE格式）
+index-BOvIvun6.js:50 2026-02-26T06:13:38.516Z - 处理SSE缓冲区: event:phase
+data:{"study":"理解您的需求","match":"搜索匹配商品","search":"筛选优质结果","offer":"整理推荐方案"}
+
+event:thinking
+data:{"name":"study","desc":"理解您的需求","status":"START"}
+
+
+index-BOvIvun6.js:51 2026-02-26T06:13:38.516Z - 解析到event类型: phase
+index-BOvIvun6.js:51 2026-02-26T06:13:38.516Z - 解析到data内容: {"study":"理解您的需求","match":"搜索匹配商品","search":"筛选优质结果","offer":"整理推荐方案"}
+index-BOvIvun6.js:51 2026-02-26T06:13:38.516Z - 处理完整SSE事件: {event: 'phase', data: '{"study":"理解您的需求","match":"搜索匹配商品","search":"筛选优质结果","offer":"整理推荐方案"}'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'phase', data: '{"study":"理解您的需求","match":"搜索匹配商品","search":"筛选优质结果","offer":"整理推荐方案"}'}
+index-BOvIvun6.js:51 处理SSE消息: phase {"study":"理解您的需求","match":"搜索匹配商品","search":"筛选优质结果","offer":"整理推荐方案"}
+index-BOvIvun6.js:54 未知事件类型: phase
+S @ index-BOvIvun6.js:54
+onChunk @ index-BOvIvun6.js:51
+Kr @ index-BOvIvun6.js:51
+Is @ index-BOvIvun6.js:51
+ic @ index-BOvIvun6.js:50
+await in ic
+St @ index-BOvIvun6.js:34
+await in St
+y @ index-BOvIvun6.js:51
+at @ index-BOvIvun6.js:13
+te @ index-BOvIvun6.js:13
+r @ index-BOvIvun6.js:17
+index-BOvIvun6.js:51 2026-02-26T06:13:38.516Z - 解析到event类型: thinking
+index-BOvIvun6.js:51 2026-02-26T06:13:38.516Z - 解析到data内容: {"name":"study","desc":"理解您的需求","status":"START"}
+index-BOvIvun6.js:51 2026-02-26T06:13:38.517Z - 处理完整SSE事件: {event: 'thinking', data: '{"name":"study","desc":"理解您的需求","status":"START"}'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'thinking', data: '{"name":"study","desc":"理解您的需求","status":"START"}'}
+index-BOvIvun6.js:51 处理SSE消息: thinking {"name":"study","desc":"理解您的需求","status":"START"}
+index-BOvIvun6.js:50 2026-02-26T06:13:39.659Z - 处理SSE缓冲区: event:thinking
+data:{"name":"study","desc":"理解您的需求结束","status":"END"}
+
+event:thinking
+data:{"name":"match","desc":"搜索匹配商品","status":"START"}
+
+
+index-BOvIvun6.js:51 2026-02-26T06:13:39.659Z - 解析到event类型: thinking
+index-BOvIvun6.js:51 2026-02-26T06:13:39.659Z - 解析到data内容: {"name":"study","desc":"理解您的需求结束","status":"END"}
+index-BOvIvun6.js:51 2026-02-26T06:13:39.660Z - 处理完整SSE事件: {event: 'thinking', data: '{"name":"study","desc":"理解您的需求结束","status":"END"}'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'thinking', data: '{"name":"study","desc":"理解您的需求结束","status":"END"}'}
+index-BOvIvun6.js:51 处理SSE消息: thinking {"name":"study","desc":"理解您的需求结束","status":"END"}
+index-BOvIvun6.js:51 2026-02-26T06:13:39.659Z - 解析到event类型: thinking
+index-BOvIvun6.js:51 2026-02-26T06:13:39.659Z - 解析到data内容: {"name":"match","desc":"搜索匹配商品","status":"START"}
+index-BOvIvun6.js:51 2026-02-26T06:13:39.660Z - 处理完整SSE事件: {event: 'thinking', data: '{"name":"match","desc":"搜索匹配商品","status":"START"}'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'thinking', data: '{"name":"match","desc":"搜索匹配商品","status":"START"}'}
+index-BOvIvun6.js:51 处理SSE消息: thinking {"name":"match","desc":"搜索匹配商品","status":"START"}
+index-BOvIvun6.js:50 2026-02-26T06:13:40.559Z - 处理SSE缓冲区: event:thinking
+data:{"name":"match","desc":"搜索匹配商品结束","status":"END"}
+
+event:thinking
+data:{"name":"search","desc":"筛选优质结果","status":"START"}
+
+
+index-BOvIvun6.js:51 2026-02-26T06:13:40.559Z - 解析到event类型: thinking
+index-BOvIvun6.js:51 2026-02-26T06:13:40.559Z - 解析到data内容: {"name":"match","desc":"搜索匹配商品结束","status":"END"}
+index-BOvIvun6.js:51 2026-02-26T06:13:40.559Z - 处理完整SSE事件: {event: 'thinking', data: '{"name":"match","desc":"搜索匹配商品结束","status":"END"}'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'thinking', data: '{"name":"match","desc":"搜索匹配商品结束","status":"END"}'}
+index-BOvIvun6.js:51 处理SSE消息: thinking {"name":"match","desc":"搜索匹配商品结束","status":"END"}
+index-BOvIvun6.js:51 2026-02-26T06:13:40.559Z - 解析到event类型: thinking
+index-BOvIvun6.js:51 2026-02-26T06:13:40.559Z - 解析到data内容: {"name":"search","desc":"筛选优质结果","status":"START"}
+index-BOvIvun6.js:51 2026-02-26T06:13:40.560Z - 处理完整SSE事件: {event: 'thinking', data: '{"name":"search","desc":"筛选优质结果","status":"START"}'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'thinking', data: '{"name":"search","desc":"筛选优质结果","status":"START"}'}
+index-BOvIvun6.js:51 处理SSE消息: thinking {"name":"search","desc":"筛选优质结果","status":"START"}
+index-BOvIvun6.js:50 2026-02-26T06:13:42.394Z - 处理SSE缓冲区: event:thinking
+data:{"name":"search","desc":"筛选优质结果结束","status":"END"}
+
+
+index-BOvIvun6.js:51 2026-02-26T06:13:42.394Z - 解析到event类型: thinking
+index-BOvIvun6.js:51 2026-02-26T06:13:42.394Z - 解析到data内容: {"name":"search","desc":"筛选优质结果结束","status":"END"}
+index-BOvIvun6.js:51 2026-02-26T06:13:42.394Z - 处理完整SSE事件: {event: 'thinking', data: '{"name":"search","desc":"筛选优质结果结束","status":"END"}'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'thinking', data: '{"name":"search","desc":"筛选优质结果结束","status":"END"}'}
+index-BOvIvun6.js:51 处理SSE消息: thinking {"name":"search","desc":"筛选优质结果结束","status":"END"}
+index-BOvIvun6.js:50 2026-02-26T06:13:44.171Z - 处理SSE缓冲区: event:thinking
+data:{"name":"offer","desc":"整理推荐方案","status":"START"}
+
+event:thinking
+data:{"name":"offer","desc":"整理推荐方案结束","status":"END"}
+
+
+index-BOvIvun6.js:51 2026-02-26T06:13:44.171Z - 解析到event类型: thinking
+index-BOvIvun6.js:51 2026-02-26T06:13:44.171Z - 解析到data内容: {"name":"offer","desc":"整理推荐方案","status":"START"}
+index-BOvIvun6.js:51 2026-02-26T06:13:44.171Z - 处理完整SSE事件: {event: 'thinking', data: '{"name":"offer","desc":"整理推荐方案","status":"START"}'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'thinking', data: '{"name":"offer","desc":"整理推荐方案","status":"START"}'}
+index-BOvIvun6.js:51 处理SSE消息: thinking {"name":"offer","desc":"整理推荐方案","status":"START"}
+index-BOvIvun6.js:51 2026-02-26T06:13:44.171Z - 解析到event类型: thinking
+index-BOvIvun6.js:51 2026-02-26T06:13:44.171Z - 解析到data内容: {"name":"offer","desc":"整理推荐方案结束","status":"END"}
+index-BOvIvun6.js:51 2026-02-26T06:13:44.171Z - 处理完整SSE事件: {event: 'thinking', data: '{"name":"offer","desc":"整理推荐方案结束","status":"END"}'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'thinking', data: '{"name":"offer","desc":"整理推荐方案结束","status":"END"}'}
+index-BOvIvun6.js:51 处理SSE消息: thinking {"name":"offer","desc":"整理推荐方案结束","status":"END"}
+index-BOvIvun6.js:50 2026-02-26T06:13:45.049Z - 处理SSE缓冲区: event:text
+data:挑
+
+
+index-BOvIvun6.js:51 2026-02-26T06:13:45.049Z - 解析到event类型: text
+index-BOvIvun6.js:51 2026-02-26T06:13:45.049Z - 解析到data内容: 挑
+index-BOvIvun6.js:51 2026-02-26T06:13:45.049Z - 处理完整SSE事件: {event: 'text', data: '挑'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'text', data: '挑'}
+index-BOvIvun6.js:51 处理SSE消息: text 挑
+index-BOvIvun6.js:50 2026-02-26T06:13:45.110Z - 处理SSE缓冲区: event:text
+data:支
+
+
+index-BOvIvun6.js:51 2026-02-26T06:13:45.110Z - 解析到event类型: text
+index-BOvIvun6.js:51 2026-02-26T06:13:45.110Z - 解析到data内容: 支
+index-BOvIvun6.js:51 2026-02-26T06:13:45.111Z - 处理完整SSE事件: {event: 'text', data: '支'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'text', data: '支'}
+index-BOvIvun6.js:51 处理SSE消息: text 支
+index-BOvIvun6.js:50 2026-02-26T06:13:45.296Z - 处理SSE缓冲区: event:text
+data:口红
+
+
+index-BOvIvun6.js:51 2026-02-26T06:13:45.296Z - 解析到event类型: text
+index-BOvIvun6.js:51 2026-02-26T06:13:45.296Z - 解析到data内容: 口红
+index-BOvIvun6.js:51 2026-02-26T06:13:45.296Z - 处理完整SSE事件: {event: 'text', data: '口红'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'text', data: '口红'}
+index-BOvIvun6.js:51 处理SSE消息: text 口红
+index-BOvIvun6.js:50 2026-02-26T06:13:45.343Z - 处理SSE缓冲区: event:text
+data:，瞬间点亮
+
+
+index-BOvIvun6.js:51 2026-02-26T06:13:45.343Z - 解析到event类型: text
+index-BOvIvun6.js:51 2026-02-26T06:13:45.343Z - 解析到data内容: ，瞬间点亮
+index-BOvIvun6.js:51 2026-02-26T06:13:45.343Z - 处理完整SSE事件: {event: 'text', data: '，瞬间点亮'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'text', data: '，瞬间点亮'}
+index-BOvIvun6.js:51 处理SSE消息: text ，瞬间点亮
+index-BOvIvun6.js:50 2026-02-26T06:13:45.485Z - 处理SSE缓冲区: event:text
+data:好气色真
+
+
+index-BOvIvun6.js:51 2026-02-26T06:13:45.485Z - 解析到event类型: text
+index-BOvIvun6.js:51 2026-02-26T06:13:45.485Z - 解析到data内容: 好气色真
+index-BOvIvun6.js:51 2026-02-26T06:13:45.485Z - 处理完整SSE事件: {event: 'text', data: '好气色真'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'text', data: '好气色真'}
+index-BOvIvun6.js:51 处理SSE消息: text 好气色真
+index-BOvIvun6.js:50 2026-02-26T06:13:45.626Z - 处理SSE缓冲区: event:text
+data:让人期待。
+
+event:text
+data:平时
+
+
+index-BOvIvun6.js:51 2026-02-26T06:13:45.626Z - 解析到event类型: text
+index-BOvIvun6.js:51 2026-02-26T06:13:45.626Z - 解析到data内容: 让人期待。
+index-BOvIvun6.js:51 2026-02-26T06:13:45.626Z - 处理完整SSE事件: {event: 'text', data: '让人期待。'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'text', data: '让人期待。'}
+index-BOvIvun6.js:51 处理SSE消息: text 让人期待。
+index-BOvIvun6.js:51 2026-02-26T06:13:45.626Z - 解析到event类型: text
+index-BOvIvun6.js:51 2026-02-26T06:13:45.626Z - 解析到data内容: 平时
+index-BOvIvun6.js:51 2026-02-26T06:13:45.626Z - 处理完整SSE事件: {event: 'text', data: '平时'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'text', data: '平时'}
+index-BOvIvun6.js:51 处理SSE消息: text 平时
+index-BOvIvun6.js:50 2026-02-26T06:13:45.735Z - 处理SSE缓冲区: event:text
+data:更偏爱显白的
+
+
+index-BOvIvun6.js:51 2026-02-26T06:13:45.735Z - 解析到event类型: text
+index-BOvIvun6.js:51 2026-02-26T06:13:45.735Z - 解析到data内容: 更偏爱显白的
+index-BOvIvun6.js:51 2026-02-26T06:13:45.735Z - 处理完整SSE事件: {event: 'text', data: '更偏爱显白的'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'text', data: '更偏爱显白的'}
+index-BOvIvun6.js:51 处理SSE消息: text 更偏爱显白的
+index-BOvIvun6.js:50 2026-02-26T06:13:45.845Z - 处理SSE缓冲区: event:text
+data:复古红，还是
+
+event:text
+data:温柔的
+
+
+index-BOvIvun6.js:51 2026-02-26T06:13:45.845Z - 解析到event类型: text
+index-BOvIvun6.js:51 2026-02-26T06:13:45.845Z - 解析到data内容: 复古红，还是
+index-BOvIvun6.js:51 2026-02-26T06:13:45.845Z - 处理完整SSE事件: {event: 'text', data: '复古红，还是'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'text', data: '复古红，还是'}
+index-BOvIvun6.js:51 处理SSE消息: text 复古红，还是
+index-BOvIvun6.js:51 2026-02-26T06:13:45.845Z - 解析到event类型: text
+index-BOvIvun6.js:51 2026-02-26T06:13:45.845Z - 解析到data内容: 温柔的
+index-BOvIvun6.js:51 2026-02-26T06:13:45.845Z - 处理完整SSE事件: {event: 'text', data: '温柔的'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'text', data: '温柔的'}
+index-BOvIvun6.js:51 处理SSE消息: text 温柔的
+index-BOvIvun6.js:50 2026-02-26T06:13:45.892Z - 处理SSE缓冲区: event:text
+data:裸色系？
+
+
+index-BOvIvun6.js:51 2026-02-26T06:13:45.892Z - 解析到event类型: text
+index-BOvIvun6.js:51 2026-02-26T06:13:45.892Z - 解析到data内容: 裸色系？
+index-BOvIvun6.js:51 2026-02-26T06:13:45.892Z - 处理完整SSE事件: {event: 'text', data: '裸色系？'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'text', data: '裸色系？'}
+index-BOvIvun6.js:51 处理SSE消息: text 裸色系？
+index-BOvIvun6.js:50 2026-02-26T06:13:47.181Z - 处理SSE缓冲区: event:card
+data:{"skuList":[{"biddingPrice":410.00,"brandName":"YSL/圣罗兰","img":"https://img1.aimkeji.com/p/649725895466/2/6086737127577.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":410.00,"skuId":1714599,"skuName":" 正品YSL圣罗兰革新小金条 1936口红唇膏化妆品礼物","spuId":159914,"tags":["复古正红","哑光雾面","提亮气色","日常通勤"]},{"biddingPrice":89.00,"brandName":"Joocyee/酵色","img":"https://img1.aimkeji.com/p/655793883545/0/O1CN01u8pxlU1uTuvysyYZr_!!4611686018427382903-0-item_pic.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":89.00,"skuId":1717469,"skuName":"JOOCYEE酵色晶冻粉雾口红镜面水光哑光雾面唇膏唇冻滋润淡妆口红","spuId":160006,"tags":["哑光雾面","滋润配方","提亮气色","护唇二合一"]},{"biddingPrice":9.90,"brandName":"ELLE","img":"https://img1.aimkeji.com/p/624414125569/2/4920463341030.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":9.90,"skuId":1708976,"skuName":"ELLE凝润醉色唇膏口红牛血色迷你装1.4g正品易上色口红","spuId":159518,"tags":["复古红调","水润光泽","不拔干","日常通勤"]},{"biddingPrice":129.00,"brandName":"Joocyee/酵色","img":"https://img1.aimkeji.com/p/866496787923/2/5769035017396.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":129.00,"skuId":1800009,"skuName":"JOOCYEE酵色水精华润养口红滋润护唇润唇膏00原色裸01好气色口红","spuId":163368,"tags":["春夏好气色","水润光泽","滋润护唇","裸色系妆效"]},{"biddingPrice":29.90,"brandName":"佰鲜集","img":"https://img1.aimkeji.com/p/621921346272/2/4491811481905.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":29.90,"skuId":1708903,"skuName":"变色口红女保湿滋润唇膏补水不易掉色不易沾杯防水胡萝卜素秋冬季","spuId":159506,"tags":["日常通勤","约会提亮","持久留色","滋润不卡纹"]},{"biddingPrice":390.00,"brandName":"Dior/迪奥","img":"https://img1.aimkeji.com/p/618228004441/2/4859048736367.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":390.00,"skuId":1708269,"skuName":"Dior迪奥魅惑唇膏时尚外壳水光新色镜光口红428740","spuId":159453,"tags":["镜面光泽","水光质地","复古红调","持久不沾杯"]},{"biddingPrice":210.00,"brandName":"商城默认品牌","img":"https://img1.aimkeji.com/p/595237863327/2/5155476907281.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":210.00,"skuId":1705782,"skuName":"  MAC/魅可尤雾弹口红唇膏哑光显白显色316/314/923","spuId":159246},{"biddingPrice":79.00,"brandName":"MARIE DALGAR/玛丽黛佳","img":"https://img1.aimkeji.com/p/661937510942/2/4813079820181.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":79.00,"skuId":1719430,"skuName":"玛丽黛佳骑士迷你黑白管口红秋冬1.8g*1唇膏三色可选","spuId":160077},{"biddingPrice":109.00,"brandName":"Insbaha/原色波塔","img":"https://img1.aimkeji.com/p/958388550608/2/5894579316210.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":109.00,"skuId":1825163,"skuName":"原色波塔Hello Kitty合作系列裸感柔雾/盈润水光口红哑光镜面","spuId":164927},{"biddingPrice":99.00,"brandName":"KATE/凯朵","img":"https://img1.aimkeji.com/p/772433688770/2/5824777153812.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":99.00,"skuId":1767899,"skuName":" K
+index-BOvIvun6.js:51 2026-02-26T06:13:47.181Z - 解析到event类型: card
+index-BOvIvun6.js:51 2026-02-26T06:13:47.181Z - 解析到data内容: {"skuList":[{"biddingPrice":410.00,"brandName":"YSL/圣罗兰","img":"https://img1.aimkeji.com/p/649725895466/2/6086737127577.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":410.00,"skuId":1714599,"skuName":" 正品YSL圣罗兰革新小金条 1936口红唇膏化妆品礼物","spuId":159914,"tags":["复古正红","哑光雾面","提亮气色","日常通勤"]},{"biddingPrice":89.00,"brandName":"Joocyee/酵色","img":"https://img1.aimkeji.com/p/655793883545/0/O1CN01u8pxlU1uTuvysyYZr_!!4611686018427382903-0-item_pic.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":89.00,"skuId":1717469,"skuName":"JOOCYEE酵色晶冻粉雾口红镜面水光哑光雾面唇膏唇冻滋润淡妆口红","spuId":160006,"tags":["哑光雾面","滋润配方","提亮气色","护唇二合一"]},{"biddingPrice":9.90,"brandName":"ELLE","img":"https://img1.aimkeji.com/p/624414125569/2/4920463341030.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":9.90,"skuId":1708976,"skuName":"ELLE凝润醉色唇膏口红牛血色迷你装1.4g正品易上色口红","spuId":159518,"tags":["复古红调","水润光泽","不拔干","日常通勤"]},{"biddingPrice":129.00,"brandName":"Joocyee/酵色","img":"https://img1.aimkeji.com/p/866496787923/2/5769035017396.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":129.00,"skuId":1800009,"skuName":"JOOCYEE酵色水精华润养口红滋润护唇润唇膏00原色裸01好气色口红","spuId":163368,"tags":["春夏好气色","水润光泽","滋润护唇","裸色系妆效"]},{"biddingPrice":29.90,"brandName":"佰鲜集","img":"https://img1.aimkeji.com/p/621921346272/2/4491811481905.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":29.90,"skuId":1708903,"skuName":"变色口红女保湿滋润唇膏补水不易掉色不易沾杯防水胡萝卜素秋冬季","spuId":159506,"tags":["日常通勤","约会提亮","持久留色","滋润不卡纹"]},{"biddingPrice":390.00,"brandName":"Dior/迪奥","img":"https://img1.aimkeji.com/p/618228004441/2/4859048736367.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":390.00,"skuId":1708269,"skuName":"Dior迪奥魅惑唇膏时尚外壳水光新色镜光口红428740","spuId":159453,"tags":["镜面光泽","水光质地","复古红调","持久不沾杯"]},{"biddingPrice":210.00,"brandName":"商城默认品牌","img":"https://img1.aimkeji.com/p/595237863327/2/5155476907281.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":210.00,"skuId":1705782,"skuName":"  MAC/魅可尤雾弹口红唇膏哑光显白显色316/314/923","spuId":159246},{"biddingPrice":79.00,"brandName":"MARIE DALGAR/玛丽黛佳","img":"https://img1.aimkeji.com/p/661937510942/2/4813079820181.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":79.00,"skuId":1719430,"skuName":"玛丽黛佳骑士迷你黑白管口红秋冬1.8g*1唇膏三色可选","spuId":160077},{"biddingPrice":109.00,"brandName":"Insbaha/原色波塔","img":"https://img1.aimkeji.com/p/958388550608/2/5894579316210.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":109.00,"skuId":1825163,"skuName":"原色波塔Hello Kitty合作系列裸感柔雾/盈润水光口红哑光镜面","spuId":164927},{"biddingPrice":99.00,"brandName":"KATE/凯朵","img":"https://img1.aimkeji.com/p/772433688770/2/5824777153812.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":99.00,"skuId":1767899,"skuName":" K
+index-BOvIvun6.js:50 2026-02-26T06:13:47.185Z - 处理SSE缓冲区: ATE/凯朵梦思特唇膏显气色滋润怪兽口红保湿不沾杯","spuId":161883},{"biddingPrice":150.00,"brandName":"PERFECT DIARY/完美日记","img":"https://img1.aimkeji.com/p/765845209141/2/5951378734476.png?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":150.00,"skuId":1765109,"skuName":"完美日记仿生膜精华哑光口红女唇膏903雾面裸色素颜","spuId":161755},{"biddingPrice":89.00,"brandName":"Joocyee/酵色","img":"https://img1.aimkeji.com/p/644254025509/2/5332550436127.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":89.00,"skuId":1712862,"skuName":"JOOCYEE酵色晶冻口红镜面水光不沾杯滋润唇冻唇膏514唇釉显白口红","spuId":159833},{"biddingPrice":200.00,"brandName":"MAC/魅可","img":"https://img1.aimkeji.com/p/963622413378/2/6065827454708.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":200.00,"skuId":1827898,"skuName":"  MAC/魅可大子弹头水漾唇膏元气唇膏口红限定礼盒哑光","spuId":165140},{"biddingPrice":237.00,"brandName":"Lancome/兰蔻","img":"https://img1.aimkeji.com/p/746468882491/2/6024073294837.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":237.00,"skuId":1759712,"skuName":"Lancome兰蔻196小蛮腰黑管菁纯口红丝绒哑光滋润唇膏 正品4017","spuId":161508},{"biddingPrice":139.90,"brandName":"M3（美妆）","img":"https://img1.aimkeji.com/p/793470748780/0/O1CN01tUCpui1Wc7Dc4MpC3_!!4611686018427385656-0-item_pic.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":139.90,"skuId":1773256,"skuName":"【曹颖同款】M3时光印记口红唇膏哑光雾面丝绒持久显白唇彩礼盒","spuId":162103},{"biddingPrice":117.00,"brandName":"CARSLAN/卡姿兰","img":"https://img1.aimkeji.com/p/708212754981/2/5941310129302.png?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":117.00,"skuId":1736932,"skuName":"卡姿兰口红不掉色滋润哑光裸色素颜淡妆显白持久大牌 正品礼盒","spuId":160811},{"biddingPrice":69.90,"brandName":"Luona Noess/罗娜女神","img":"https://img1.aimkeji.com/p/957419091108/2/6055479810882.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":69.90,"skuId":1824907,"skuName":"罗娜女神第二代仿生膜黑魔法秘境口红唇釉不掉色不沾杯滋润 ","spuId":164902},{"biddingPrice":40.00,"brandName":"CARSLAN/卡姿兰","img":"https://img1.aimkeji.com/p/731315540989/2/5860655956558.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":40.00,"skuId":1748464,"skuName":"卡姿兰花卉润唇膏口红显白秋冬保湿补水滋润淡化唇纹打底护唇正品","spuId":161198},{"biddingPrice":420.00,"brandName":"Chanel/香奈儿","img":"https://img1.aimkeji.com/p/594673136319/2/4319203843007.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":420.00,"skuId":1705399,"skuName":" CHANEL 香奈儿可可小姐炫光唇膏 口红滋润152 144","spuId":159238},{"biddingPrice":820.00,"brandName":"YSL/圣罗兰","img":"https://img1.aimkeji.com/p/727911401154/2/5924417296648.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":820.00,"skuId":1744700,"skuName":" 正品YSL圣罗兰明星口红套装 革新小金条1936唇膏礼盒","spuId":161118},{"biddingPrice":178.00,"brandName":"Joocyee/酵色","img":"https://img1.aimkeji.com/p/862632094009/2/5931799093743.png?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":178.00,"skuI
+index-BOvIvun6.js:51 2026-02-26T06:13:47.185Z - card事件JSON数据延续: ATE/凯朵梦思特唇膏显气色滋润怪兽口红保湿不沾杯","spuId":161883},{"biddingPrice":150.00,"brandName":"PERFECT DIARY/完美日记","img":"https://img1.aimkeji.com/p/765845209141/2/5951378734476.png?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":150.00,"skuId":1765109,"skuName":"完美日记仿生膜精华哑光口红女唇膏903雾面裸色素颜","spuId":161755},{"biddingPrice":89.00,"brandName":"Joocyee/酵色","img":"https://img1.aimkeji.com/p/644254025509/2/5332550436127.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":89.00,"skuId":1712862,"skuName":"JOOCYEE酵色晶冻口红镜面水光不沾杯滋润唇冻唇膏514唇釉显白口红","spuId":159833},{"biddingPrice":200.00,"brandName":"MAC/魅可","img":"https://img1.aimkeji.com/p/963622413378/2/6065827454708.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":200.00,"skuId":1827898,"skuName":"  MAC/魅可大子弹头水漾唇膏元气唇膏口红限定礼盒哑光","spuId":165140},{"biddingPrice":237.00,"brandName":"Lancome/兰蔻","img":"https://img1.aimkeji.com/p/746468882491/2/6024073294837.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":237.00,"skuId":1759712,"skuName":"Lancome兰蔻196小蛮腰黑管菁纯口红丝绒哑光滋润唇膏 正品4017","spuId":161508},{"biddingPrice":139.90,"brandName":"M3（美妆）","img":"https://img1.aimkeji.com/p/793470748780/0/O1CN01tUCpui1Wc7Dc4MpC3_!!4611686018427385656-0-item_pic.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":139.90,"skuId":1773256,"skuName":"【曹颖同款】M3时光印记口红唇膏哑光雾面丝绒持久显白唇彩礼盒","spuId":162103},{"biddingPrice":117.00,"brandName":"CARSLAN/卡姿兰","img":"https://img1.aimkeji.com/p/708212754981/2/5941310129302.png?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":117.00,"skuId":1736932,"skuName":"卡姿兰口红不掉色滋润哑光裸色素颜淡妆显白持久大牌 正品礼盒","spuId":160811},{"biddingPrice":69.90,"brandName":"Luona Noess/罗娜女神","img":"https://img1.aimkeji.com/p/957419091108/2/6055479810882.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":69.90,"skuId":1824907,"skuName":"罗娜女神第二代仿生膜黑魔法秘境口红唇釉不掉色不沾杯滋润 ","spuId":164902},{"biddingPrice":40.00,"brandName":"CARSLAN/卡姿兰","img":"https://img1.aimkeji.com/p/731315540989/2/5860655956558.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":40.00,"skuId":1748464,"skuName":"卡姿兰花卉润唇膏口红显白秋冬保湿补水滋润淡化唇纹打底护唇正品","spuId":161198},{"biddingPrice":420.00,"brandName":"Chanel/香奈儿","img":"https://img1.aimkeji.com/p/594673136319/2/4319203843007.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":420.00,"skuId":1705399,"skuName":" CHANEL 香奈儿可可小姐炫光唇膏 口红滋润152 144","spuId":159238},{"biddingPrice":820.00,"brandName":"YSL/圣罗兰","img":"https://img1.aimkeji.com/p/727911401154/2/5924417296648.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":820.00,"skuId":1744700,"skuName":" 正品YSL圣罗兰明星口红套装 革新小金条1936唇膏礼盒","spuId":161118},{"biddingPrice":178.00,"brandName":"Joocyee/酵色","img":"https://img1.aimkeji.com/p/862632094009/2/5931799093743.png?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":178.00,"skuI
+index-BOvIvun6.js:50 2026-02-26T06:13:47.191Z - 处理SSE缓冲区: d":1799257,"skuName":"JOOCYEE酵色粉雾口红笔哑光时髦气质唇膏口红波嬉风","spuId":163297},{"biddingPrice":50.00,"brandName":"INTO YOU","img":"https://img1.aimkeji.com/p/788456627481/2/5419743089580.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":50.00,"skuId":1772860,"skuName":"INTO YOU心慕与你镜光口红唇膏女滋润保湿轻盈镜面护唇亮 正品","spuId":162059},{"biddingPrice":26.00,"brandName":"碧奥泉","img":"https://img1.aimkeji.com/p/534769317751/2/4188735404690.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":26.00,"skuId":1701143,"skuName":"碧奥泉胡萝卜素口红持久保湿滋润学生款小众品牌正品变色口红唇膏","spuId":158832},{"biddingPrice":69.90,"brandName":"Luona Noess/罗娜女神","img":"https://img1.aimkeji.com/p/763641963068/2/6104042190898.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":69.90,"skuId":1765102,"skuName":"罗娜女神黑魔法秘境口红唇釉不掉色不沾杯保湿滋润变色唇膏 ","spuId":161754},{"biddingPrice":140.00,"brandName":"儒意","img":"https://img1.aimkeji.com/p/957341504331/2/5881149720701.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":140.00,"skuId":1825130,"skuName":"口红柔雾哑光唇泥唇釉唇膏素颜显白不掉色不易沾杯正品  ","spuId":164921},{"biddingPrice":69.00,"brandName":"Joocyee/酵色","img":"https://img1.aimkeji.com/p/876954925785/2/5715221044139.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":69.00,"skuId":1800872,"skuName":"Joocyee/酵色粉雾口红笔唇膏哑光雾面粉棕秋冬复古旅行装","spuId":163416},{"biddingPrice":200.00,"brandName":"MAC/魅可","img":"https://img1.aimkeji.com/p/761656138483/2/5247840460890.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":200.00,"skuId":1763960,"skuName":"【鞠婧祎同款】MAC/魅可大子弹头口红唇膏哑光滋润683/602/666","spuId":161687},{"biddingPrice":150.00,"brandName":"3CE/三熹玉","img":"https://img1.aimkeji.com/p/632491135178/2/4682621858668.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":150.00,"skuId":1711026,"skuName":"3CE透明口红哑光丝绒显白玫瑰落日红泥礼物T","spuId":159657},{"biddingPrice":210.00,"brandName":"MAC/魅可","img":"https://img1.aimkeji.com/p/653190375393/2/5550365471305.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":210.00,"skuId":1714843,"skuName":"  MAC/魅可水漾子弹头口红唇膏保湿滋润显色544/543","spuId":159928},{"biddingPrice":26.53,"brandName":"植物主义","img":"https://img1.aimkeji.com/p/848939334129/2/5666041436557.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":26.53,"skuId":1794216,"skuName":"植物主义口红秋冬滋润化妆品 正品不易掉色不易沾杯唇釉润唇膏","spuId":163075},{"biddingPrice":9.90,"brandName":"ELLE","img":"https://img1.aimkeji.com/p/610924582741/2/4468276658614.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":9.90,"skuId":1708108,"skuName":"ELLE时尚细管唇膏妆效哑光唇膏口红效期到25年11月","spuId":159435},{"biddingPrice":138.00,"brandName":"heaven pink","img":"https://img1.aimkeji.com/p/912087633548/2/6008549202867.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":138.00,"skuId":1810826,"skuName":"heavenpink精华多用棒持久保湿滋润口红水光腮红唇膏","spuId":163
+index-BOvIvun6.js:51 2026-02-26T06:13:47.191Z - card事件JSON数据延续: d":1799257,"skuName":"JOOCYEE酵色粉雾口红笔哑光时髦气质唇膏口红波嬉风","spuId":163297},{"biddingPrice":50.00,"brandName":"INTO YOU","img":"https://img1.aimkeji.com/p/788456627481/2/5419743089580.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":50.00,"skuId":1772860,"skuName":"INTO YOU心慕与你镜光口红唇膏女滋润保湿轻盈镜面护唇亮 正品","spuId":162059},{"biddingPrice":26.00,"brandName":"碧奥泉","img":"https://img1.aimkeji.com/p/534769317751/2/4188735404690.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":26.00,"skuId":1701143,"skuName":"碧奥泉胡萝卜素口红持久保湿滋润学生款小众品牌正品变色口红唇膏","spuId":158832},{"biddingPrice":69.90,"brandName":"Luona Noess/罗娜女神","img":"https://img1.aimkeji.com/p/763641963068/2/6104042190898.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":69.90,"skuId":1765102,"skuName":"罗娜女神黑魔法秘境口红唇釉不掉色不沾杯保湿滋润变色唇膏 ","spuId":161754},{"biddingPrice":140.00,"brandName":"儒意","img":"https://img1.aimkeji.com/p/957341504331/2/5881149720701.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":140.00,"skuId":1825130,"skuName":"口红柔雾哑光唇泥唇釉唇膏素颜显白不掉色不易沾杯正品  ","spuId":164921},{"biddingPrice":69.00,"brandName":"Joocyee/酵色","img":"https://img1.aimkeji.com/p/876954925785/2/5715221044139.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":69.00,"skuId":1800872,"skuName":"Joocyee/酵色粉雾口红笔唇膏哑光雾面粉棕秋冬复古旅行装","spuId":163416},{"biddingPrice":200.00,"brandName":"MAC/魅可","img":"https://img1.aimkeji.com/p/761656138483/2/5247840460890.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":200.00,"skuId":1763960,"skuName":"【鞠婧祎同款】MAC/魅可大子弹头口红唇膏哑光滋润683/602/666","spuId":161687},{"biddingPrice":150.00,"brandName":"3CE/三熹玉","img":"https://img1.aimkeji.com/p/632491135178/2/4682621858668.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":150.00,"skuId":1711026,"skuName":"3CE透明口红哑光丝绒显白玫瑰落日红泥礼物T","spuId":159657},{"biddingPrice":210.00,"brandName":"MAC/魅可","img":"https://img1.aimkeji.com/p/653190375393/2/5550365471305.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":210.00,"skuId":1714843,"skuName":"  MAC/魅可水漾子弹头口红唇膏保湿滋润显色544/543","spuId":159928},{"biddingPrice":26.53,"brandName":"植物主义","img":"https://img1.aimkeji.com/p/848939334129/2/5666041436557.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":26.53,"skuId":1794216,"skuName":"植物主义口红秋冬滋润化妆品 正品不易掉色不易沾杯唇釉润唇膏","spuId":163075},{"biddingPrice":9.90,"brandName":"ELLE","img":"https://img1.aimkeji.com/p/610924582741/2/4468276658614.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":9.90,"skuId":1708108,"skuName":"ELLE时尚细管唇膏妆效哑光唇膏口红效期到25年11月","spuId":159435},{"biddingPrice":138.00,"brandName":"heaven pink","img":"https://img1.aimkeji.com/p/912087633548/2/6008549202867.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":138.00,"skuId":1810826,"skuName":"heavenpink精华多用棒持久保湿滋润口红水光腮红唇膏","spuId":163
+index-BOvIvun6.js:50 2026-02-26T06:13:47.200Z - 处理SSE缓冲区: 999},{"biddingPrice":129.00,"brandName":"CARSLAN/卡姿兰","img":"https://img1.aimkeji.com/p/964202070130/2/6070932134828.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":129.00,"skuId":1827970,"skuName":"卡姿兰口红唇釉不掉色不沾杯显白素颜淡妆口红礼盒大牌 正品女","spuId":165147},{"biddingPrice":399.90,"brandName":"IAJ","img":"https://img1.aimkeji.com/p/963788859348/2/6071841183372.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":399.90,"skuId":1828591,"skuName":"iaj高定丝绒迷雾唇膏A4","spuId":165176},{"biddingPrice":158.00,"brandName":"Joocyee/酵色","img":"https://img1.aimkeji.com/p/790221034874/2/6106239127546.png?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":158.00,"skuId":1772821,"skuName":"[秋冬新色]酵色固体唇蜜镜面水光棕色琥珀568口红唇釉 两件减40","spuId":162051},{"biddingPrice":72.00,"brandName":"canmake/井田","img":"https://img1.aimkeji.com/p/533842809282/2/5342764982643.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":72.00,"skuId":1700967,"skuName":"CANMAKE/井田日本高保湿防晒唇膏口红女滋润吃土色蜜桃色09/16/19","spuId":158810},{"biddingPrice":40.00,"brandName":"CARSLAN/卡姿兰","img":"https://img1.aimkeji.com/p/610649570729/2/5968924543351.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":40.00,"skuId":1708217,"skuName":"卡姿兰变色润唇膏女保湿滋润去死皮淡化唇纹 正品唇彩口红唇釉","spuId":159447}],"round":1772086429102,"messageId":"conv_20260226061338_e94f57a1-14bf-4c36-b424-c17b1a3c310b"}
+
+event:guess
+data:{"round":1772086429102,"guessList":["显白持妆的口红","花西子和INTO YOU口红","滋润淡纹的润唇膏"],"messageId":"conv_20260226061338_e94f57a1-14bf-4c36-b424-c17b1a3c310b"}
+
+
+index-BOvIvun6.js:51 2026-02-26T06:13:47.200Z - card事件JSON数据延续: 999},{"biddingPrice":129.00,"brandName":"CARSLAN/卡姿兰","img":"https://img1.aimkeji.com/p/964202070130/2/6070932134828.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":129.00,"skuId":1827970,"skuName":"卡姿兰口红唇釉不掉色不沾杯显白素颜淡妆口红礼盒大牌 正品女","spuId":165147},{"biddingPrice":399.90,"brandName":"IAJ","img":"https://img1.aimkeji.com/p/963788859348/2/6071841183372.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":399.90,"skuId":1828591,"skuName":"iaj高定丝绒迷雾唇膏A4","spuId":165176},{"biddingPrice":158.00,"brandName":"Joocyee/酵色","img":"https://img1.aimkeji.com/p/790221034874/2/6106239127546.png?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":158.00,"skuId":1772821,"skuName":"[秋冬新色]酵色固体唇蜜镜面水光棕色琥珀568口红唇釉 两件减40","spuId":162051},{"biddingPrice":72.00,"brandName":"canmake/井田","img":"https://img1.aimkeji.com/p/533842809282/2/5342764982643.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":72.00,"skuId":1700967,"skuName":"CANMAKE/井田日本高保湿防晒唇膏口红女滋润吃土色蜜桃色09/16/19","spuId":158810},{"biddingPrice":40.00,"brandName":"CARSLAN/卡姿兰","img":"https://img1.aimkeji.com/p/610649570729/2/5968924543351.jpg?x-tos-process=image/watermark,type_d3F5LXplbmhlaQ,size_30,text_QUlN,color_FFFFFF,shadow_80,t_100,g_se,x_10,y_10","price":40.00,"skuId":1708217,"skuName":"卡姿兰变色润唇膏女保湿滋润去死皮淡化唇纹 正品唇彩口红唇釉","spuId":159447}],"round":1772086429102,"messageId":"conv_20260226061338_e94f57a1-14bf-4c36-b424-c17b1a3c310b"}
+index-BOvIvun6.js:51 2026-02-26T06:13:47.200Z - 处理完整SSE事件: {event: 'card', data: '{"skuList":[{"biddingPrice":410.00,"brandName":"YS…0226061338_e94f57a1-14bf-4c36-b424-c17b1a3c310b"}'}
+index-BOvIvun6.js:51 2026-02-26T06:13:47.200Z - JSON解析成功: {skuList: Array(37), round: 1772086429102, messageId: 'conv_20260226061338_e94f57a1-14bf-4c36-b424-c17b1a3c310b'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'card', data: {…}}
+index-BOvIvun6.js:51 处理SSE消息: card {skuList: Array(37), round: 1772086429102, messageId: 'conv_20260226061338_e94f57a1-14bf-4c36-b424-c17b1a3c310b'}
+index-BOvIvun6.js:51 2026-02-26T06:13:47.200Z - 解析到event类型: guess
+index-BOvIvun6.js:51 2026-02-26T06:13:47.200Z - 解析到data内容: {"round":1772086429102,"guessList":["显白持妆的口红","花西子和INTO YOU口红","滋润淡纹的润唇膏"],"messageId":"conv_20260226061338_e94f57a1-14bf-4c36-b424-c17b1a3c310b"}
+index-BOvIvun6.js:51 2026-02-26T06:13:47.201Z - 处理完整SSE事件: {event: 'guess', data: '{"round":1772086429102,"guessList":["显白持妆的口红","花西子…0226061338_e94f57a1-14bf-4c36-b424-c17b1a3c310b"}'}
+index-BOvIvun6.js:51 2026-02-26T06:13:47.201Z - JSON解析成功: {round: 1772086429102, guessList: Array(3), messageId: 'conv_20260226061338_e94f57a1-14bf-4c36-b424-c17b1a3c310b'}
+index-BOvIvun6.js:51 收到解析后的事件: {event: 'guess', data: {…}}
+index-BOvIvun6.js:51 处理SSE消息: guess {round: 1772086429102, guessList: Array(3), messageId: 'conv_20260226061338_e94f57a1-14bf-4c36-b424-c17b1a3c310b'}
+index-BOvIvun6.js:50 2026-02-26T06:13:47.201Z - SSE流结束，持续时间: 8.69秒

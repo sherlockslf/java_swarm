@@ -1,0 +1,192 @@
+from openai import AsyncOpenAI, RateLimitError, BadRequestError, AuthenticationError
+from openai.types.chat import ChatCompletionMessage
+
+from langchain_openai import ChatOpenAI
+
+import json
+import os, traceback
+import asyncio
+from queue import Queue
+import itertools
+
+# 如果独立部署必须要复制以下文件 =========================
+from config import settings
+from pipeline.workflow.state import AgentState
+from component.logger import agent_log
+# ======================================================
+
+class LLMAPI:
+    
+    def __init__(self):
+        self.api_keys = settings.llm.tongyi.api_key
+        # 维护一个key池，供langchain方式使用
+        self.key_pool = itertools.cycle(self.api_keys)
+        
+        # 创建连接池
+        conns = [AsyncOpenAI(api_key=key, base_url=settings.llm.tongyi.url) 
+                 for key in self.api_keys]
+        self.conn_pool = itertools.cycle(conns)
+        # 最大同时请求数，默认为key数量的3倍，超过该数的请求会被阻塞
+        self.max_conn = settings.llm.tongyi.max_conn
+        self.semaphore = asyncio.Semaphore(self.max_conn)
+    
+    async def get_key(self):
+        """获取key
+        """
+        async with self.semaphore:
+            key = next(self.key_pool)
+        return key
+    
+    async def get_wrapped_llm(self,
+        model_name: str="qwen-flash",
+        temperature: float = 0.2 # Set temperature to 0 for deterministic rewriting
+    ):
+        """获取包装后的llm
+        """
+        key = await self.get_key()
+        llm = ChatOpenAI(
+            model_name=model_name,
+            temperature=temperature,
+            api_key=key,
+            base_url=settings.llm.tongyi.url,
+        )
+        return llm
+    
+    async def llm_ainvoke(self,
+                        messages, 
+                        model_name: str,
+                        temperature: float = 0.2, 
+                        tools: list[dict] = None,
+                        trial: int = 0,
+                        extra_body: dict = None,
+                        use_thinking: bool=False,
+                        use_usage: bool=False,
+                        use_full_response: bool=False,
+                    ):
+        """
+        调用大模型接口，一次性返回结果
+        """
+        if trial >= settings.llm.max_trials:
+            await agent_log.warning(f"llm_ainvoke: max trials reached, model={model_name}, messages={messages}")
+            return 
+        
+        response = {}
+        if model_name in settings.llm.tongyi.models:
+            try:
+                async with self.semaphore:
+                    conn = next(self.conn_pool)
+                    
+                    try: 
+                        response = await conn.chat.completions.create(
+                            model=model_name, 
+                            messages=messages, 
+                            stream=False,
+                            temperature=temperature,
+                            tools=tools,
+                            extra_body={
+                                'enable_thinking': use_thinking,
+                                'thinking_budget': 500,
+                            } | (extra_body or {}),
+                        )
+                    
+                    except RateLimitError as e:
+                        await agent_log.warning(f"(429)Rate limit exceeded. Retry: {trial}, api key: {conn.api_key}", e=e)
+                        return await self.llm_ainvoke(messages, model_name, tools, trial+1)
+                    except BadRequestError as e:
+                        # bad request, probably VERY ILLEGAL input
+                        # special handling required
+                        await agent_log.warning(f"(400)Bad request, key: {conn.api_key}", e=e, use_trace=True)
+                        return {}
+                    except AuthenticationError as e:
+                        await agent_log.warning(f"(401)Authentication error. Retry: {trial}, invalid api key: {conn.api_key}", e=e, use_trace=True)
+                        return await self.llm_ainvoke(messages, model_name, tools, trial+1)
+                    except Exception as e:
+                        await agent_log.warning(f"LLM API Error", e=e, use_trace=True)
+                        return {}
+                if use_full_response:
+                    return_message = response
+                else:
+                    return_message = response.choices[0].message
+                
+                if use_usage:
+                    return return_message, response.usage
+                else:
+                    return return_message
+            
+            except Exception as e:
+                await agent_log.warning(f"LLM API Parse Error, raw resp: {response}", e=e, use_trace=True)
+                return {}
+        else:
+            await agent_log.warning(f"Wrong model name: {model_name} is not supported")
+            return {}
+        
+    
+    async def llm_ainvoke_stream(self,
+                        messages, 
+                        model_name: str,
+                        temperature: float = 0.2, 
+                        tools: list[dict] = None,
+                        extra_body: dict = None,
+                        use_thinking: bool=False,
+                        use_usage: bool=False,
+                        use_full_response: bool=False
+                    ):
+        """
+        流式获取大模型结果
+        """
+        trial = 0
+        response = {}
+        
+        while trial < settings.llm.max_trials:
+            if model_name in settings.llm.tongyi.models:
+                try:
+                    async with self.semaphore:
+                        conn = next(self.conn_pool)
+                        
+                        try: 
+                            response = await conn.chat.completions.create(
+                                model=model_name, 
+                                messages=messages, 
+                                stream=True,
+                                temperature=temperature,
+                                tools=tools,
+                                extra_body={
+                                    'enable_thinking': use_thinking,
+                                    'thinking_budget': 500,
+                                } | (extra_body or {}),
+                            )
+                            
+                            async for chunk in response:
+                                if use_full_response:
+                                    yield chunk
+                                else:
+                                    payload = chunk.choices[0].delta
+                                    if payload.content or payload.reasoning_content or payload.tool_calls:
+                                        yield payload
+                                
+                            return
+                        except RateLimitError as e:
+                            trial += 1
+                            await agent_log.warning(f"(stream)(429)Rate limit exceeded. Retry: {trial}, api key: {conn.api_key}", e=e)
+                            continue
+                        except RateLimitError as e:
+                            trial += 1
+                            await agent_log.warning(f"(stream)(401)Authentication error. Retry: {trial}, invalid api key: {conn.api_key}", e=e, use_trace=True)
+                            continue
+                        except Exception as e:
+                            await agent_log.warning(f"LLM API(stream) Error: {e}, retrying {trial} time...\n{traceback.format_exc()}")
+                            break
+                except Exception as e:
+                    await agent_log.warning(f"LLM API(stream) Error: {e}, retrying {trial} time...\n{traceback.format_exc()}")
+                    break
+            else:
+                await agent_log.warning(f"Wrong model name: {model_name} is not supported")
+                break
+        if trial >= settings.llm.max_trials:
+            await agent_log.warning("(stream) max trial reached, stop retrying...")
+        else:
+            await agent_log.warning("(stream) error in llm api, stop retrying...")
+        return
+        
+
+

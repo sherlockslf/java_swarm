@@ -1,0 +1,9 @@
+- [x] main-service 的 /api/shopping/stream 在 done 之前持续输出多个 SSE 增量事件（非长时间无输出后集中吐出）
+- [x] RealQwenLlmClient 流式主路径不再通过 subscribe 回调桥接（改为返回 Flux）
+- [x] 取消或显著弱化 publishOn/无背压缓冲导致的“先攒后吐”行为
+- [x] 单元测试覆盖 Qwen stream chunk → delta 的解析逻辑
+- [x] chat_stream.html 观测到 question 的增量渲染在 done 前持续发生（对齐参考实现）
+- [x] chat_stream.html 观测到 summary 事件在 done 前发布并增量渲染
+- [x] OrchestratorService 的 heartbeat 停止条件不会导致主流双订阅（同一次请求上游不会被调用两次）
+- [x] 单个 subAgent 调用失败不会让整体 agentReplay/summary 变空（错误隔离生效）
+- [x] 运行 Maven 代码质量检查（至少 mvn test）通过

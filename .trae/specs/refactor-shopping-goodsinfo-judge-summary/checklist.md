@@ -1,0 +1,7 @@
+- [x] subagent-service 的 seller_a/b/c 实际读取 baonuanneiyi/prompts 下的提示词
+- [x] subagent-service 发送给 LLM 的 merged 输入包含 <GoodsInfo>...goos.txt...</GoodsInfo>
+- [x] OrchestratorService 的 replayMap 保留商家完整回复，不会被 DONE 覆盖
+- [x] OrchestratorService 的 summaryFlux 使用 judge.txt 规则，输入包含 <hidden>/<GoodsInfo>/<subAgentReplay>
+- [x] summaryFlux 无增量或异常时仍会发送 summary fallback 事件
+- [x] 整个 SSE 流最终只发送 1 个 done 事件（含 bestQuote/error），并且 heartbeat 不触发主流双订阅
+- [x] 运行现有与新增单元测试通过（至少 mvn test）

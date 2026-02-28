@@ -1,0 +1,8 @@
+{
+  "id": "default",
+  "preferredBrands": ["Apple"],
+  "constraints": {
+    "delivery": "prefer_fast",
+    "warranty": "official"
+  }
+}

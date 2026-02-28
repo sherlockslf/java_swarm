@@ -1,0 +1,50 @@
+chat_stream.html:103 2026-02-26 14:10:24.620 [UI] onStart
+chat_stream.html:103 2026-02-26 14:10:24.620 [UI] onReset
+chat_stream.html:103 2026-02-26 14:10:24.620 [REQ] startStream body {request: '我想买个保暖内衣，要适合给长辈穿的，保暖防风又贴身，抗菌除臭又好清洗', hidding: '我希望选择一个品质好一点的，价格倒是其次，但是也不能太贵，我预期是170-180，要是涨到了200-230也还行，超过250绝对不行', price: 200, dislike: '不喜欢七匹狼的'}
+chat_stream.html:103 2026-02-26 14:10:25.261 [REQ] response status 200 true
+chat_stream.html:102 2026-02-26 14:10:37.734 [SSE] handleEvent subAgentInfo
+data:[{"enabled":true,"id":"seller_a","name":"A 商家","type":"shopping"},{"enabled":true,"id":"seller_b","name":"B 商家","type":"shopping"},{"enabled":true,"id":"seller_c","name":"C 商家","type":"shopping"}]
+
+event:subAgentReplay
+data:{"agentId":"seller_b","quote":100,"text":"B 商家 推荐方案：报价=100；说明：推荐恒源祥保暖内衣，199元，发货快次日达+顺丰包邮，专为中老年设计加厚罗纹领口和抗菌面料，虽非高端但洗后不变形、除臭效果实测达标。","id":"seller_b","message":"B 商家 推荐方案：报价=100；说明：推荐恒源祥保暖内衣，199元，发货快次日达+顺丰包邮，专为中老年设计加厚罗纹领口和抗菌面料，虽非高端但洗后不变形、除臭效果实测达标。"}
+
+event:subAgentReplay
+data:{"agentId":"seller_b","text":"DONE","id":"seller_b","message":"DONE"}
+
+event:subAgentReplay
+data:{"agentId":"seller_a","quote":100,"text":"A 商家 推荐方案：报价=100；说明：推荐恒源祥加厚抗菌保暖内衣套装，报价199元，专为中老年设计，采用远红外抑菌面料+立体剪裁，防风贴身易清洗，且我们客服7×24小时响应，下单即赠20元售后安心券，穿得不暖或洗后变形随时补发或补贴！","id":"seller_a","message":"A 商家 推荐方案：报价=100；说明：推荐恒源祥加厚抗菌保暖内衣套装，报价199元，专为中老年设计，采用远红外抑菌面料+立体剪裁，防风贴身易清洗，且我们客服7×24小时响应，下单即赠20元售后安心券，穿得不暖或洗后变形随时补发或补贴！"}
+
+event:subAgentReplay
+data:{"agentId":"seller_a","text":"DONE","id":"seller_a","message":"DONE"}
+
+event:subAgentReplay
+data:{"agentId":"seller_c","quote":100,"text":"C 商家 推荐方案：报价=100；说明：推荐「云柔恒温抗菌暖绒内衣套装」，报价899元——专为中老年体感设计，3D立体剪裁贴身不勒，石墨烯远红外蓄热层+银离子长效抗菌，机洗50次仍抑菌率＞99%，贵在用料与工艺，而非标价。","id":"seller_c","message":"C 商家 推荐方案：报价=100；说明：推荐「云柔恒温抗菌暖绒内衣套装」，报价899元——专为中老年体感设计，3D立体剪裁贴身不勒，石墨烯远红外蓄热层+银离子长效抗菌，机洗50次仍抑菌率＞99%，贵在用料与工艺，而非标价。"}
+
+event:subAgentReplay
+data:{"agentId":"seller_c","text":"DONE","id":"seller_c","message":"DONE"}
+
+event:done
+data:{"bestQuote":100} 
+chat_stream.html:102 2026-02-26 14:10:37.734 [UI] append subAgentInfo
+data:[{"enabled":true,"id":"seller_a","name":"A 商家","type":"shopping"},{"enabled":true,"id":"seller_b","name":"B 商家","type":"shopping"},{"enabled":true,"id":"seller_c","name":"C 商家","type":"shopping"}]
+
+event:subAgentReplay
+data:{"agentId":"seller_b","quote":100,"text":"B 商家 推荐方案：报价=100；说明：推荐恒源祥保暖内衣，199元，发货快次日达+顺丰包邮，专为中老年设计加厚罗纹领口和抗菌面料，虽非高端但洗后不变形、除臭效果实测达标。","id":"seller_b","message":"B 商家 推荐方案：报价=100；说明：推荐恒源祥保暖内衣，199元，发货快次日达+顺丰包邮，专为中老年设计加厚罗纹领口和抗菌面料，虽非高端但洗后不变形、除臭效果实测达标。"}
+
+event:subAgentReplay
+data:{"agentId":"seller_b","text":"DONE","id":"seller_b","message":"DONE"}
+
+event:subAgentReplay
+data:{"agentId":"seller_a","quote":100,"text":"A 商家 推荐方案：报价=100；说明：推荐恒源祥加厚抗菌保暖内衣套装，报价199元，专为中老年设计，采用远红外抑菌面料+立体剪裁，防风贴身易清洗，且我们客服7×24小时响应，下单即赠20元售后安心券，穿得不暖或洗后变形随时补发或补贴！","id":"seller_a","message":"A 商家 推荐方案：报价=100；说明：推荐恒源祥加厚抗菌保暖内衣套装，报价199元，专为中老年设计，采用远红外抑菌面料+立体剪裁，防风贴身易清洗，且我们客服7×24小时响应，下单即赠20元售后安心券，穿得不暖或洗后变形随时补发或补贴！"}
+
+event:subAgentReplay
+data:{"agentId":"seller_a","text":"DONE","id":"seller_a","message":"DONE"}
+
+event:subAgentReplay
+data:{"agentId":"seller_c","quote":100,"text":"C 商家 推荐方案：报价=100；说明：推荐「云柔恒温抗菌暖绒内衣套装」，报价899元——专为中老年体感设计，3D立体剪裁贴身不勒，石墨烯远红外蓄热层+银离子长效抗菌，机洗50次仍抑菌率＞99%，贵在用料与工艺，而非标价。","id":"seller_c","message":"C 商家 推荐方案：报价=100；说明：推荐「云柔恒温抗菌暖绒内衣套装」，报价899元——专为中老年体感设计，3D立体剪裁贴身不勒，石墨烯远红外蓄热层+银离子长效抗菌，机洗50次仍抑菌率＞99%，贵在用料与工艺，而非标价。"}
+
+event:subAgentReplay
+data:{"agentId":"seller_c","text":"DONE","id":"seller_c","message":"DONE"}
+
+event:done
+data:{"bestQuote":100} 
