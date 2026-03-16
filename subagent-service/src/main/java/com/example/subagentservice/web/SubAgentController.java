@@ -13,16 +13,21 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Log4j2
 @RestController
 @RequestMapping("/api")
 @Validated
 public class SubAgentController {
+    private static final Pattern PRICE_AFTER_LABEL = Pattern.compile("(?:报价|价格)\\s*[=:：]?\\s*(\\d+(?:\\.\\d{1,2})?)");
+    private static final Pattern PRICE_WITH_YUAN = Pattern.compile("(\\d+(?:\\.\\d{1,2})?)\\s*元");
     private final SubAgentRepository repository;
     private final LlmClient llmClient;
 
@@ -55,19 +60,25 @@ public class SubAgentController {
                     merged.length(), query.getContext() == null ? 0 : query.getContext().size());
         } catch (Exception ignored) {}
         String base = llmClient.generate(prompt, merged);
-        int budget = extractPrice(query.getContext());
-        int delta = Math.abs(def.getId().hashCode()) % 500 + 50;
-        int quote = Math.max(100, budget - delta);
-        String answer = def.getName() + " 推荐方案：报价=" + quote + "；说明：" + base;
+        String answer = base == null ? "" : base.trim();
+        if (answer.isEmpty()) {
+            answer = "暂无可用推荐";
+        }
+        BigDecimal quote = extractQuote(answer);
+        if (quote == null) {
+            int budget = extractPrice(query.getContext());
+            int delta = Math.abs(def.getId().hashCode()) % 500 + 50;
+            quote = BigDecimal.valueOf(Math.max(100, budget - delta));
+        }
         Map<String, Object> meta = new HashMap<>();
         meta.put("model", "mock");
-        meta.put("quote", quote);
+        meta.put("quote", quote.stripTrailingZeros().toPlainString());
         SubAgentReply reply = new SubAgentReply();
         reply.setAgentId(def.getId());
         reply.setAnswer(answer);
         reply.setMeta(meta);
         try {
-            log.info("SubAgent '{}' reply success: quote={}", def.getId(), quote);
+            log.info("SubAgent '{}' reply success: quote={}", def.getId(), quote.stripTrailingZeros().toPlainString());
         } catch (Exception ignored) {}
         return ResponseEntity.ok(reply);
     }
@@ -80,5 +91,26 @@ public class SubAgentController {
             try { return Integer.parseInt(s); } catch (Exception ignored) {}
         }
         return 0;
+    }
+
+    private BigDecimal extractQuote(String answer) {
+        if (answer == null || answer.isBlank()) {
+            return null;
+        }
+        Matcher m1 = PRICE_AFTER_LABEL.matcher(answer);
+        if (m1.find()) {
+            try {
+                return new BigDecimal(m1.group(1));
+            } catch (Exception ignored) {
+            }
+        }
+        Matcher m2 = PRICE_WITH_YUAN.matcher(answer);
+        if (m2.find()) {
+            try {
+                return new BigDecimal(m2.group(1));
+            } catch (Exception ignored) {
+            }
+        }
+        return null;
     }
 }

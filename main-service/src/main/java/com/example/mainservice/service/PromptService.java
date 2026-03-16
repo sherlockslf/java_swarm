@@ -1,6 +1,7 @@
 package com.example.mainservice.service;
 
 import com.example.common.util.JsonUtils;
+import com.example.common.util.DataPathResolver;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.Path;
@@ -10,7 +11,10 @@ import java.util.Map;
 public class PromptService {
     public String readBuyerPrompt(String profileId) {
         try {
-            Path dataRoot = Path.of(System.getProperty("user.dir"), "data");
+            Path dataRoot = DataPathResolver.resolveDirectory("MAIN_DATA_DIR",
+                    Path.of("main-service", "data").toString(),
+                    "data"
+            ).orElse(Path.of(System.getProperty("user.dir"), "data"));
             return JsonUtils.readString(dataRoot.resolve(Path.of("prompts","buyer", profileId + ".txt")));
         } catch (Exception e) {
             return "";
@@ -18,7 +22,10 @@ public class PromptService {
     }
     public Map readBuyerProfile(String profileId) {
         try {
-            Path dataRoot = Path.of(System.getProperty("user.dir"), "data");
+            Path dataRoot = DataPathResolver.resolveDirectory("MAIN_DATA_DIR",
+                    Path.of("main-service", "data").toString(),
+                    "data"
+            ).orElse(Path.of(System.getProperty("user.dir"), "data"));
             return JsonUtils.readObject(dataRoot.resolve(Path.of("profiles","buyer", profileId + ".json")), Map.class);
         } catch (Exception e) {
             return Map.of();

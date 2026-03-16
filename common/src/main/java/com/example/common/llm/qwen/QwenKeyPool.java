@@ -1,5 +1,7 @@
 package com.example.common.llm.qwen;
 
+import com.example.common.util.DataPathResolver;
+
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -20,13 +22,11 @@ public class QwenKeyPool {
     }
 
     public static QwenKeyPool loadDefault() throws IOException {
-        String envPath = System.getenv("QWEN_KEYS_FILE");
-        Path path;
-        if (envPath != null && !envPath.isBlank()) {
-            path = Path.of(envPath);
-        } else {
-            path = Path.of("d:/metaspace/trae/java_swarm/common/src/main/java/com/example/common/key/keys.txt");
-        }
+        Path path = DataPathResolver.resolveFile("QWEN_KEYS_FILE",
+                Path.of("common", "src", "main", "java", "com", "example", "common", "key", "keys.txt").toString(),
+                Path.of("common", "key", "keys.txt").toString(),
+                Path.of("key", "keys.txt").toString()
+        ).orElse(Path.of(System.getProperty("user.dir"), "common", "src", "main", "java", "com", "example", "common", "key", "keys.txt"));
         List<String> keys = readKeys(path);
         int maxConn = 0;
         String mc = System.getenv("QWEN_MAX_CONN");

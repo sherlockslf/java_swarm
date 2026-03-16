@@ -6,6 +6,7 @@ D:\metaspace\trae\java_swarm\common\src\main\java\com\example\common\llm\MockLlm
 D:\metaspace\trae\java_swarm\common\src\main\java\com\example\common\llm\LlmClientFactory.java
 D:\metaspace\trae\java_swarm\common\src\main\java\com\example\common\dto\SubAgentReply.java
 D:\metaspace\trae\java_swarm\common\src\main\java\com\example\common\dto\ShoppingRequest.java
+D:\metaspace\trae\java_swarm\common\src\main\java\com\example\common\util\DataPathResolver.java
 D:\metaspace\trae\java_swarm\common\src\main\java\com\example\common\dto\Item.java
 D:\metaspace\trae\java_swarm\common\src\main\java\com\example\common\json\Fastjson2HttpMessageConverter.java
 D:\metaspace\trae\java_swarm\common\src\main\java\com\example\common\dto\AlternativeSummary.java

@@ -1,6 +1,7 @@
 package com.example.subagentservice.web;
 
 import com.example.common.dto.SubAgentQuery;
+import com.example.common.dto.SubAgentReply;
 import com.example.common.llm.LlmClient;
 import com.example.subagentservice.repo.SubAgentRepository;
 import org.junit.jupiter.api.Test;
@@ -62,5 +63,44 @@ public class SubAgentControllerGoodsInfoTest {
         assertTrue(merged.contains("<GoodsInfo>"));
         assertTrue(merged.contains("</GoodsInfo>"));
         assertTrue(merged.contains("\"skuId\""));
+    }
+
+    @Test
+    void reply_quoteAlignsWithModelAnswer() throws Exception {
+        Path dataRoot = Files.createTempDirectory("subagent-data");
+        Files.writeString(
+                dataRoot.resolve("subagents.json"),
+                "[{\"id\":\"seller_a\",\"name\":\"A\",\"type\":\"shopping\",\"promptPath\":\"baonuanneiyi/prompts/seller_a.txt\",\"enabled\":true}]",
+                StandardCharsets.UTF_8
+        );
+        Files.createDirectories(dataRoot.resolve(Path.of("baonuanneiyi", "prompts")));
+        Files.writeString(
+                dataRoot.resolve(Path.of("baonuanneiyi", "prompts", "seller_a.txt")),
+                "你是一名导购",
+                StandardCharsets.UTF_8
+        );
+        Files.createDirectories(dataRoot.resolve(Path.of("baonuanneiyi", "goodsinfo")));
+        Files.writeString(
+                dataRoot.resolve(Path.of("baonuanneiyi", "goodsinfo", "goos.txt")),
+                "[{\"skuId\":1}]",
+                StandardCharsets.UTF_8
+        );
+
+        SubAgentRepository repo = new SubAgentRepository(dataRoot);
+        repo.load();
+        LlmClient llm = (systemPrompt, userInput) -> "推荐：报价=89.9；说明：轻薄保暖";
+        SubAgentController controller = new SubAgentController(repo, llm);
+
+        SubAgentQuery q = new SubAgentQuery();
+        q.setQuestion("想买保暖内衣，预算200");
+        q.setContext(Map.of("price", 200));
+
+        ResponseEntity<?> resp = controller.reply("seller_a", q);
+        assertNotNull(resp);
+        assertEquals(200, resp.getStatusCode().value());
+        SubAgentReply reply = (SubAgentReply) resp.getBody();
+        assertNotNull(reply);
+        assertEquals("推荐：报价=89.9；说明：轻薄保暖", reply.getAnswer());
+        assertEquals("89.9", String.valueOf(reply.getMeta().get("quote")));
     }
 }

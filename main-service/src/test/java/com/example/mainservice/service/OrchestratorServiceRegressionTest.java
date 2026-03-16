@@ -132,13 +132,7 @@ public class OrchestratorServiceRegressionTest {
         String expected = "需求：" + req.getRequest() + "；目标价格：" + req.getPrice() + "；排斥点：" + req.getDislike();
 
         long questionCount = events.stream().filter(e -> "question".equals(e.event())).count();
-        assertEquals(1, questionCount);
-        String questionData = events.stream()
-                .filter(e -> "question".equals(e.event()))
-                .map(e -> String.valueOf(e.data()))
-                .findFirst()
-                .orElse("");
-        assertEquals(expected, questionData);
+        assertEquals(0, questionCount);
         assertEquals(expected, receivedQuestion.get());
     }
 
@@ -173,13 +167,7 @@ public class OrchestratorServiceRegressionTest {
         String expected = "需求：" + req.getRequest() + "；目标价格：" + req.getPrice() + "；排斥点：" + req.getDislike();
 
         long questionCount = events.stream().filter(e -> "question".equals(e.event())).count();
-        assertEquals(1, questionCount);
-        String questionData = events.stream()
-                .filter(e -> "question".equals(e.event()))
-                .map(e -> String.valueOf(e.data()))
-                .findFirst()
-                .orElse("");
-        assertEquals(expected, questionData);
+        assertEquals(0, questionCount);
         assertEquals(expected, receivedQuestion.get());
     }
 

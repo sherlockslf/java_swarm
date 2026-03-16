@@ -39,22 +39,22 @@ public class SubAgentDialogueService {
     }
 
     public Flux<ServerSentEvent<String>> toEvents(SubAgentReply r) {
-        int quote = 0;
+        double quote = 0;
         Object qo = r.getMeta() == null ? null : r.getMeta().get("quote");
-        if (qo instanceof Number n) quote = n.intValue();
-        else if (qo instanceof String s) try { quote = Integer.parseInt(s); } catch (Exception ignored) {}
+        if (qo instanceof Number n) quote = n.doubleValue();
+        else if (qo instanceof String s) try { quote = Double.parseDouble(s); } catch (Exception ignored) {}
         String payload = JSON.toJSONString(Map.of(
                 "agentId", r.getAgentId(),
                 "quote", quote,
-                "text", r.getAnswer() == null ? "" : r.getAnswer()
+                "message", r.getAnswer() == null ? "" : r.getAnswer()
         ));
         String done = JSON.toJSONString(Map.of(
                 "agentId", r.getAgentId(),
-                "text", "DONE"
+                "done", true
         ));
         return Flux.just(
                 ServerSentEvent.<String>builder().event("subAgentReplay").data(payload).build(),
-                ServerSentEvent.<String>builder().event("subAgentReplay").data(done).build()
+                ServerSentEvent.<String>builder().event("subAgentDone").data(done).build()
         );
     }
 }
