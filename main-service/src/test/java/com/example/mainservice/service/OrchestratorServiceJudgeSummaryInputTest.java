@@ -20,9 +20,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class OrchestratorServiceJudgeSummaryInputTest {
     @Test
-    void stream_summaryUsesJudgePromptAndTaggedUserInput() {
-        AtomicReference<String> capturedSummarySystem = new AtomicReference<>("");
-        AtomicReference<String> capturedSummaryUser = new AtomicReference<>("");
+    void stream_judgeAndSummayUseTaggedUserInput() {
+        AtomicReference<String> capturedJudgeReplay = new AtomicReference<>("");
+        AtomicReference<String> capturedSummayUser = new AtomicReference<>("");
 
         PromptService promptService = new PromptService() {
             @Override
@@ -52,6 +52,12 @@ public class OrchestratorServiceJudgeSummaryInputTest {
                 r.setMeta(Map.of("quote", 100));
                 return Mono.just(r);
             }
+
+            @Override
+            public Mono<String> requestJudgeOnce(String replayJson, ShoppingRequest request) {
+                capturedJudgeReplay.set(replayJson == null ? "" : replayJson);
+                return Mono.just("{\"pass\":true,\"severe\":false,\"risk_flags\":[],\"reasons\":[],\"fix_advice\":[],\"score\":90}");
+            }
         };
 
         LlmStreamService llmStreamService = new LlmStreamService() {
@@ -59,11 +65,6 @@ public class OrchestratorServiceJudgeSummaryInputTest {
             public Flux<ServerSentEvent<String>> streamTokens(RealQwenLlmClient client, String system, String user, String eventName) {
                 if ("question".equals(eventName)) {
                     return Flux.just(ServerSentEvent.<String>builder().event("question").data("Q").build());
-                }
-                if ("summary".equals(eventName)) {
-                    capturedSummarySystem.set(system == null ? "" : system);
-                    capturedSummaryUser.set(user == null ? "" : user);
-                    return Flux.just(ServerSentEvent.<String>builder().event("summary").data("OK").build());
                 }
                 return Flux.empty();
             }
@@ -73,6 +74,12 @@ public class OrchestratorServiceJudgeSummaryInputTest {
             @Override
             public Flux<String> generateStreamFlux(String systemPrompt, String userInput) {
                 return Flux.empty();
+            }
+
+            @Override
+            public String generate(String systemPrompt, String userInput) {
+                capturedSummayUser.set(userInput == null ? "" : userInput);
+                return "{\"round\":3,\"hasCandidate\":true,\"candidateMerchantId\":\"seller_a\",\"candidateReason\":\"ok\",\"endConversation\":true,\"decisionReason\":\"candidate_found\",\"merchantReviews\":[],\"overallReview\":\"ok\"}";
             }
         };
 
@@ -91,14 +98,11 @@ public class OrchestratorServiceJudgeSummaryInputTest {
 
         assertNotNull(events);
 
-        String sys = capturedSummarySystem.get();
-        String usr = capturedSummaryUser.get();
-        assertTrue(sys.contains("消费判官") || sys.contains("判官"));
-        assertTrue(usr.contains("<hidden>") && usr.contains("</hidden>"));
-        assertTrue(usr.contains("<GoodsInfo>") && usr.contains("</GoodsInfo>"));
-        assertTrue(usr.contains("<subAgentReplay>") && usr.contains("</subAgentReplay>"));
-        assertTrue(usr.contains("A 商家 推荐方案"));
-        assertTrue(!usr.contains("\"reply\":\"DONE\""));
+        String judgeReplay = capturedJudgeReplay.get();
+        String summayUsr = capturedSummayUser.get();
+        assertTrue(judgeReplay.contains("\"subAgentId\""));
+        assertTrue(judgeReplay.contains("\"quote\""));
+        assertTrue(summayUsr.contains("当前轮次="));
+        assertTrue(summayUsr.contains("<RoundHistory>") && summayUsr.contains("</RoundHistory>"));
     }
 }
-

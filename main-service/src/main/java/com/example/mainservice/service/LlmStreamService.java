@@ -10,7 +10,7 @@ import reactor.core.publisher.Mono;
 public class LlmStreamService {
     public Flux<ServerSentEvent<String>> streamTokens(RealQwenLlmClient client, String system, String user, String eventName) {
         Flux<String> tokens = client.generateStreamFlux(system, user);
-        if ("summary".equals(eventName)) {
+        if ("summary".equals(eventName) || "summay".equals(eventName) || "judge".equals(eventName)) {
             tokens = tokens.switchIfEmpty(Mono.fromSupplier(() -> client.generate(system, user))
                     .filter(s -> s != null && !s.isBlank())
                     .flux());

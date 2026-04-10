@@ -1,6 +1,7 @@
 com\example\common\llm\LlmClient.class
 com\example\common\dto\SubAgentQuery.class
 com\example\common\llm\qwen\QwenApiModels.class
+com\example\common\util\DataPathResolver.class
 com\example\common\llm\qwen\QwenApiModels$ChatResponse$Choice.class
 com\example\common\llm\qwen\QwenApiModels$ChatResponse$Usage.class
 com\example\common\llm\qwen\QwenApiModels$ChatResponse.class
@@ -8,6 +9,7 @@ com\example\common\llm\qwen\QwenKeyPool.class
 com\example\common\dto\AlternativeSummary.class
 com\example\common\dto\SubAgentReply.class
 com\example\common\dto\ShoppingRequest.class
+com\example\common\dto\SubAgentJudgeQuery.class
 com\example\common\llm\qwen\QwenApiModels$ChatRequest.class
 com\example\common\dto\AggregatedDecision.class
 com\example\common\llm\RealQwenLlmClient.class

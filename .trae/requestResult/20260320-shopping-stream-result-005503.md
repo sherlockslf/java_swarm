@@ -1,0 +1,98 @@
+# Shopping Stream 测试结果集（20260320-005503）
+
+## 测试输入
+
+```json
+{
+  "request": "我想买个保暖内衣给我女朋友作为情人节礼物，我想买好的，价格可以适当贵一些，可以溢价10%",
+  "hidding": "这是高净值用户，男性，下单不墨迹，追求品质",
+  "price": 300.00,
+  "dislike": "产品质量低和价格低",
+  "quantity": 1,
+  "bundleIntent": false
+}
+```
+
+## 结果摘要
+
+- 轮次：共 3 轮
+- 结束方式：第 3 轮后正常结束（含 done 事件）
+- 最终 bestQuote：218
+- 本文件已保留完整流式原文（单文件）
+
+## 完整流式内容（原文保留）
+
+```text
+event:subAgentInfo
+data:[{"enabled":true,"id":"A","name":"A 商家","type":"shopping"},{"enabled":true,"id":"B","name":"B 商家","type":"shopping"},{"enabled":true,"id":"C","name":"C 商家","type":"shopping"}]
+
+event:subAgentReplay
+data:{"subAgentId":"B","quote":218.9,"round":1,"coupon":{"original_price":243.2,"subsidy_by":"店铺批量优惠","stackable":true,"after_coupon_price":218.9,"coupon_desc":"2件以上或同店凑单，挂牌价243.2再优惠到218.9"},"price":218.9,"tag":["批发优势","打包优惠","价格透明"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：批发优势、打包优惠、价格透明。优惠信息：原价243.2，券后218.9，补贴主体店铺批量优惠，可叠加=true，说明：2件以上或同店凑单，挂牌价243.2再优惠到218.9。","skuId":"1752166"}
+
+event:judge
+data:{"score":92,"fix_advice":[],"risk_flags":[],"reasons":[],"pass":true,"merchantId":"B","severe":false}
+
+event:subAgentReplay
+data:{"subAgentId":"A","quote":218.9,"round":1,"coupon":{"original_price":243.2,"subsidy_by":"店铺券","stackable":false,"after_coupon_price":218.9,"coupon_desc":"挂牌价243.2，店铺券后218.9"},"price":218.9,"tag":["品质稳定","服务热情","预算内"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：品质稳定、服务热情、预算内。优惠信息：原价243.2，券后218.9，补贴主体店铺券，可叠加=false，说明：挂牌价243.2，店铺券后218.9。","skuId":"1752166"}
+
+event:judge
+data:{"score":92,"fix_advice":[],"risk_flags":[],"reasons":[],"pass":true,"merchantId":"A","severe":false}
+
+event:subAgentReplay
+data:{"subAgentId":"C","quote":218.9,"round":1,"coupon":{"original_price":230.0,"subsidy_by":"店铺活动","stackable":false,"after_coupon_price":218.9,"coupon_desc":"根据用户愿溢价10%且重品质的需求，精选简·云羊毛蚕丝德绒中厚款，挂牌价230，券后218.9"},"price":218.9,"tag":["动态应对","价格可解释","预算内"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：动态应对、价格可解释、预算内。优惠信息：原价230.0，券后218.9，补贴主体店铺活动，可叠加=false，说明：根据用户愿溢价10%且重品质的需求，精选简·云羊毛蚕丝德绒中厚款，挂牌价230，券后218.9。","skuId":"1752166"}
+
+event:judge
+data:{"score":96,"fix_advice":[],"risk_flags":[],"reasons":[],"pass":true,"merchantId":"C","severe":false}
+
+event:heartbeat
+data:0
+
+event:subAgentReplay
+data:{"subAgentId":"A","quote":218.9,"round":2,"coupon":{"original_price":243.2,"subsidy_by":"店铺券","stackable":false,"after_coupon_price":218.9,"coupon_desc":"挂牌价243.2，店铺券后218.9；本轮聚焦品质稳定性与服务响应，不参与低价内卷，坚持高质高价原则"},"price":218.9,"tag":["品质稳定","服务热情","预算内","本轮调整"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：品质稳定、服务热情、预算内、本轮调整。优惠信息：原价243.2，券后218.9，补贴主体店铺券，可叠加=false，说明：挂牌价243.2，店铺券后218.9；本轮聚焦品质稳定性与服务响应，不参与低价内卷，坚持高质高价原则。","skuId":"1752166"}
+
+event:judge
+data:{"score":92,"fix_advice":[],"risk_flags":[],"reasons":[],"pass":true,"merchantId":"A","severe":false}
+
+event:subAgentReplay
+data:{"subAgentId":"B","quote":218.9,"round":2,"coupon":{"original_price":243.2,"subsidy_by":"店铺批量优惠","stackable":true,"after_coupon_price":218.9,"coupon_desc":"2件以上或同店凑单，挂牌价243.2再优惠到218.9；本轮强化叠加性——竞品券不可叠，我方优惠可与其他活动同享"},"price":218.9,"tag":["批发优势","打包优惠","价格透明","本轮反制：同价但可叠加"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：批发优势、打包优惠、价格透明、本轮反制：同价但可叠加。优惠信息：原价243.2，券后218.9，补贴主体店铺批量优惠，可叠加=true，说明：2件以上或同店凑单，挂牌价243.2再优惠到218.9；本轮强化叠加性——竞品券不可叠，我方优惠可与其他活动同享。","skuId":"1752166"}
+
+event:judge
+data:{"score":92,"fix_advice":[],"risk_flags":[],"reasons":[],"pass":true,"merchantId":"B","severe":false}
+
+event:subAgentReplay
+data:{"subAgentId":"C","quote":298.0,"round":2,"coupon":{"original_price":298.0,"subsidy_by":"无补贴","stackable":true,"after_coupon_price":298.0,"coupon_desc":"无"},"price":298.0,"tag":[],"message":"推荐商品ID 1778198，当前报价 298.0 元，理由：匹配你的核心需求。优惠信息：原价298.0，券后298.0，补贴主体无补贴，可叠加=true，说明：无。","skuId":"1778198"}
+
+event:judge
+data:{"score":92,"fix_advice":[],"risk_flags":[],"reasons":[],"pass":true,"merchantId":"C","severe":false}
+
+event:heartbeat
+data:1
+
+event:subAgentReplay
+data:{"subAgentId":"A","quote":218.9,"round":3,"coupon":{"original_price":243.2,"subsidy_by":"店铺券","stackable":false,"after_coupon_price":218.9,"coupon_desc":"挂牌价243.2，店铺券后218.9；本轮聚焦品质稳定性与服务响应，不参与低价内卷，坚持高质高价原则"},"price":218.9,"tag":["品质稳定","服务热情","预算内","本轮调整"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：品质稳定、服务热情、预算内、本轮调整。优惠信息：原价243.2，券后218.9，补贴主体店铺券，可叠加=false，说明：挂牌价243.2，店铺券后218.9；本轮聚焦品质稳定性与服务响应，不参与低价内卷，坚持高质高价原则。","skuId":"1752166"}
+
+event:judge
+data:{"score":92,"fix_advice":[],"risk_flags":[],"reasons":[],"pass":true,"merchantId":"A","severe":false}
+
+event:subAgentReplay
+data:{"subAgentId":"B","quote":218.9,"round":3,"coupon":{"original_price":243.2,"subsidy_by":"店铺批量优惠","stackable":true,"after_coupon_price":218.9,"coupon_desc":"2件以上或同店凑单，挂牌价243.2再优惠到218.9；本轮强化情人节礼赠适配性——支持单件高品质交付，同时保留批量叠加权益（如加购袜子/收纳袋享折上折）"},"price":218.9,"tag":["批发优势","打包优惠","价格透明","本轮反制：同价但可叠加且支持情人节礼赠场景"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：批发优势、打包优惠、价格透明、本轮反制：同价但可叠加且支持情人节礼赠场景。优惠信息：原价243.2，券后218.9，补贴主体店铺批量优惠，可叠加=true，说明：2件以上或同店凑单，挂牌价243.2再优惠到218.9；本轮强化情人节礼赠适配性——支持单件高品质交付，同时保留批量叠加权益（如加购袜子/收纳袋享折上折）。","skuId":"1752166"}
+
+event:judge
+data:{"score":92,"fix_advice":[],"risk_flags":[],"reasons":[],"pass":true,"merchantId":"B","severe":false}
+
+event:subAgentReplay
+data:{"subAgentId":"C","quote":218.9,"round":3,"coupon":{"original_price":230.0,"subsidy_by":"店铺活动","stackable":false,"after_coupon_price":218.9,"coupon_desc":"根据本轮对话调整，挂牌价230，活动后218.9；竞品报价同为218.9但未说明材质构成，本品明确含羊毛+蚕丝+德绒三重发热层，且支持开箱验货"},"price":218.9,"tag":["动态应对","价格可解释","预算内","本轮调整依据：竞品同价但服务维度未强化，故聚焦材质实证与交付保障"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：动态应对、价格可解释、预算内、本轮调整依据：竞品同价但服务维度未强化，故聚焦材质实证与交付保障。优惠信息：原价230.0，券后218.9，补贴主体店铺活动，可叠加=false，说明：根据本轮对话调整，挂牌价230，活动后218.9；竞品报价同为218.9但未说明材质构成，本品明确含羊毛+蚕丝+德绒三重发热层，且支持开箱验货。","skuId":"1752166"}
+
+event:judge
+data:{"score":96,"fix_advice":[],"risk_flags":[],"reasons":[],"pass":true,"merchantId":"C","severe":false}
+
+event:heartbeat
+data:2
+
+event:summay
+data:{"review":"本轮总结采用兜底结果，请根据实时judge与商家回复继续判断。","decisionReason":"no_delta","detail":"","endConversation":true,"hasCandidate":false,"round":3,"reason":"no_delta"}
+
+event:done
+data:{"replyCount":3,"type":"done","bestQuote":218}
+```
+

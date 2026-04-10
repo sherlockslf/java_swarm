@@ -1,6 +1,7 @@
 package com.example.subagentservice.repo;
 
 import com.example.common.dto.SubAgentInfo;
+import com.example.common.util.DataPathResolver;
 import com.example.common.util.JsonUtils;
 import com.example.subagentservice.model.SubAgentDef;
 
@@ -14,10 +15,16 @@ import java.util.stream.Collectors;
 
 public class SubAgentRepository {
     private final Path dataRoot;
+    private final Path goodsInfoPath;
     private volatile List<SubAgentDef> cache;
 
     public SubAgentRepository(Path dataRoot) {
+        this(dataRoot, resolveDefaultGoodsInfoPath());
+    }
+
+    public SubAgentRepository(Path dataRoot, Path goodsInfoPath) {
         this.dataRoot = dataRoot;
+        this.goodsInfoPath = goodsInfoPath;
     }
 
     public synchronized void load() throws IOException {
@@ -56,10 +63,28 @@ public class SubAgentRepository {
         return JsonUtils.readString(dataRoot.resolve(def.getPromptPath()));
     }
 
-    public String readGoodsInfo(SubAgentDef def) {
-        // 根据 promptPath 推导同一场景目录下的 goodsinfo/goos.txt 并读取
+    public String readJudgePrompt() {
         try {
-            Path p = resolveGoodsInfoPath(def);
+            Path p1 = dataRoot.resolve("prompts").resolve("judge.txt");
+            if (Files.exists(p1)) {
+                return JsonUtils.readString(p1);
+            }
+            Path p2 = dataRoot.resolve("baonuanneiyi").resolve("prompts").resolve("judge.txt");
+            if (Files.exists(p2)) {
+                return JsonUtils.readString(p2);
+            }
+        } catch (Exception ignored) {
+        }
+        return "";
+    }
+
+    public String readGoodsInfo() {
+        return readGoodsInfo(null);
+    }
+
+    public String readGoodsInfo(SubAgentDef def) {
+        try {
+            Path p = goodsInfoPath;
             if (p != null && Files.exists(p)) {
                 return JsonUtils.readString(p);
             }
@@ -68,14 +93,10 @@ public class SubAgentRepository {
         return "";
     }
 
-    private Path resolveGoodsInfoPath(SubAgentDef def) {
-        // 优先按“{scene}/prompts/*”推导为“{scene}/goodsinfo/goos.txt”，否则回退到 dataRoot/goodsinfo/goos.txt
-        if (def == null || def.getPromptPath() == null || def.getPromptPath().isBlank()) {
-            return dataRoot.resolve(Path.of("goodsinfo", "goos.txt"));
-        }
-        String pp = def.getPromptPath().replace('\\', '/');
-        int idx = pp.indexOf("/prompts/");
-        String rel = idx > 0 ? (pp.substring(0, idx) + "/goodsinfo/goos.txt") : "goodsinfo/goos.txt";
-        return dataRoot.resolve(rel);
+    private static Path resolveDefaultGoodsInfoPath() {
+        return DataPathResolver.resolveFile(
+                        "GOODS_INFO_FILE",
+                        Path.of("common", "goodsInfo", "data-mapped.json").toString())
+                .orElse(Path.of(System.getProperty("user.dir"), "common", "goodsInfo", "data-mapped.json"));
     }
 }

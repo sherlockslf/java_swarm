@@ -1,0 +1,233 @@
+# Shopping Stream 测试结果集（20260320-001336）
+
+## 测试输入
+
+```json
+{
+  "request": "我想买个保暖内衣给我女朋友作为情人节礼物，我想买好的，价格可以适当贵一些，可以溢价10%",
+  "hidding": "这是高净值用户，男性，下单不墨迹，追求品质",
+  "price": 300.00,
+  "dislike": "产品质量低和价格低",
+  "quantity": 1,
+  "bundleIntent": false
+}
+```
+
+## 结果摘要
+
+- 轮次：共 3 轮
+- 结束方式：第 3 轮后正常结束（含 done 事件）
+- 最终 bestQuote：179
+- 本文件已保留完整流式原文（单文件）
+
+## 完整流式内容（原文保留）
+
+```text
+event:subAgentInfo
+data:[{"enabled":true,"id":"A","name":"A 商家","type":"shopping"},{"enabled":true,"id":"B","name":"B 商家","type":"shopping"},{"enabled":true,"id":"C","name":"C 商家","type":"shopping"}]
+
+event:subAgentReplay
+data:{"subAgentId":"B","quote":218.9,"round":1,"coupon":{"original_price":239.8,"subsidy_by":"店铺批量优惠","stackable":true,"after_coupon_price":218.9,"coupon_desc":"2件以上或同店凑单，挂牌价239.8再优惠到218.9"},"price":218.9,"tag":["批发优势","打包优惠","价格透明"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：批发优势、打包优惠、价格透明。优惠信息：原价239.8，券后218.9，补贴主体店铺批量优惠，可叠加=true，说明：2件以上或同店凑单，挂牌价239.8再优惠到218.9。","skuId":"1752166"}
+
+event:judge
+data:{
+data:  "pass": true,
+data:  "severe": false,
+data:  "risk_flags": [],
+data:  "reasons": [],
+data:  "fix_advice": [],
+data:  "score": 92
+data:}
+
+event:subAgentDone
+data:{"done":true,"agentId":"B","round":1}
+
+event:subAgentReplay
+data:{"subAgentId":"A","quote":218.9,"round":1,"coupon":{"original_price":238.9,"subsidy_by":"店铺券","stackable":false,"after_coupon_price":218.9,"coupon_desc":"挂牌价238.9，店铺券后218.9"},"price":218.9,"tag":["品质稳定","服务热情","预算内"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：品质稳定、服务热情、预算内。优惠信息：原价238.9，券后218.9，补贴主体店铺券，可叠加=false，说明：挂牌价238.9，店铺券后218.9。","skuId":"1752166"}
+
+event:judge
+data:{
+data:  "pass": true,
+data:  "severe": false,
+data:  "risk_flags": [],
+data:  "reasons": [],
+data:  "fix_advice": [],
+data:  "score": 92
+data:}
+
+event:subAgentDone
+data:{"done":true,"agentId":"A","round":1}
+
+event:heartbeat
+data:0
+
+event:subAgentReplay
+data:{"subAgentId":"C","quote":298.0,"round":1,"coupon":{"original_price":298.0,"subsidy_by":"无补贴","stackable":true,"after_coupon_price":298.0,"coupon_desc":"无"},"price":298.0,"tag":[],"message":"推荐商品ID 1778198，当前报价 298.0 元，理由：匹配你的核心需求。优惠信息：原价298.0，券后298.0，补贴主体无补贴，可叠加=true，说明：无。","skuId":"1778198"}
+
+event:judge
+data:{
+data:  "pass": true,
+data:  "severe": false,
+data:  "risk_flags": ["incomplete_coupon_info"],
+data:  "reasons": ["couponInfo中subsidy_by为'无补贴'，但未说明是否平台/商家承担，表述模糊；stackable=true但coupon_desc='无'，逻辑矛盾"],
+data:  "fix_advice": ["将subsidy_by明确为'平台'或'商家'；若无可叠加优惠，应设stackable=false并更新coupon_desc为'暂无可用优惠券'"],
+data:  "score": 85
+data:}
+
+event:subAgentDone
+data:{"done":true,"agentId":"C","round":1}
+
+event:heartbeat
+data:1
+
+event:heartbeat
+data:2
+
+event:heartbeat
+data:3
+
+event:summay
+data:{"decisionReason":"no_delta","review":"本轮总结采用兜底结果，请根据实时judge与商家回复继续判断。","reason":"no_delta","round":1,"hasCandidate":false,"endConversation":false,"detail":""}
+
+event:heartbeat
+data:4
+
+event:subAgentReplay
+data:{"subAgentId":"B","quote":218.9,"round":2,"coupon":{"original_price":239.8,"subsidy_by":"店铺批量优惠","stackable":true,"after_coupon_price":218.9,"coupon_desc":"2件以上或同店凑单，挂牌价239.8再优惠到218.9；本轮特别支持单件高品质礼赠需求，按批发成本结构直给最优价"},"price":218.9,"tag":["批发优势","打包优惠","价格透明"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：批发优势、打包优惠、价格透明。优惠信息：原价239.8，券后218.9，补贴主体店铺批量优惠，可叠加=true，说明：2件以上或同店凑单，挂牌价239.8再优惠到218.9；本轮特别支持单件高品质礼赠需求，按批发成本结构直给最优价。","skuId":"1752166"}
+
+event:heartbeat
+data:5
+
+event:judge
+data:{
+data:  "pass": true,
+data:  "severe": false,
+data:  "risk_flags": ["over_budget"],
+data:  "reasons": ["券后价218.9元虽未超用户300元预算，但用户明确‘可溢价10%’，即最高可接受330元；当前报价218.9元低于指导价199元的110%上限（218.9 < 218.9），表面合规，但‘批发成本结构直给最优价’属无依据主观宣称，且‘单件高品质礼赠需求’被包装为特殊让利理由，构成隐性诱导"],
+data:  "fix_advice": ["删除‘批发成本结构’等不可核验话术；明确说明218.9元为券后实付价，与指导价199元的关系（如：高于指导价9.5%，在用户允许10%溢价范围内）；补充补贴主体为‘店铺’而非模糊的‘店铺批量优惠’"],
+data:  "score": 86
+data:}
+
+event:subAgentDone
+data:{"done":true,"agentId":"B","round":2}
+
+event:subAgentReplay
+data:{"subAgentId":"A","quote":179.0,"round":2,"coupon":{"original_price":199.0,"subsidy_by":"店铺券","stackable":false,"after_coupon_price":179.0,"coupon_desc":"挂牌价199，店铺券后179，本轮调整：精选高质羊毛蚕丝德绒中厚款，品质对标高端但溢价严格控制在6%以内（指导价179/预算300≈59.7%），优于竞品A/B同系列报价且强调售后响应"},"price":179.0,"tag":["品质稳定","服务热情","预算内","本轮调整"],"message":"推荐商品ID 1752182，当前报价 179.0 元，理由：品质稳定、服务热情、预算内、本轮调整。优惠信息：原价199.0，券后179.0，补贴主体店铺券，可叠加=false，说明：挂牌价199，店铺券后179，本轮调整：精选高质羊毛蚕丝德绒中厚款，品质对标高端但溢价严格控制在6%以内（指导价179/预算300≈59.7%），优于竞品A/B同系列报价且强调售后响应。","skuId":"1752182"}
+
+event:judge
+data:{
+data:  "pass": true,
+data:  "severe": false,
+data:  "risk_flags": ["unverifiable_comparison"],
+data:  "reasons": ["声称'优于竞品A/B同系列报价'但未提供竞品名称、型号、价格等可核验依据，属无依据比较"],
+data:  "fix_advice": ["删除或替换为可验证的客观对比（如引用第三方检测报告、平台销量/好评率数据）"],
+data:  "score": 92
+data:}
+
+event:subAgentDone
+data:{"done":true,"agentId":"A","round":2}
+
+event:subAgentReplay
+data:{"subAgentId":"C","quote":218.9,"round":2,"coupon":{"original_price":238.9,"subsidy_by":"店铺券","stackable":false,"after_coupon_price":218.9,"coupon_desc":"根据本轮对话调整，挂牌价238.9，活动后218.9——与竞品A一致，聚焦简·云羊毛蚕丝德绒中厚款（非纯品牌溢价），克重320g、双层面料、无痕工艺，品质扎实且溢价可控"},"price":218.9,"tag":["动态应对","价格可解释","预算内","本轮调整依据：竞品A/B均报218.9且同SKU，已确认该价为市场合理高位，C首轮298报价偏离被风控标记，故回调至真实品质锚点"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：动态应对、价格可解释、预算内、本轮调整依据：竞品A/B均报218.9且同SKU，已确认该价为市场合理高位，C首轮298报价偏离被风控标记，故回调至真实品质锚点。优惠信息：原价238.9，券后218.9，补贴主体店铺券，可叠加=false，说明：根据本轮对话调整，挂牌价238.9，活动后218.9——与竞品A一致，聚焦简·云羊毛蚕丝德绒中厚款（非纯品牌溢价），克重320g、双层面料、无痕工艺，品质扎实且溢价可控。","skuId":"1752166"}
+
+event:judge
+data:{
+data:  "pass": true,
+data:  "severe": false,
+data:  "risk_flags": [],
+data:  "reasons": [],
+data:  "fix_advice": [],
+data:  "score": 92
+data:}
+
+event:subAgentDone
+data:{"done":true,"agentId":"C","round":2}
+
+event:heartbeat
+data:6
+
+event:heartbeat
+data:7
+
+event:heartbeat
+data:8
+
+event:heartbeat
+data:9
+
+event:summay
+data:{"decisionReason":"no_delta","review":"本轮总结采用兜底结果，请根据实时judge与商家回复继续判断。","reason":"no_delta","round":2,"hasCandidate":false,"endConversation":false,"detail":""}
+
+event:heartbeat
+data:10
+
+event:subAgentReplay
+data:{"subAgentId":"A","quote":179.0,"round":3,"coupon":{"original_price":199.0,"subsidy_by":"店铺券","stackable":false,"after_coupon_price":179.0,"coupon_desc":"挂牌价199，店铺券后179，本轮调整：延续高质羊毛蚕丝德绒中厚款（克重320g/双层/无痕），品质对标高端但溢价严格控制在6%以内（179/300=59.7%），优于竞品同SKU报价且强化售后响应"},"price":179.0,"tag":["品质稳定","服务热情","预算内","本轮调整"],"message":"推荐商品ID 1752182，当前报价 179.0 元，理由：品质稳定、服务热情、预算内、本轮调整。优惠信息：原价199.0，券后179.0，补贴主体店铺券，可叠加=false，说明：挂牌价199，店铺券后179，本轮调整：延续高质羊毛蚕丝德绒中厚款（克重320g/双层/无痕），品质对标高端但溢价严格控制在6%以内（179/300=59.7%），优于竞品同SKU报价且强化售后响应。","skuId":"1752182"}
+
+event:judge
+data:{
+data:  "pass": true,
+data:  "severe": false,
+data:  "risk_flags": ["misleading_comparison"],
+data:  "reasons": ["声称'优于竞品同SKU报价'但未提供可核验的竞品信息，属无依据比较"],
+data:  "fix_advice": ["删除'优于竞品同SKU报价'等不可验证表述，或补充具体竞品品牌、型号及价格来源"],
+data:  "score": 86
+data:}
+
+event:subAgentDone
+data:{"done":true,"agentId":"A","round":3}
+
+event:subAgentReplay
+data:{"subAgentId":"C","quote":179.0,"round":3,"coupon":{"original_price":199.0,"subsidy_by":"店铺活动","stackable":false,"after_coupon_price":179.0,"coupon_desc":"根据本轮对话调整，挂牌价199，活动后179——聚焦简·云中厚发热款（杏色/圆领），克重320g、双层面料、无痕工艺，品质扎实且指导价仅179（溢价5.4%），显著优于首轮298报价，回归用户‘高品质+溢价可控’核心诉求"},"price":179.0,"tag":["动态应对","价格可解释","预算内","本轮调整依据：竞品A/B在Round2均转向1752182 SKU并报价179，验证该款为当前市场品质-价格最优解；C首轮未覆盖此高性价比选项，本轮主动补位"],"message":"推荐商品ID 1752182，当前报价 179.0 元，理由：动态应对、价格可解释、预算内、本轮调整依据：竞品A/B在Round2均转向1752182 SKU并报价179，验证该款为当前市场品质-价格最优解；C首轮未覆盖此高性价比选项，本轮主动补位。优惠信息：原价199.0，券后179.0，补贴主体店铺活动，可叠加=false，说明：根据本轮对话调整，挂牌价199，活动后179——聚焦简·云中厚发热款（杏色/圆领），克重320g、双层面料、无痕工艺，品质扎实且指导价仅179（溢价5.4%），显著优于首轮298报价，回归用户‘高品质+溢价可控’核心诉求。","skuId":"1752182"}
+
+event:judge
+data:{
+data:  "pass": true,
+data:  "severe": false,
+data:  "risk_flags": [],
+data:  "reasons": [],
+data:  "fix_advice": [],
+data:  "score": 96
+data:}
+
+event:subAgentDone
+data:{"done":true,"agentId":"C","round":3}
+
+event:subAgentReplay
+data:{"subAgentId":"B","quote":179.0,"round":3,"coupon":{"original_price":199.0,"subsidy_by":"店铺批量优惠","stackable":true,"after_coupon_price":179.0,"coupon_desc":"2件以上或同店凑单，挂牌价199再优惠到179；本轮专为单件高品质礼赠需求优化：同属简·云羊毛蚕丝德绒中厚款（克重320g/双层面料/无痕工艺），但选择更优性价比SKU，指导价179（溢价仅-10.1% vs 市场同类218.9），真正品质扎实、溢价可控"},"price":179.0,"tag":["批发优势","打包优惠","价格透明","本轮与竞品差异化调整"],"message":"推荐商品ID 1752182，当前报价 179.0 元，理由：批发优势、打包优惠、价格透明、本轮与竞品差异化调整。优惠信息：原价199.0，券后179.0，补贴主体店铺批量优惠，可叠加=true，说明：2件以上或同店凑单，挂牌价199再优惠到179；本轮专为单件高品质礼赠需求优化：同属简·云羊毛蚕丝德绒中厚款（克重320g/双层面料/无痕工艺），但选择更优性价比SKU，指导价179（溢价仅-10.1% vs 市场同类218.9），真正品质扎实、溢价可控。","skuId":"1752182"}
+
+event:heartbeat
+data:11
+
+event:judge
+data:{
+data:  "pass": false,
+data:  "severe": true,
+data:  "risk_flags": ["false_comparison", "misleading_pricing"],
+data:  "reasons": ["声称'溢价仅-10.1% vs 市场同类218.9'，但商品指导价179元实际低于用户预算300元且无真实市场对标依据；'挂牌价199再优惠到179'构成虚构原价，违反《明码标价和禁止价格欺诈规定》；'本轮专为单件高品质礼赠需求优化'暗示该SKU为礼赠特供，但商品底表未体现任何礼赠专属属性，属无依据比较与误导性宣传"],
+data:  "fix_advice": ["删除所有无第三方验证的竞品价格对比（如'市场同类218.9'）；将'挂牌价199'改为真实历史成交价或平台统一标价，并提供可追溯凭证；移除'专为单件高品质礼赠需求优化'等无法核验的功能性宣称；明确说明补贴主体为店铺且不具排他性，避免暗示礼赠专属权益"],
+data:  "score": 45
+data:}
+
+event:subAgentDone
+data:{"done":true,"agentId":"B","round":3}
+
+event:heartbeat
+data:12
+
+event:heartbeat
+data:13
+
+event:heartbeat
+data:14
+
+event:heartbeat
+data:15
+
+event:summay
+data:{"decisionReason":"no_delta","review":"本轮总结采用兜底结果，请根据实时judge与商家回复继续判断。","reason":"no_delta","round":3,"hasCandidate":false,"endConversation":true,"detail":""}
+
+event:done
+data:{"replyCount":3,"bestQuote":179,"type":"done"}
+```
+

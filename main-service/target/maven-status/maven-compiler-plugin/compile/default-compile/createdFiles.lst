@@ -1,9 +1,14 @@
-com\example\mainservice\service\PromptService.class
 com\example\mainservice\config\WebFluxClientConfig.class
 com\example\mainservice\service\SubAgentDirectoryService.class
+com\example\mainservice\service\OrchestratorService$RoundDecision.class
+com\example\mainservice\service\SimpleAkkaService.class
+com\example\mainservice\service\SubAgentDialogueService.class
+com\example\mainservice\service\PromptService.class
+com\example\mainservice\service\OrchestratorService$ConversationContext.class
 com\example\mainservice\Config.class
 com\example\mainservice\web\StreamingShoppingController.class
+com\example\mainservice\service\OrchestratorService$RoundSnapshot.class
 com\example\mainservice\service\LlmStreamService.class
-com\example\mainservice\service\SubAgentDialogueService.class
 com\example\mainservice\MainServiceApplication.class
 com\example\mainservice\service\OrchestratorService.class
+com\example\mainservice\config\AkkaConfig.class

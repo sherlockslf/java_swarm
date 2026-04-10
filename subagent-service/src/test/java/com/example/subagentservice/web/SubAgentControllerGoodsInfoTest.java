@@ -32,14 +32,14 @@ public class SubAgentControllerGoodsInfoTest {
                 "你是一名导购，结合<GoodsInfo>推荐商品",
                 StandardCharsets.UTF_8
         );
-        Files.createDirectories(dataRoot.resolve(Path.of("baonuanneiyi", "goodsinfo")));
+        Path goodsFile = Files.createTempFile("goods-mapped", ".json");
         Files.writeString(
-                dataRoot.resolve(Path.of("baonuanneiyi", "goodsinfo", "goos.txt")),
-                "[{\"skuId\":1,\"skuName\":\"X\"}]",
+                goodsFile,
+                "[{\"商品id\":\"1\",\"商品名称\":\"X\",\"当前指导价\":99.9}]",
                 StandardCharsets.UTF_8
         );
 
-        SubAgentRepository repo = new SubAgentRepository(dataRoot);
+        SubAgentRepository repo = new SubAgentRepository(dataRoot, goodsFile);
         repo.load();
 
         AtomicReference<String> capturedUserInput = new AtomicReference<>("");
@@ -62,7 +62,7 @@ public class SubAgentControllerGoodsInfoTest {
         String merged = capturedUserInput.get();
         assertTrue(merged.contains("<GoodsInfo>"));
         assertTrue(merged.contains("</GoodsInfo>"));
-        assertTrue(merged.contains("\"skuId\""));
+        assertTrue(merged.contains("\"商品id\""));
     }
 
     @Test
@@ -79,14 +79,14 @@ public class SubAgentControllerGoodsInfoTest {
                 "你是一名导购",
                 StandardCharsets.UTF_8
         );
-        Files.createDirectories(dataRoot.resolve(Path.of("baonuanneiyi", "goodsinfo")));
+        Path goodsFile = Files.createTempFile("goods-mapped", ".json");
         Files.writeString(
-                dataRoot.resolve(Path.of("baonuanneiyi", "goodsinfo", "goos.txt")),
-                "[{\"skuId\":1}]",
+                goodsFile,
+                "[{\"商品id\":\"1\",\"当前指导价\":99.9}]",
                 StandardCharsets.UTF_8
         );
 
-        SubAgentRepository repo = new SubAgentRepository(dataRoot);
+        SubAgentRepository repo = new SubAgentRepository(dataRoot, goodsFile);
         repo.load();
         LlmClient llm = (systemPrompt, userInput) -> "推荐：报价=89.9；说明：轻薄保暖";
         SubAgentController controller = new SubAgentController(repo, llm);
@@ -100,7 +100,8 @@ public class SubAgentControllerGoodsInfoTest {
         assertEquals(200, resp.getStatusCode().value());
         SubAgentReply reply = (SubAgentReply) resp.getBody();
         assertNotNull(reply);
-        assertEquals("推荐：报价=89.9；说明：轻薄保暖", reply.getAnswer());
+        assertTrue(reply.getAnswer().contains("\"quote\":89.9"));
+        assertTrue(reply.getAnswer().contains("\"product_id\""));
         assertEquals("89.9", String.valueOf(reply.getMeta().get("quote")));
     }
 }

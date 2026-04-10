@@ -1,0 +1,200 @@
+# Shopping Stream 测试结果集（20260319-234923）
+
+## 测试输入
+
+```json
+{
+  "request": "我想买个保暖内衣给我女朋友作为情人节礼物，我想买好的，价格可以适当贵一些，可以溢价10%",
+  "hidding": "这是高净值用户，男性，下单不墨迹，追求品质",
+  "price": 300.00,
+  "dislike": "产品质量低和价格低",
+  "quantity": 1,
+  "bundleIntent": false
+}
+```
+
+## 结果摘要
+
+- 轮次：共 3 轮
+- 结束方式：第 3 轮后结束（含 done 事件）
+- 最终 bestQuote：218
+- 本文件已保留完整流式原文（单文件）
+
+## 完整流式内容（原文保留）
+
+```text
+event:subAgentInfo
+data:[{"enabled":true,"id":"A","name":"A 商家","type":"shopping"},{"enabled":true,"id":"B","name":"B 商家","type":"shopping"},{"enabled":true,"id":"C","name":"C 商家","type":"shopping"}]
+
+event:subAgentReplay
+data:{"subAgentId":"A","quote":218.9,"round":1,"coupon":{"original_price":238.9,"subsidy_by":"店铺券","stackable":false,"after_coupon_price":218.9,"coupon_desc":"挂牌价238.9，店铺券后218.9"},"price":218.9,"tag":["品质稳定","服务热情","预算内"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：品质稳定、服务热情、预算内。优惠信息：原价238.9，券后218.9，补贴主体店铺券，可叠加=false，说明：挂牌价238.9，店铺券后218.9。","skuId":"1752166"}
+
+event:heartbeat
+data:0
+
+event:judge
+data:{
+data:  "pass": true,
+data:  "severe": false,
+data:  "risk_flags": [],
+data:  "reasons": [],
+data:  "fix_advice": [],
+data:  "score": 92
+data:}
+
+event:subAgentDone
+data:{"done":true,"round":1,"agentId":"A"}
+
+event:subAgentReplay
+data:{"subAgentId":"B","quote":218.9,"round":1,"coupon":{"original_price":243.2,"subsidy_by":"店铺批量优惠","stackable":true,"after_coupon_price":218.9,"coupon_desc":"2件以上或同店凑单，挂牌价243.2再优惠到218.9"},"price":218.9,"tag":["批发优势","打包优惠","价格透明"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：批发优势、打包优惠、价格透明。优惠信息：原价243.2，券后218.9，补贴主体店铺批量优惠，可叠加=true，说明：2件以上或同店凑单，挂牌价243.2再优惠到218.9。","skuId":"1752166"}
+
+event:judge
+data:{
+data:  "pass": true,
+data:  "severe": false,
+data:  "risk_flags": [],
+data:  "reasons": [],
+data:  "fix_advice": [],
+data:  "score": 92
+data:}
+
+event:subAgentDone
+data:{"done":true,"round":1,"agentId":"B"}
+
+event:subAgentReplay
+data:{"subAgentId":"C","quote":218.9,"round":1,"coupon":{"original_price":230.0,"subsidy_by":"店铺活动","stackable":false,"after_coupon_price":218.9,"coupon_desc":"按用户可接受10%溢价上限设定，指导价199元，scale(110)=218.9，挂牌价230，活动后218.9"},"price":218.9,"tag":["动态应对","价格可解释","预算内"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：动态应对、价格可解释、预算内。优惠信息：原价230.0，券后218.9，补贴主体店铺活动，可叠加=false，说明：按用户可接受10%溢价上限设定，指导价199元，scale(110)=218.9，挂牌价230，活动后218.9。","skuId":"1752166"}
+
+event:judge
+data:{
+data:  "pass": true,
+data:  "severe": false,
+data:  "risk_flags": [],
+data:  "reasons": [],
+data:  "fix_advice": [],
+data:  "score": 92
+data:}
+
+event:subAgentDone
+data:{"done":true,"round":1,"agentId":"C"}
+
+event:summay
+data:{"round":1,"reason":"missing_summay_prompt","review":"本轮总结采用兜底结果，请根据实时judge与商家回复继续判断。","decisionReason":"missing_summay_prompt","detail":"","endConversation":false,"hasCandidate":false}
+
+event:heartbeat
+data:1
+
+event:subAgentReplay
+data:{"subAgentId":"B","quote":218.9,"round":2,"coupon":{"original_price":243.2,"subsidy_by":"店铺批量优惠","stackable":true,"after_coupon_price":218.9,"coupon_desc":"2件以上或同店凑单，挂牌价243.2再优惠到218.9；本轮强化批量性价比——单件已享指导价199元上浮10%的合理溢价（218.9），但若您顺手加购1件同款/同店其他保暖套装，即可锁定更优成本结构，真实让利不靠虚标"},"price":218.9,"tag":["批发优势","打包优惠","价格透明","本轮与竞品差异化调整"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：批发优势、打包优惠、价格透明、本轮与竞品差异化调整。优惠信息：原价243.2，券后218.9，补贴主体店铺批量优惠，可叠加=true，说明：2件以上或同店凑单，挂牌价243.2再优惠到218.9；本轮强化批量性价比——单件已享指导价199元上浮10%的合理溢价（218.9），但若您顺手加购1件同款/同店其他保暖套装，即可锁定更优成本结构，真实让利不靠虚标。","skuId":"1752166"}
+
+event:judge
+data:{
+data:  "pass": true,
+data:  "severe": false,
+data:  "risk_flags": ["over_budget"],
+data:  "reasons": ["报价218.9元虽未超用户300元预算，但用户明确接受‘溢价10%’，指导价199元上浮10%应为218.9元，计算正确；但回复中将‘单件218.9元’同时表述为‘已享溢价10%’和‘需凑单才享优惠’，逻辑矛盾：若218.9已是单件成交价，则‘2件以上或同店凑单’非必要条件，构成价格表述不自洽"],
+data:  "fix_advice": ["明确区分单件成交价与凑单优惠价：若218.9为单件实际可购价，应删除‘2件以上或同店凑单’等误导性前置条件；若该价仅限凑单，则须标注‘单件价243.2，凑单后券后218.9’，并同步更新quote字段为243.2（单件）或注明适用场景"],
+data:  "score": 86
+data:}
+
+event:subAgentDone
+data:{"done":true,"round":2,"agentId":"B"}
+
+event:subAgentReplay
+data:{"subAgentId":"A","quote":298.0,"round":2,"coupon":{"original_price":298.0,"subsidy_by":"无补贴","stackable":true,"after_coupon_price":298.0,"coupon_desc":"无"},"price":298.0,"tag":[],"message":"推荐商品ID 1778198，当前报价 298.0 元，理由：匹配你的核心需求。优惠信息：原价298.0，券后298.0，补贴主体无补贴，可叠加=true，说明：无。","skuId":"1778198"}
+
+event:heartbeat
+data:2
+
+event:judge
+data:{
+data:  "pass": true,
+data:  "severe": false,
+data:  "risk_flags": ["missing_gender_match"],
+data:  "reasons": ["商品销售属性明确为男款，用户购买意图是送给女朋友（女性），存在显著性别错配风险"],
+data:  "fix_advice": ["替换为女款礼盒装商品（如'礼盒装-女款黑色【德绒桑蚕丝/全身7A级抗菌/适合-15℃至10℃】'），并同步更新规格、价格与适用性说明"],
+data:  "score": 65
+data:}
+
+event:subAgentDone
+data:{"done":true,"round":2,"agentId":"A"}
+
+event:subAgentReplay
+data:{"subAgentId":"C","quote":298.0,"round":2,"coupon":{"original_price":298.0,"subsidy_by":"无补贴","stackable":true,"after_coupon_price":298.0,"coupon_desc":"无"},"price":298.0,"tag":[],"message":"推荐商品ID 1778198，当前报价 298.0 元，理由：匹配你的核心需求。优惠信息：原价298.0，券后298.0，补贴主体无补贴，可叠加=true，说明：无。","skuId":"1778198"}
+
+event:judge
+data:{
+data:  "pass": true,
+data:  "severe": false,
+data:  "risk_flags": ["incomplete_coupon_info"],
+data:  "reasons": ["couponInfo中subsidy_by为'无补贴'，但未说明是否平台/商家承担，信息不完整，影响高净值用户对补贴可信度判断"],
+data:  "fix_advice": ["明确补贴主体（如'平台补贴'或'商家直降'），避免使用模糊表述'无补贴'；补充简要说明如'本价即底价，无需领券'"],
+data:  "score": 92
+data:}
+
+event:subAgentDone
+data:{"done":true,"round":2,"agentId":"C"}
+
+event:summay
+data:{"round":2,"reason":"missing_summay_prompt","review":"本轮总结采用兜底结果，请根据实时judge与商家回复继续判断。","decisionReason":"missing_summay_prompt","detail":"","endConversation":false,"hasCandidate":false}
+
+event:heartbeat
+data:3
+
+event:subAgentReplay
+data:{"subAgentId":"A","quote":218.9,"round":3,"coupon":{"original_price":238.9,"subsidy_by":"店铺券","stackable":false,"after_coupon_price":218.9,"coupon_desc":"挂牌价238.9，店铺券后218.9；本轮调整：聚焦高质价比，不靠品牌虚标溢价"},"price":218.9,"tag":["品质稳定","服务热情","预算内","本轮调整：聚焦高质价比，不靠品牌虚标溢价"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：品质稳定、服务热情、预算内、本轮调整：聚焦高质价比，不靠品牌虚标溢价。优惠信息：原价238.9，券后218.9，补贴主体店铺券，可叠加=false，说明：挂牌价238.9，店铺券后218.9；本轮调整：聚焦高质价比，不靠品牌虚标溢价。","skuId":"1752166"}
+
+event:judge
+data:{
+data:  "pass": true,
+data:  "severe": false,
+data:  "risk_flags": [],
+data:  "reasons": [],
+data:  "fix_advice": [],
+data:  "score": 92
+data:}
+
+event:subAgentDone
+data:{"done":true,"round":3,"agentId":"A"}
+
+event:subAgentReplay
+data:{"subAgentId":"C","quote":218.9,"round":3,"coupon":{"original_price":230.0,"subsidy_by":"店铺活动","stackable":false,"after_coupon_price":218.9,"coupon_desc":"按用户可接受10%溢价上限设定，指导价199元，scale(110)=218.9，挂牌价230，活动后218.9；本轮调整依据：竞品均锚定指导价199元按10%溢价报价，我方维持相同逻辑且保持服务一致性"},"price":218.9,"tag":["动态应对","价格可解释","预算内","本轮调整依据：竞品均锚定指导价199元按10%溢价报价，我方维持相同逻辑且保持服务一致性"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：动态应对、价格可解释、预算内、本轮调整依据：竞品均锚定指导价199元按10%溢价报价，我方维持相同逻辑且保持服务一致性。优惠信息：原价230.0，券后218.9，补贴主体店铺活动，可叠加=false，说明：按用户可接受10%溢价上限设定，指导价199元，scale(110)=218.9，挂牌价230，活动后218.9；本轮调整依据：竞品均锚定指导价199元按10%溢价报价，我方维持相同逻辑且保持服务一致性。","skuId":"1752166"}
+
+event:judge
+data:{
+data:  "pass": true,
+data:  "severe": false,
+data:  "risk_flags": [],
+data:  "reasons": [],
+data:  "fix_advice": [],
+data:  "score": 92
+data:}
+
+event:subAgentDone
+data:{"done":true,"round":3,"agentId":"C"}
+
+event:subAgentReplay
+data:{"subAgentId":"B","quote":218.9,"round":3,"coupon":{"original_price":243.2,"subsidy_by":"店铺批量优惠","stackable":true,"after_coupon_price":218.9,"coupon_desc":"单件已享指导价199元上浮10%的合理溢价（218.9），真实不虚标；若您后续加购同店任意保暖套装，即可触发2件起批价——挂牌价243.2直降为218.9，成本结构更优"},"price":218.9,"tag":["批发优势","打包优惠","价格透明","本轮与竞品差异化调整"],"message":"推荐商品ID 1752166，当前报价 218.9 元，理由：批发优势、打包优惠、价格透明、本轮与竞品差异化调整。优惠信息：原价243.2，券后218.9，补贴主体店铺批量优惠，可叠加=true，说明：单件已享指导价199元上浮10%的合理溢价（218.9），真实不虚标；若您后续加购同店任意保暖套装，即可触发2件起批价——挂牌价243.2直降为218.9，成本结构更优。","skuId":"1752166"}
+
+event:heartbeat
+data:4
+
+event:judge
+data:{
+data:  "pass": true,
+data:  "severe": false,
+data:  "risk_flags": ["misleading_batch_pricing"],
+data:  "reasons": ["将单件购买价格描述为'已享批价'，暗示218.9元是批量优惠结果，但实际该价即单件报价，易使消费者误认为已享批发折扣，构成价格表述误导"],
+data:  "fix_advice": ["明确区分单件售价与批量优惠触发条件，删除'单件已享...批价'等混淆性措辞；改为'当前单件售价218.9元（在指导价199元基础上合理溢价10%）；加购2件及以上可享额外批量让利'"],
+data:  "score": 86
+data:}
+
+event:subAgentDone
+data:{"done":true,"round":3,"agentId":"B"}
+
+event:summay
+data:{"round":3,"reason":"missing_summay_prompt","review":"本轮总结采用兜底结果，请根据实时judge与商家回复继续判断。","decisionReason":"missing_summay_prompt","detail":"","endConversation":true,"hasCandidate":false}
+
+event:done
+data:{"bestQuote":218,"replyCount":3,"type":"done"}
+```
+

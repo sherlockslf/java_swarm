@@ -40,5 +40,6 @@ public class ShoppingStreamEndpointIT {
                 .take(50);
         var got = bodyFlux.collectList().block(Duration.ofSeconds(20));
         assertTrue(got != null && got.stream().anyMatch(s -> s.contains("subAgintInfo") || s.contains("summary") || s.contains("subAgentReplay")));
+        assertTrue(got != null && got.stream().noneMatch(s -> s.contains("event:agentJudge")));
     }
 }

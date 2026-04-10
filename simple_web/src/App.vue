@@ -1,11 +1,12 @@
 <script setup>
 import { reactive, ref } from 'vue';
 
-const form = reactive({ request: '', hidding: '', price: 0, dislike: '' });
-const stats = reactive({ startAt: '', elapsed: '', inChars: 0, outChars: 0, inTok: 0, outTok: 0, replyCount: 0, bestQuote: null });
+const form = reactive({ request: '', hidding: '', price: 0, dislike: '', followUp: '', decided: false, quantity: 1, bundleIntent: false });
+const stats = reactive({ startAt: '', elapsed: '', inChars: 0, outChars: 0, inTok: 0, outTok: 0, replyCount: 0, bestQuote: null, judgeCount: 0, round: 0, endConversation: false });
 const events = reactive([]);
 const agentConvs = reactive([]);
 const summaryText = ref('');
+const summayState = reactive({ hasCandidate: false, decisionReason: '', candidateMerchantId: '', candidateReason: '' });
 const loading = ref(false);
 const apiBase = import.meta.env.VITE_API_BASE || (window.location.port === '5173' ? 'http://localhost:9090' : '');
 const streamUrl = `${apiBase}/api/shopping/stream`;
@@ -41,7 +42,7 @@ const append = (tag, text) => {
 const upsertAgent = (info) => { 
   let a = agentConvs.find(x => x.id === info.id); 
   if (!a) { 
-    a = { id: info.id, name: info.name, messages: [], done: false }; 
+    a = { id: info.id, name: info.name, messages: [], done: false, judge: null, round: 0 }; 
     agentConvs.push(a); 
     clog('[UI] upsertAgent:new', a); 
   } else { 
@@ -73,7 +74,7 @@ const handleEvent = ({ evt, data }) => {
   if (evt === 'subAgentReplay') {
     try {
       const obj = JSON.parse(data);
-      const id = obj.id || obj.agentId || 'unknown';
+      const id = obj.subAgentId || obj.id || obj.agentId || 'unknown';
       const txt = obj.message || obj.text || '';
       const a = upsertAgent({ id, name: obj.name });
       if (txt) {
@@ -83,6 +84,10 @@ const handleEvent = ({ evt, data }) => {
       }
       if (typeof obj.quote === 'number') {
         if (stats.bestQuote === null || obj.quote < stats.bestQuote) stats.bestQuote = obj.quote;
+      }
+      if (typeof obj.round === 'number' && obj.round > 0) {
+        a.round = obj.round;
+        if (obj.round > stats.round) stats.round = obj.round;
       }
       stats.replyCount += 1;
       cdebug('[UI] subAgentReplay', obj);
@@ -105,15 +110,40 @@ const handleEvent = ({ evt, data }) => {
     }
     return;
   }
-  if (evt === 'summary') {
+  if (evt === 'judge') {
     try {
       const obj = JSON.parse(data);
-      if (obj && obj.fallback === true) {
-        const text = `【fallback:${obj.reason || 'unknown'}】${obj.chosenPreview || obj.detail || ''}`;
-        summaryText.value += text;
+      const id = obj.merchantId || obj.agentId || obj.id || 'unknown';
+      const a = upsertAgent({ id, name: id });
+      a.judge = {
+        decision: obj.decision || '',
+        pass: !!obj.pass,
+        severe: !!obj.severe,
+        reasons: Array.isArray(obj.reasons) ? obj.reasons : []
+      };
+      stats.judgeCount += 1;
+      append('judge', `${id} -> ${obj.decision || 'unknown'}`);
+    } catch (e) {
+      append('解析错误', e.message);
+      cerror('[UI] judge parse error', e, data);
+    }
+    return;
+  }
+  if (evt === 'summary' || evt === 'summay') {
+    try {
+      const obj = JSON.parse(data);
+      if (obj && typeof obj === 'object') {
+        if (typeof obj.round === 'number' && obj.round > 0 && obj.round > stats.round) stats.round = obj.round;
+        stats.endConversation = !!obj.endConversation;
+        summayState.hasCandidate = !!obj.hasCandidate;
+        summayState.decisionReason = obj.decisionReason || obj.reason || '';
+        summayState.candidateMerchantId = obj.candidateMerchantId || '';
+        summayState.candidateReason = obj.candidateReason || '';
+        const text = obj.overallReview || obj.review || JSON.stringify(obj);
+        summaryText.value += (summaryText.value ? '\n' : '') + text;
         stats.outChars += text.length;
         stats.outTok = estTokens(stats.outChars);
-        append('summaryFallback', text);
+        append(evt, `round=${obj.round ?? '-'}, end=${!!obj.endConversation}, hasCandidate=${!!obj.hasCandidate}, reason=${summayState.decisionReason || '-'}`);
         return;
       }
     } catch (_) {
@@ -141,9 +171,18 @@ const handleEvent = ({ evt, data }) => {
 
 const startStream = async () => {
   loading.value = true;
-  const body = { request: form.request || '', hidding: form.hidding || '', price: Number(form.price || 0), dislike: form.dislike || '' };
+  const body = {
+    request: form.request || '',
+    hidding: form.hidding || '',
+    price: Number(form.price || 0),
+    dislike: form.dislike || '',
+    followUp: form.followUp || '',
+    decided: !!form.decided,
+    quantity: Number(form.quantity || 1),
+    bundleIntent: !!form.bundleIntent
+  };
   cinfo('[REQ] startStream body', body);
-  stats.inChars = body.request.length + body.hidding.length + String(body.price).length + body.dislike.length;
+  stats.inChars = body.request.length + body.hidding.length + String(body.price).length + body.dislike.length + body.followUp.length + String(body.decided).length + String(body.quantity).length + String(body.bundleIntent).length;
   stats.inTok = estTokens(stats.inChars);
   controller = new AbortController();
   startTs = Date.now();
@@ -186,9 +225,13 @@ const onReset = () => {
   cinfo('[UI] onReset');
   if (controller) controller.abort();
   events.splice(0, events.length);
-  stats.startAt = ''; stats.elapsed = ''; stats.inChars = 0; stats.outChars = 0; stats.inTok = 0; stats.outTok = 0; stats.replyCount = 0; stats.bestQuote = null;
+  stats.startAt = ''; stats.elapsed = ''; stats.inChars = 0; stats.outChars = 0; stats.inTok = 0; stats.outTok = 0; stats.replyCount = 0; stats.bestQuote = null; stats.judgeCount = 0; stats.round = 0; stats.endConversation = false;
   agentConvs.splice(0, agentConvs.length);
   summaryText.value = '';
+  summayState.hasCandidate = false;
+  summayState.decisionReason = '';
+  summayState.candidateMerchantId = '';
+  summayState.candidateReason = '';
 };
 
 const onStart = () => { 
@@ -215,6 +258,14 @@ const onStart = () => {
         <input v-model.number="form.price" type="number" placeholder="数字"/>
         <label>不要（dislike）</label>
         <input v-model="form.dislike" placeholder="可选：不喜欢的点"/>
+        <label>追问（followUp）</label>
+        <textarea v-model="form.followUp" placeholder="可选：用于下一轮追问"></textarea>
+        <label>已决定购买（decided）</label>
+        <input v-model="form.decided" type="checkbox"/>
+        <label>购买数量（quantity）</label>
+        <input v-model.number="form.quantity" type="number" min="1" placeholder="默认1"/>
+        <label>同店凑单（bundleIntent）</label>
+        <input v-model="form.bundleIntent" type="checkbox"/>
         <div class="row">
           <button @click="onStart" :disabled="loading">开始</button>
           <button class="secondary" @click="onReset" :disabled="loading">清空</button>
@@ -231,11 +282,18 @@ const onStart = () => {
           <span class="tag">Agent {{ agent.name || agent.id }}</span>
           <div>
             <div v-for="(m,i) in agent.messages" :key="i">{{ m }}</div>
+            <div v-if="agent.judge" style="color:#444;font-size:12px;margin-top:4px;">
+              判定：{{ agent.judge.decision }}（pass={{ agent.judge.pass }}，severe={{ agent.judge.severe }}）
+            </div>
             <div v-if="agent.done" style="color:#666;font-size:12px;margin-top:4px;">已完成</div>
           </div>
         </div>
         <div class="line" v-if="summaryText">
           <span class="tag">总结</span><span>{{ summaryText }}</span>
+        </div>
+        <div class="line" v-if="summayState.decisionReason">
+          <span class="tag">决策</span>
+          <span>reason={{ summayState.decisionReason }}，候选={{ summayState.candidateMerchantId || '无' }}，结束={{ stats.endConversation }}</span>
         </div>
       </div>
     </div>
@@ -249,6 +307,9 @@ const onStart = () => {
         <div class="stat"><span class="k">估算Tokens(入)</span><span class="v">{{ stats.inTok }}</span></div>
         <div class="stat"><span class="k">估算Tokens(出)</span><span class="v">{{ stats.outTok }}</span></div>
         <div class="stat"><span class="k">子代理回复数</span><span class="v">{{ stats.replyCount }}</span></div>
+        <div class="stat"><span class="k">judge条数</span><span class="v">{{ stats.judgeCount }}</span></div>
+        <div class="stat"><span class="k">当前轮次</span><span class="v">{{ stats.round || '—' }}</span></div>
+        <div class="stat"><span class="k">是否结束</span><span class="v">{{ stats.endConversation }}</span></div>
         <div class="stat"><span class="k">最低报价</span><span class="v">{{ stats.bestQuote ?? '—' }}</span></div>
       </div>
     </div>

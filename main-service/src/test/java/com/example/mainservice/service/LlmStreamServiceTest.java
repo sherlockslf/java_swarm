@@ -57,4 +57,54 @@ public class LlmStreamServiceTest {
                 })
                 .verifyComplete();
     }
+
+    @Test
+    void streamTokens_summayFallsBackToSyncGenerateWhenNoDelta() {
+        LlmStreamService svc = new LlmStreamService();
+        RealQwenLlmClient client = new RealQwenLlmClient("http://localhost", "m", 0.0, 1000, null) {
+            @Override
+            public Flux<String> generateStreamFlux(String systemPrompt, String userInput) {
+                return Flux.empty();
+            }
+
+            @Override
+            public String generate(String systemPrompt, String userInput) {
+                return "SMY";
+            }
+        };
+
+        Flux<ServerSentEvent<String>> flux = svc.streamTokens(client, "s", "u", "summay");
+
+        StepVerifier.create(flux)
+                .assertNext(ev -> {
+                    assertEquals("summay", ev.event());
+                    assertEquals("SMY", ev.data());
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    void streamTokens_judgeFallsBackToSyncGenerateWhenNoDelta() {
+        LlmStreamService svc = new LlmStreamService();
+        RealQwenLlmClient client = new RealQwenLlmClient("http://localhost", "m", 0.0, 1000, null) {
+            @Override
+            public Flux<String> generateStreamFlux(String systemPrompt, String userInput) {
+                return Flux.empty();
+            }
+
+            @Override
+            public String generate(String systemPrompt, String userInput) {
+                return "{\"pass\":true}";
+            }
+        };
+
+        Flux<ServerSentEvent<String>> flux = svc.streamTokens(client, "s", "u", "judge");
+
+        StepVerifier.create(flux)
+                .assertNext(ev -> {
+                    assertEquals("judge", ev.event());
+                    assertEquals("{\"pass\":true}", ev.data());
+                })
+                .verifyComplete();
+    }
 }

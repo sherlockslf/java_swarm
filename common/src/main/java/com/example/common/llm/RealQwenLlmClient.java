@@ -20,9 +20,14 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.UUID;
 
 @Log4j2
 public class RealQwenLlmClient implements LlmClient {
@@ -51,11 +56,13 @@ public class RealQwenLlmClient implements LlmClient {
         if (pool == null || !pool.hasKeys()) {
             return userInput;
         }
+        String reqId = "sync-" + UUID.randomUUID();
+        long beginAt = System.currentTimeMillis();
         try {
             String sp = systemPrompt == null ? "" : systemPrompt;
             String up = userInput == null ? "" : userInput;
-            log.info("LLM sync call begin: model={}, base={}, temp={}, sysLen={}, userLen={}",
-                    model, baseUrl, temperature, sp.length(), up.length());
+            log.info("LLM sync call begin: reqId={}, time={}, model={}, base={}, temp={}, timeoutMs={}, sysLen={}, userLen={}, userPreview={}",
+                    reqId, Instant.ofEpochMilli(beginAt), model, baseUrl, temperature, resolveTimeoutMs(), sp.length(), up.length(), preview(up, 300));
         } catch (Exception ignored) {}
         int authRetries = 2;
         int rateRetries = 3;
@@ -78,14 +85,23 @@ public class RealQwenLlmClient implements LlmClient {
                 headers.setContentType(MediaType.APPLICATION_JSON);
                 headers.setBearerAuth(key);
                 HttpEntity<String> entity = new HttpEntity<>(body, headers);
+                try {
+                    log.info("LLM sync request body: reqId={}, body={}", reqId, preview(body, 1200));
+                } catch (Exception ignored) {}
                 String respStr = http.postForObject(url, entity, String.class);
+                try {
+                    log.info("LLM sync response raw: reqId={}, costMs={}, body={}", reqId, System.currentTimeMillis() - beginAt, preview(respStr, 1200));
+                } catch (Exception ignored) {}
                 if (respStr == null || respStr.isBlank()) return "";
                 ChatResponse resp = JSON.parseObject(respStr, ChatResponse.class);
                 if (resp != null && resp.choices != null && !resp.choices.isEmpty()
                         && resp.choices.get(0) != null
                         && resp.choices.get(0).message != null) {
                     String content = resp.choices.get(0).message.content;
-                    try { log.info("LLM sync call done"); } catch (Exception ignored) {}
+                    try {
+                        log.info("LLM sync call done: reqId={}, costMs={}, contentPreview={}",
+                                reqId, System.currentTimeMillis() - beginAt, preview(content, 500));
+                    } catch (Exception ignored) {}
                     return content == null ? "" : content;
                 }
                 return "";
@@ -98,10 +114,10 @@ public class RealQwenLlmClient implements LlmClient {
                     backoff(++attempt);
                     continue;
                 }
-                try { log.warn("LLM sync call http error: status={}", status); } catch (Exception ignored) {}
+                try { log.warn("LLM sync call http error: reqId={}, status={}, costMs={}, body={}", reqId, status, System.currentTimeMillis() - beginAt, preview(e.getResponseBodyAsString(), 1200)); } catch (Exception ignored) {}
                 return "";
             } catch (Exception e) {
-                try { log.error("LLM sync call exception: {}", e.toString()); } catch (Exception ignored) {}
+                try { log.error("LLM sync call exception: reqId={}, costMs={}, ex={}", reqId, System.currentTimeMillis() - beginAt, e.toString()); } catch (Exception ignored) {}
                 return "";
             } finally {
                 try { pool.release(); } catch (Exception ignored) {}
@@ -121,6 +137,8 @@ public class RealQwenLlmClient implements LlmClient {
         if (pool == null || !pool.hasKeys()) {
             return Flux.just(userInput == null ? "" : userInput).filter(s -> !s.isBlank());
         }
+        String reqId = "stream-" + UUID.randomUUID();
+        long beginAt = System.currentTimeMillis();
         String url = baseUrl + "/chat/completions";
         String sp = systemPrompt == null ? "" : systemPrompt;
         String up = userInput == null ? "" : userInput;
@@ -133,24 +151,25 @@ public class RealQwenLlmClient implements LlmClient {
                 new Message("user", up)
         );
         try {
-            log.info("LLM stream begin: model={}, base={}, temp={}, sysLen={}, userLen={}",
-                    model, baseUrl, temperature, sp.length(), up.length());
-            log.info("LLM stream req: {}", JSON.toJSONString(req));
+            log.info("LLM stream begin: reqId={}, time={}, model={}, base={}, temp={}, timeoutMs={}, sysLen={}, userLen={}, userPreview={}",
+                    reqId, Instant.ofEpochMilli(beginAt), model, baseUrl, temperature, resolveTimeoutMs(), sp.length(), up.length(), preview(up, 300));
+            log.info("LLM stream request body: reqId={}, body={}", reqId, preview(JSON.toJSONString(req), 1200));
         } catch (Exception ignored) {}
         String body = JSON.toJSONString(req);
-        return attemptStreamFlux(url, body, 3, 2)
+        return attemptStreamFlux(url, body, 3, 2, reqId, beginAt)
                 .doOnComplete(() -> {
-                    try { log.info("LLM stream complete"); } catch (Exception ignored) {}
+                    try { log.info("LLM stream complete: reqId={}, costMs={}", reqId, System.currentTimeMillis() - beginAt); } catch (Exception ignored) {}
                 })
                 .switchIfEmpty(Mono.fromRunnable(() -> {
-                    try { log.warn("LLM stream empty: model={}, sysLen={}, userLen={}", model, sp.length(), up.length()); } catch (Exception ignored) {}
+                    try { log.warn("LLM stream empty: reqId={}, model={}, sysLen={}, userLen={}, costMs={}", reqId, model, sp.length(), up.length(), System.currentTimeMillis() - beginAt); } catch (Exception ignored) {}
                 }).thenMany(Flux.empty()));
     }
 
-    private Flux<String> attemptStreamFlux(String url, String body, int rateRetries, int authRetries) {
+    private Flux<String> attemptStreamFlux(String url, String body, int rateRetries, int authRetries, String reqId, long beginAt) {
         return Flux.defer(() -> {
             String key = pool.nextKey();
             if (key == null) {
+                try { log.warn("LLM stream no key: reqId={}", reqId); } catch (Exception ignored) {}
                 return Flux.empty();
             }
             ensureWebClient();
@@ -163,36 +182,44 @@ public class RealQwenLlmClient implements LlmClient {
                         }
                     })
                     .subscribeOn(Schedulers.boundedElastic())
-                    .thenMany(streamOnceFlux(url, body, key))
+                    .thenMany(streamOnceFlux(url, body, key, reqId, beginAt))
                     .doFinally(sig -> {
                         try { pool.release(); } catch (Exception ignored) {}
                     })
                     .onErrorResume(t -> {
                         String msg = t == null ? null : t.getMessage();
                         if ("401".equals(msg) && authRetries > 0) {
-                            return attemptStreamFlux(url, body, rateRetries, authRetries - 1);
+                            try { log.warn("LLM stream auth retry: reqId={}, remainingAuthRetries={}", reqId, authRetries - 1); } catch (Exception ignored) {}
+                            return attemptStreamFlux(url, body, rateRetries, authRetries - 1, reqId, beginAt);
                         }
                         if ("429".equals(msg) && rateRetries > 0) {
                             int attempt = 4 - rateRetries;
                             long millis = Math.min(1000L, 200L * (long)Math.pow(2, Math.max(0, attempt - 1)));
+                            try { log.warn("LLM stream rate retry: reqId={}, backoffMs={}, remainingRateRetries={}", reqId, millis, rateRetries - 1); } catch (Exception ignored) {}
                             return Mono.delay(Duration.ofMillis(millis))
-                                    .thenMany(attemptStreamFlux(url, body, rateRetries - 1, authRetries));
+                                    .thenMany(attemptStreamFlux(url, body, rateRetries - 1, authRetries, reqId, beginAt));
                         }
-                        try { log.warn("LLM stream error: {}", msg); } catch (Exception ignored) {}
+                        try { log.warn("LLM stream error: reqId={}, costMs={}, msg={}", reqId, System.currentTimeMillis() - beginAt, msg); } catch (Exception ignored) {}
                         return Flux.error(t);
                     });
         });
     }
 
-    private Flux<String> streamOnceFlux(String url, String body, String key) {
+    private Flux<String> streamOnceFlux(String url, String body, String key, String reqId, long beginAt) {
+        AtomicInteger chunkCount = new AtomicInteger(0);
+        AtomicBoolean firstChunkLogged = new AtomicBoolean(false);
         WebClient.RequestBodySpec spec = webClient.post()
                 .uri(url)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + key)
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.TEXT_EVENT_STREAM);
+        try {
+            log.info("LLM stream request dispatch: reqId={}, url={}, timeoutMs={}", reqId, url, resolveTimeoutMs());
+        } catch (Exception ignored) {}
         Flux<String> chunks = spec.body(BodyInserters.fromValue(body))
                 .exchangeToFlux((ClientResponse resp) -> {
                     int code = resp.statusCode().value();
+                    try { log.info("LLM stream response status: reqId={}, status={}, costMs={}", reqId, code, System.currentTimeMillis() - beginAt); } catch (Exception ignored) {}
                     if (code == 401) {
                         return Flux.error(new RuntimeException("401"));
                     }
@@ -200,9 +227,29 @@ public class RealQwenLlmClient implements LlmClient {
                         return Flux.error(new RuntimeException("429"));
                     }
                     return resp.bodyToFlux(String.class);
-                });
+                })
+                .doOnNext(chunk -> {
+                    int c = chunkCount.incrementAndGet();
+                    if (firstChunkLogged.compareAndSet(false, true)) {
+                        try { log.info("LLM stream first chunk: reqId={}, costMs={}, len={}, preview={}", reqId, System.currentTimeMillis() - beginAt, chunk == null ? 0 : chunk.length(), preview(chunk, 500)); } catch (Exception ignored) {}
+                    } else if (c % 10 == 0) {
+                        try { log.info("LLM stream chunk progress: reqId={}, chunks={}", reqId, c); } catch (Exception ignored) {}
+                    }
+                })
+                .doOnComplete(() -> {
+                    try { log.info("LLM stream raw complete: reqId={}, chunks={}, costMs={}", reqId, chunkCount.get(), System.currentTimeMillis() - beginAt); } catch (Exception ignored) {}
+                })
+                .timeout(Duration.ofMillis(resolveTimeoutMs()))
+                .onErrorMap(TimeoutException.class, ex -> new RuntimeException("timeout"));
 
         return parseStreamChunksToDeltas(chunks, this::extractDelta);
+    }
+
+    private long resolveTimeoutMs() {
+        if (timeoutMs == null || timeoutMs <= 0) {
+            return 15000L;
+        }
+        return timeoutMs.longValue();
     }
 
     static Flux<String> parseStreamChunksToDeltas(Flux<String> chunks, java.util.function.Function<String, String> deltaExtractor) {
@@ -308,5 +355,16 @@ public class RealQwenLlmClient implements LlmClient {
     private void backoff(int attempt) {
         long millis = Math.min(1000L, 200L * (long)Math.pow(2, Math.max(0, attempt - 1)));
         try { Thread.sleep(millis); } catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+    }
+
+    private static String preview(String text, int maxLen) {
+        if (text == null) {
+            return "";
+        }
+        String v = text.replace("\r", " ").replace("\n", " ").trim();
+        if (maxLen > 0 && v.length() > maxLen) {
+            return v.substring(0, maxLen) + "...";
+        }
+        return v;
     }
 }

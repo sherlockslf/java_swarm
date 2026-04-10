@@ -11,6 +11,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -46,7 +48,7 @@ public class OrchestratorServiceRegressionTest {
                 }),
                 Flux.defer(() -> {
                     summarySubscribeCount.incrementAndGet();
-                    return Flux.empty();
+                    return Flux.just(sse("summay", "{\"hasCandidate\":true,\"endConversation\":true}"));
                 })
         );
 
@@ -62,9 +64,9 @@ public class OrchestratorServiceRegressionTest {
         assertNotNull(events);
         long doneCount = events.stream().filter(e -> "done".equals(e.event())).count();
         assertEquals(1, doneCount);
-        assertEquals(1, questionSubscribeCount.get());
-        assertEquals(1, summarySubscribeCount.get());
-        assertEquals(2, requestOnceCount.get());
+        assertEquals(0, questionSubscribeCount.get());
+        assertEquals(2, summarySubscribeCount.get());
+        assertEquals(4, requestOnceCount.get());
     }
 
     @Test
@@ -85,7 +87,7 @@ public class OrchestratorServiceRegressionTest {
                         sse("question", "你"),
                         sse("question", "好")
                 ),
-                Flux.empty()
+                Flux.just(sse("summay", "{\"hasCandidate\":true,\"endConversation\":true}"))
         );
 
         ShoppingRequest req = new ShoppingRequest();
@@ -98,7 +100,8 @@ public class OrchestratorServiceRegressionTest {
                 .block(Duration.ofSeconds(3));
 
         assertNotNull(events);
-        assertEquals("你好", receivedQuestion.get());
+        assertTrue(receivedQuestion.get().startsWith(req.getRequest()));
+        assertTrue(receivedQuestion.get().contains("用户追问："));
     }
 
     @Test
@@ -116,7 +119,7 @@ public class OrchestratorServiceRegressionTest {
                     return Mono.just(r);
                 },
                 Flux.empty(),
-                Flux.empty()
+                Flux.just(sse("summay", "{\"hasCandidate\":true,\"endConversation\":true}"))
         );
 
         ShoppingRequest req = new ShoppingRequest();
@@ -129,11 +132,10 @@ public class OrchestratorServiceRegressionTest {
                 .block(Duration.ofSeconds(3));
 
         assertNotNull(events);
-        String expected = "需求：" + req.getRequest() + "；目标价格：" + req.getPrice() + "；排斥点：" + req.getDislike();
-
         long questionCount = events.stream().filter(e -> "question".equals(e.event())).count();
         assertEquals(0, questionCount);
-        assertEquals(expected, receivedQuestion.get());
+        assertTrue(receivedQuestion.get().startsWith(req.getRequest()));
+        assertTrue(receivedQuestion.get().contains("用户追问："));
     }
 
     @Test
@@ -151,7 +153,7 @@ public class OrchestratorServiceRegressionTest {
                     return Mono.just(r);
                 },
                 Flux.error(new RuntimeException("boom")),
-                Flux.empty()
+                Flux.just(sse("summay", "{\"hasCandidate\":true,\"endConversation\":true}"))
         );
 
         ShoppingRequest req = new ShoppingRequest();
@@ -164,11 +166,10 @@ public class OrchestratorServiceRegressionTest {
                 .block(Duration.ofSeconds(3));
 
         assertNotNull(events);
-        String expected = "需求：" + req.getRequest() + "；目标价格：" + req.getPrice() + "；排斥点：" + req.getDislike();
-
         long questionCount = events.stream().filter(e -> "question".equals(e.event())).count();
         assertEquals(0, questionCount);
-        assertEquals(expected, receivedQuestion.get());
+        assertTrue(receivedQuestion.get().startsWith(req.getRequest()));
+        assertTrue(receivedQuestion.get().contains("用户追问："));
     }
 
     @Test
@@ -193,7 +194,7 @@ public class OrchestratorServiceRegressionTest {
                     return Mono.just(r);
                 },
                 Flux.just(sse("question", "Q")),
-                Flux.just(sse("summary", "S"))
+                Flux.just(sse("summay", "{\"hasCandidate\":true,\"endConversation\":true}"))
         );
 
         ShoppingRequest req = new ShoppingRequest();
@@ -206,27 +207,90 @@ public class OrchestratorServiceRegressionTest {
                 .block(Duration.ofSeconds(3));
 
         assertNotNull(events);
-        assertEquals(3, requestOnceCount.get());
+        assertEquals(6, requestOnceCount.get());
+        long judgeEventCount = events.stream().filter(e -> "agentJudge".equals(e.event())).count();
+        assertEquals(0, judgeEventCount);
 
         String allReplayData = events.stream()
                 .filter(e -> "subAgentReplay".equals(e.event()))
                 .map(e -> String.valueOf(e.data()))
                 .reduce("", (a, b) -> a + "\n" + b);
         assertTrue(!allReplayData.contains("seller_a"));
+        assertTrue(allReplayData.contains("\"subAgentId\":\"seller_b\""));
+        assertTrue(allReplayData.contains("\"subAgentId\":\"seller_c\""));
 
         String doneData = events.stream()
                 .filter(e -> "done".equals(e.event()))
                 .map(e -> String.valueOf(e.data()))
                 .findFirst()
                 .orElse("");
-        assertTrue(doneData.contains("\"bestQuote\":100"));
+        assertTrue(doneData.contains("\"type\":\"done\""));
+    }
+
+    @Test
+    void stream_followUpTargetsScoreOver80AndRecommendsWhenScoreOver90() {
+        List<String> calledRound1 = new ArrayList<>();
+        List<String> calledRound2 = new ArrayList<>();
+        AtomicInteger summayRoundCounter = new AtomicInteger(0);
+
+        OrchestratorService svc = newOrchestrator(
+                Flux.just(agent("A"), agent("B"), agent("C")),
+                (agentId, question, context) -> {
+                    int round = Integer.parseInt(String.valueOf(context.getOrDefault("round", "1")));
+                    if (round == 1) {
+                        calledRound1.add(agentId);
+                    } else if (round == 2) {
+                        calledRound2.add(agentId);
+                    }
+                    SubAgentReply r = new SubAgentReply();
+                    r.setAgentId(agentId);
+                    r.setAnswer(agentId + " answer");
+                    Map<String, Object> meta = new HashMap<>();
+                    meta.put("quote", 100);
+                    meta.put("product_id", "1752166");
+                    meta.put("coupon_info", Map.of(
+                            "original_price", 120,
+                            "after_coupon_price", 100,
+                            "subsidy_by", "店铺券",
+                            "stackable", true
+                    ));
+                    r.setMeta(meta);
+                    return Mono.just(r);
+                },
+                Flux.just(sse("question", "Q")),
+                Flux.defer(() -> {
+                    int current = summayRoundCounter.incrementAndGet();
+                    if (current == 1) {
+                        return Flux.just(sse("summay", "{\"round\":1,\"hasCandidate\":false,\"endConversation\":false,\"merchantReviews\":[{\"merchantId\":\"A\",\"score\":85},{\"merchantId\":\"B\",\"score\":70},{\"merchantId\":\"C\",\"score\":88}]}"));
+                    }
+                    return Flux.just(sse("summay", "{\"round\":2,\"hasCandidate\":false,\"endConversation\":false,\"merchantReviews\":[{\"merchantId\":\"C\",\"score\":92}]}"));
+                })
+        );
+
+        ShoppingRequest req = new ShoppingRequest();
+        req.setRequest("想买保暖内衣");
+        req.setPrice(300);
+        req.setDislike("不要低质");
+
+        List<ServerSentEvent<String>> events = svc.stream(req)
+                .collectList()
+                .block(Duration.ofSeconds(3));
+
+        assertNotNull(events);
+        assertEquals(3, calledRound1.size());
+        assertEquals(2, calledRound2.size());
+        assertTrue(calledRound2.contains("A"));
+        assertTrue(calledRound2.contains("C"));
+        assertTrue(!calledRound2.contains("B"));
+        long doneCount = events.stream().filter(e -> "done".equals(e.event())).count();
+        assertEquals(1, doneCount);
     }
 
     private static OrchestratorService newOrchestrator(
             Flux<SubAgentInfo> agents,
             SubAgentRequestOnceFn requestOnceFn,
             Flux<ServerSentEvent<String>> questionFlux,
-            Flux<ServerSentEvent<String>> summaryFlux) {
+            Flux<ServerSentEvent<String>> summayFlux) {
         PromptService promptService = new PromptService() {
             @Override
             public String readBuyerPrompt(String profileId) {
@@ -254,8 +318,11 @@ public class OrchestratorServiceRegressionTest {
                 if ("question".equals(eventName)) {
                     return questionFlux;
                 }
-                if ("summary".equals(eventName)) {
-                    return summaryFlux;
+                if ("summay".equals(eventName)) {
+                    return summayFlux;
+                }
+                if ("judge".equals(eventName)) {
+                    return Flux.just(sse("judge", "{\"decision\":\"pass\"}"));
                 }
                 return Flux.empty();
             }

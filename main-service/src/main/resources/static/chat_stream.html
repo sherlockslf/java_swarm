@@ -40,6 +40,10 @@
           <input v-model.number="form.price" type="number" placeholder="数字"/>
           <label>不要（dislike）</label>
           <input v-model="form.dislike" placeholder="可选：不喜欢的点"/>
+          <label>购买数量（quantity）</label>
+          <input v-model.number="form.quantity" type="number" min="1" placeholder="默认1"/>
+          <label>同店凑单（bundleIntent）</label>
+          <input v-model="form.bundleIntent" type="checkbox"/>
           <div class="row">
             <button @click="onStart" :disabled="loading">开始</button>
             <button class="secondary" @click="onReset" :disabled="loading">清空</button>
@@ -84,7 +88,7 @@
     const { createApp, reactive, ref } = Vue;
     createApp({
       setup() {
-        const form = reactive({ request: '', hidding: '', price: 0, dislike: '' });
+        const form = reactive({ request: '', hidding: '', price: 0, dislike: '', quantity: 1, bundleIntent: false });
         const stats = reactive({ startAt: '', elapsed: '', inChars: 0, outChars: 0, inTok: 0, outTok: 0, replyCount: 0, bestQuote: null });
         const events = reactive([]);
         const agentConvs = reactive([]);
@@ -126,7 +130,7 @@
           clog('[SSE] handleEvent', evt, data);
           if (evt === 'question') { stats.outChars += data.length; stats.outTok = estTokens(stats.outChars); append(evt, data); return; }
           if (evt === 'subAgentInfo') { try { const arr = JSON.parse(data); agentConvs.splice(0, agentConvs.length); for (const it of arr) upsertAgent(it); append('subAgentInfo', `共 ${arr.length} 个 subAgent`); cinfo('[UI] agents initialized', arr.length); } catch (e) { append('解析错误', e.message); cerror('[UI] subAgentInfo parse error', e); } return; }
-          if (evt === 'subAgentReplay') { try { const obj = JSON.parse(data); const id = obj.agentId || obj.id || 'unknown'; const txt = obj.message || obj.text || ''; const a = upsertAgent({ id }); if (txt) { a.messages.push(`${tsNow()} ${txt}`); stats.outChars += txt.length; stats.outTok = estTokens(stats.outChars); cdebug('[UI] agent text', id, txt); } if (typeof obj.quote === 'number') { if (stats.bestQuote === null || obj.quote < stats.bestQuote) stats.bestQuote = obj.quote; } stats.replyCount += 1; } catch (e) { append('解析错误', e.message); cerror('[UI] subAgentReplay parse error', e, data); } return; }
+          if (evt === 'subAgentReplay') { try { const obj = JSON.parse(data); const id = obj.subAgentId || obj.agentId || obj.id || 'unknown'; const txt = obj.message || obj.text || ''; const a = upsertAgent({ id }); if (txt) { a.messages.push(`${tsNow()} ${txt}`); stats.outChars += txt.length; stats.outTok = estTokens(stats.outChars); cdebug('[UI] agent text', id, txt); } if (typeof obj.quote === 'number') { if (stats.bestQuote === null || obj.quote < stats.bestQuote) stats.bestQuote = obj.quote; } stats.replyCount += 1; } catch (e) { append('解析错误', e.message); cerror('[UI] subAgentReplay parse error', e, data); } return; }
           if (evt === 'subAgentDone') { try { const obj = JSON.parse(data); const id = obj.agentId || obj.id || 'unknown'; const a = upsertAgent({ id }); a.done = true; cinfo('[UI] agent DONE', id); } catch (e) { append('解析错误', e.message); cerror('[UI] subAgentDone parse error', e, data); } return; }
           if (evt === 'summary') { summaryText.value += data; stats.outChars += data.length; stats.outTok = estTokens(stats.outChars); cdebug('[UI] summary append', data); return; }
           if (evt === 'subagent_reply') { stats.replyCount += 1; try { const obj = JSON.parse(data); if (typeof obj.quote === 'number') { if (stats.bestQuote === null || obj.quote < stats.bestQuote) stats.bestQuote = obj.quote; } const id = obj.agentId || obj.id || 'unknown'; const txt = obj.text || obj.message || obj.content || ''; const a = upsertAgent({ id }); if (obj.done === true || txt === 'DONE') { a.done = true; } else if (txt) { a.messages.push(txt); stats.outChars += txt.length; stats.outTok = estTokens(stats.outChars); } } catch (_) { } append(evt, data); return; }
@@ -134,9 +138,9 @@
           append(evt, data);
         };
         const startStream = async () => {
-          const body = { request: form.request || '', hidding: form.hidding || '', price: Number(form.price || 0), dislike: form.dislike || '' };
+          const body = { request: form.request || '', hidding: form.hidding || '', price: Number(form.price || 0), dislike: form.dislike || '', quantity: Number(form.quantity || 1), bundleIntent: !!form.bundleIntent };
           cinfo('[REQ] startStream body', body);
-          stats.inChars = body.request.length + body.hidding.length + String(body.price).length + body.dislike.length;
+          stats.inChars = body.request.length + body.hidding.length + String(body.price).length + body.dislike.length + String(body.quantity).length + String(body.bundleIntent).length;
           stats.inTok = estTokens(stats.inChars);
           controller = new AbortController();
           startTs = Date.now();
