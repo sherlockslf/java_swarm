@@ -1,0 +1,70 @@
+package com.example.psu.service;
+
+import com.example.psu.dto.AuthRequest;
+import com.example.psu.dto.AuthResponse;
+import com.example.psu.entity.User;
+import com.example.psu.repository.UserRepository;
+import com.example.psu.security.JwtUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+/**
+ * 用户服务
+ */
+@Service
+public class UserService {
+    
+    @Autowired
+    private UserRepository userRepository;
+    
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    private JwtUtil jwtUtil;
+    
+    @Autowired
+    private AuthenticationManager authenticationManager;
+    
+    /**
+     * 用户登录认证
+     * @param authRequest 认证请求
+     * @return 认证响应
+     */
+    public AuthResponse authenticate(AuthRequest authRequest) {
+        Authentication authentication = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(
+                authRequest.getUsername(),
+                authRequest.getPassword()
+            )
+        );
+        
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        
+        User user = userRepository.findByUsername(authRequest.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
+        
+        return new AuthResponse(token, user.getUsername(), user.getRole().name());
+    }
+    
+    /**
+     * 创建用户（仅管理员使用）
+     * @param user 用户实体
+     * @return 创建的用户
+     */
+    public User createUser(User user) {
+        if (userRepository.existsByUsername(user.getUsername())) {
+            throw new RuntimeException("Username already exists");
+        }
+        
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
+    }
+}
