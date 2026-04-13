@@ -51,12 +51,14 @@ export const authApi = {
 }
 
 export const psuApi = {
-  // 获取PSU列表
-  getPsus: () => api.get('/psus'),
+  // 分页获取PSU列表
+  getPsus: (page = 1, size = 10) => api.get('/psus', { params: { page, size } }),
   // 创建PSU
   createPsu: (data) => api.post('/psus', data),
   // 更新PSU
-  updatePsu: (id, data) => api.put(`/psus/${id}`, data)
+  updatePsu: (id, data) => api.put(`/psus/${id}`, data),
+  // 删除PSU（归档）
+  deletePsu: (id) => api.delete(`/psus/${id}`)
 }
 
 export const schemaApi = {

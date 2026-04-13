@@ -37,21 +37,25 @@ public class UserService {
      * @return 认证响应
      */
     public AuthResponse authenticate(AuthRequest authRequest) {
-        Authentication authentication = authenticationManager.authenticate(
-            new UsernamePasswordAuthenticationToken(
-                authRequest.getUsername(),
-                authRequest.getPassword()
-            )
-        );
-        
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        
-        User user = userRepository.findByUsername(authRequest.getUsername())
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
-        
-        return new AuthResponse(token, user.getUsername(), user.getRole().name());
+        try {
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                    authRequest.getUsername(),
+                    authRequest.getPassword()
+                )
+            );
+            
+            SecurityContextHolder.getContext().setAuthentication(authentication);
+            
+            User user = userRepository.findByUsername(authRequest.getUsername())
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            
+            String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
+            
+            return new AuthResponse(token, user.getUsername(), user.getRole().name());
+        } catch (Exception e) {
+            throw new RuntimeException("Authentication failed: " + e.getMessage());
+        }
     }
     
     /**

@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
  * 用户实体类
  */
 @Entity
-@Table(name = "users", 
+@Table(name = "ai_prompt_users", 
        indexes = {
            @Index(name = "idx_users_username", columnList = "username"),
            @Index(name = "idx_users_role", columnList = "role"),
@@ -38,6 +38,9 @@ public class User {
     
     @Column(nullable = false)
     private Boolean enabled;           // 启用状态
+    
+    @Column(length = 20)
+    private String phoneNumber;        // 手机号码
     
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;   // 创建时间

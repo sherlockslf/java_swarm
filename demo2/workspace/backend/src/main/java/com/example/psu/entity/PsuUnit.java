@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
  * PSU单元实体类
  */
 @Entity
-@Table(name = "psu_units", 
+@Table(name = "ai_prompt_psu", 
        indexes = {
            @Index(name = "idx_psu_units_psu_id", columnList = "psuId"),
            @Index(name = "idx_psu_units_status", columnList = "status"),

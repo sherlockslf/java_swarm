@@ -5,6 +5,7 @@ import com.example.psu.entity.PsuUnit;
 import com.example.psu.service.PsuService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -34,6 +35,46 @@ public class PsuController {
         Long currentUserId = getCurrentUserId();
         PsuUnit psu = psuService.createPsu(request, currentUserId);
         return ResponseEntity.ok(psu);
+    }
+    
+    /**
+     * 分页查询PSU列表
+     * @param page 页码（默认1）
+     * @param size 每页大小（默认10）
+     * @return 分页结果
+     */
+    @GetMapping
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public ResponseEntity<Page<PsuUnit>> getPsus(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<PsuUnit> psus = psuService.getPsus(page, size);
+        return ResponseEntity.ok(psus);
+    }
+    
+    /**
+     * 更新PSU信息（仅研发）
+     * @param id PSU数据库ID
+     * @param request 更新请求
+     * @return 更新后的PSU
+     */
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public ResponseEntity<PsuUnit> updatePsu(@PathVariable Long id, @Valid @RequestBody PsuCreateRequest request) {
+        PsuUnit psu = psuService.updatePsu(id, request);
+        return ResponseEntity.ok(psu);
+    }
+    
+    /**
+     * 删除PSU（归档，仅研发）
+     * @param id PSU数据库ID
+     * @return 无内容
+     */
+    @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public ResponseEntity<Void> deletePsu(@PathVariable Long id) {
+        psuService.deletePsu(id);
+        return ResponseEntity.noContent().build();
     }
     
     /**

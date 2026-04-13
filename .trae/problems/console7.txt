@@ -1,0 +1,48 @@
+Dashboard.vue:328 编辑PSU: Proxy(Object)
+Dashboard.vue:328 编辑PSU: Proxy(Object)
+Dashboard.vue:334 归档PSU: Proxy(Object)
+Dashboard.vue:328 编辑PSU: Proxy(Object)
+Dashboard.vue:328 编辑PSU: Proxy(Object)
+Dashboard.vue:328 编辑PSU: Proxy(Object)
+Dashboard.vue:328 编辑PSU: Proxy(Object) {id: 1, psuId: 'psu-001', name: '商品推荐PSU', description: '用于商品推荐的PSU单元', status: 'ACTIVE'}
+Dashboard.vue:334 归档PSU: Proxy(Object) {id: 1, psuId: 'psu-001', name: '商品推荐PSU', description: '用于商品推荐的PSU单元', status: 'ACTIVE'}
+Dashboard.vue:328 编辑PSU: Proxy(Object) {id: 1, psuId: 'psu-001', name: '商品推荐PSU', description: '用于商品推荐的PSU单元', status: 'ACTIVE'}
+Dashboard.vue:320 创建PSU失败: AxiosError: Request failed with status code 403
+    at settle (axios.js?v=91b42764:1344:7)
+    at XMLHttpRequest.onloadend (axios.js?v=91b42764:1707:7)
+createPsu @ Dashboard.vue:320
+await in createPsu
+callWithErrorHandling @ chunk-D4VKVKNE.js?v=91b42764:2351
+callWithAsyncErrorHandling @ chunk-D4VKVKNE.js?v=91b42764:2358
+emit @ chunk-D4VKVKNE.js?v=91b42764:6606
+(anonymous) @ chunk-D4VKVKNE.js?v=91b42764:10487
+handleClick @ element-plus.js?v=91b42764:20025
+callWithErrorHandling @ chunk-D4VKVKNE.js?v=91b42764:2351
+callWithAsyncErrorHandling @ chunk-D4VKVKNE.js?v=91b42764:2358
+invoker @ chunk-D4VKVKNE.js?v=91b42764:11522
+Dashboard.vue:320 创建PSU失败: AxiosError: Request failed with status code 403
+    at settle (axios.js?v=91b42764:1344:7)
+    at XMLHttpRequest.onloadend (axios.js?v=91b42764:1707:7)
+createPsu @ Dashboard.vue:320
+await in createPsu
+callWithErrorHandling @ chunk-D4VKVKNE.js?v=91b42764:2351
+callWithAsyncErrorHandling @ chunk-D4VKVKNE.js?v=91b42764:2358
+emit @ chunk-D4VKVKNE.js?v=91b42764:6606
+(anonymous) @ chunk-D4VKVKNE.js?v=91b42764:10487
+handleClick @ element-plus.js?v=91b42764:20025
+callWithErrorHandling @ chunk-D4VKVKNE.js?v=91b42764:2351
+callWithAsyncErrorHandling @ chunk-D4VKVKNE.js?v=91b42764:2358
+invoker @ chunk-D4VKVKNE.js?v=91b42764:11522
+Dashboard.vue:320 创建PSU失败: AxiosError: Request failed with status code 403
+    at settle (axios.js?v=91b42764:1344:7)
+    at XMLHttpRequest.onloadend (axios.js?v=91b42764:1707:7)
+createPsu @ Dashboard.vue:320
+await in createPsu
+callWithErrorHandling @ chunk-D4VKVKNE.js?v=91b42764:2351
+callWithAsyncErrorHandling @ chunk-D4VKVKNE.js?v=91b42764:2358
+emit @ chunk-D4VKVKNE.js?v=91b42764:6606
+(anonymous) @ chunk-D4VKVKNE.js?v=91b42764:10487
+handleClick @ element-plus.js?v=91b42764:20025
+callWithErrorHandling @ chunk-D4VKVKNE.js?v=91b42764:2351
+callWithAsyncErrorHandling @ chunk-D4VKVKNE.js?v=91b42764:2358
+invoker @ chunk-D4VKVKNE.js?v=91b42764:11522

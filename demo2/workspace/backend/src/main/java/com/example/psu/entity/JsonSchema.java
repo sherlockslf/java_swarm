@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
  * JSON Schema实体类
  */
 @Entity
-@Table(name = "json_schemas", 
+@Table(name = "ai_prompt_json_schemas", 
        indexes = {
            @Index(name = "idx_json_schemas_psu_id", columnList = "psuId"),
            @Index(name = "idx_json_schemas_version", columnList = "version"),

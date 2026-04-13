@@ -38,6 +38,11 @@
                 </el-tag>
               </template>
             </el-table-column>
+            <el-table-column prop="updatedAt" label="更新时间" width="180">
+              <template #default="{ row }">
+                {{ formatDateTime(row.updatedAt) }}
+              </template>
+            </el-table-column>
             <el-table-column label="操作" width="200">
               <template #default="{ row }">
                 <el-button size="small" @click="editPsu(row)">编辑</el-button>
@@ -45,6 +50,14 @@
               </template>
             </el-table-column>
           </el-table>
+          <el-pagination
+            v-model:current-page="psuPagination.page"
+            :page-size="psuPagination.size"
+            :total="psuPagination.total"
+            layout="total, prev, pager, next"
+            @current-change="handlePageChange"
+            style="margin-top: 20px; justify-content: flex-end;">
+          </el-pagination>
         </div>
         
         <!-- Schema编辑器 -->
@@ -199,6 +212,25 @@
       </template>
     </el-dialog>
     
+    <!-- 编辑PSU对话框 -->
+    <el-dialog v-model="showEditPsuDialog" title="编辑PSU" width="600px">
+      <el-form :model="editPsuForm" :rules="psuRules" ref="editPsuFormRef" label-width="100px">
+        <el-form-item label="PSU ID">
+          <el-input v-model="editPsuForm.psuId" disabled></el-input>
+        </el-form-item>
+        <el-form-item label="名称" prop="name">
+          <el-input v-model="editPsuForm.name" placeholder="请输入PSU名称"></el-input>
+        </el-form-item>
+        <el-form-item label="描述" prop="description">
+          <el-input v-model="editPsuForm.description" type="textarea" :rows="3" placeholder="请输入PSU描述"></el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showEditPsuDialog = false">取消</el-button>
+        <el-button type="primary" @click="updatePsu">保存</el-button>
+      </template>
+    </el-dialog>
+    
     <!-- 编辑Prompt片段对话框 -->
     <el-dialog v-model="showEditPromptDialog" title="编辑Prompt片段" width="700px">
       <el-form :model="editingPromptFragment" label-width="100px">
@@ -233,17 +265,29 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import axios from 'axios'
-import { ElMessage } from 'element-plus'
+import api, { psuApi } from '@/services/api'
+import { ElMessage, ElMessageBox } from 'element-plus'
 
 const activeMenu = ref('1')
 const showCreatePsuDialog = ref(false)
+const showEditPsuDialog = ref(false)
 const showEditPromptDialog = ref(false)
 const showCodeDialog = ref(false)
 
 // PSU数据
 const psus = ref([])
+const psuPagination = reactive({
+  page: 1,
+  size: 10,
+  total: 0
+})
 const newPsuForm = reactive({
+  psuId: '',
+  name: '',
+  description: ''
+})
+const editPsuForm = reactive({
+  id: null,
   psuId: '',
   name: '',
   description: ''
@@ -307,37 +351,100 @@ const getStatusText = (status) => {
 // 创建PSU
 const createPsu = async () => {
   try {
-    await axios.post('/api/psus', {
+    await psuApi.createPsu({
       psuId: newPsuForm.psuId,
       name: newPsuForm.name,
       description: newPsuForm.description
     })
     ElMessage.success('PSU创建成功')
     showCreatePsuDialog.value = false
-    // 重新加载PSU列表
+    newPsuForm.psuId = ''
+    newPsuForm.name = ''
+    newPsuForm.description = ''
     loadPsus()
   } catch (error) {
     console.error('创建PSU失败:', error)
-    ElMessage.error('创建PSU失败')
+    const backendMsg = error.response?.data?.message || error.response?.data?.error || ''
+    if (error.response?.status === 409 || String(backendMsg).includes('PSU ID already exists')) {
+      ElMessage.error('PSU ID已存在，请更换后重试')
+    } else if (error.response?.status === 403) {
+      ElMessage.error('无权限创建PSU，请确认当前账号角色')
+    } else {
+      ElMessage.error(backendMsg || '创建PSU失败')
+    }
   }
 }
 
 // 编辑PSU
 const editPsu = (psu) => {
-  // 实现编辑逻辑
-  console.log('编辑PSU:', psu)
+  editPsuForm.id = psu.id
+  editPsuForm.psuId = psu.psuId
+  editPsuForm.name = psu.name
+  editPsuForm.description = psu.description
+  showEditPsuDialog.value = true
+}
+
+// 更新PSU
+const updatePsu = async () => {
+  try {
+    await psuApi.updatePsu(editPsuForm.id, {
+      psuId: editPsuForm.psuId,
+      name: editPsuForm.name,
+      description: editPsuForm.description
+    })
+    ElMessage.success('PSU更新成功')
+    showEditPsuDialog.value = false
+    loadPsus()
+  } catch (error) {
+    console.error('更新PSU失败:', error)
+    ElMessage.error('更新PSU失败')
+  }
 }
 
 // 归档PSU
-const archivePsu = (psu) => {
-  // 实现归档逻辑
-  console.log('归档PSU:', psu)
+const archivePsu = async (psu) => {
+  try {
+    await ElMessageBox.confirm(`确定要归档PSU "${psu.name}" 吗？`, '确认归档', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await psuApi.deletePsu(psu.id)
+    ElMessage.success('PSU已归档')
+    loadPsus()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('归档PSU失败:', error)
+      ElMessage.error('归档PSU失败')
+    }
+  }
+}
+
+// 分页切换
+const handlePageChange = (page) => {
+  psuPagination.page = page
+  loadPsus()
+}
+
+// 格式化日期时间
+const formatDateTime = (dateTime) => {
+  if (!dateTime) return ''
+  const date = new Date(dateTime)
+  return date.toLocaleString('zh-CN', { 
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit', 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    second: '2-digit',
+    hour12: false 
+  })
 }
 
 // 保存Schema
 const saveSchema = async () => {
   try {
-    await axios.put(`/api/schemas/${selectedPsuId.value}`, {
+    await api.put(`/schemas/${selectedPsuId.value}`, {
       schemaContent: schemaForm.schemaContent,
       changeLog: schemaForm.changeLog
     })
@@ -353,7 +460,7 @@ const loadSchema = async () => {
   if (!selectedPsuId.value) return
   
   try {
-    const response = await axios.get(`/api/schemas/${selectedPsuId.value}`)
+    const response = await api.get(`/schemas/${selectedPsuId.value}`)
     schemaForm.schemaContent = response.data.schemaContent
     schemaForm.changeLog = response.data.changeLog || ''
   } catch (error) {
@@ -368,7 +475,7 @@ const loadPromptFragments = async () => {
   if (!selectedPromptPsuId.value) return
   
   try {
-    const response = await axios.get(`/api/prompts/${selectedPromptPsuId.value}`)
+    const response = await api.get(`/prompts/${selectedPromptPsuId.value}`)
     promptFragments.value = response.data
   } catch (error) {
     console.error('加载Prompt片段失败:', error)
@@ -385,12 +492,11 @@ const editPromptFragment = (fragment) => {
 // 保存Prompt片段
 const savePromptFragment = async () => {
   try {
-    await axios.put(`/api/prompts/${editingPromptFragment.value.id}`, {
+    await api.put(`/prompts/${editingPromptFragment.value.id}`, {
       content: editingPromptFragment.value.content
     })
     ElMessage.success('Prompt片段保存成功')
     showEditPromptDialog.value = false
-    // 重新加载Prompt片段
     loadPromptFragments()
   } catch (error) {
     console.error('保存Prompt片段失败:', error)
@@ -401,11 +507,10 @@ const savePromptFragment = async () => {
 // 通过版本
 const approveVersion = async (review) => {
   try {
-    await axios.post(`/api/versions/${review.id}/review`, {
+    await api.post(`/versions/${review.id}/review`, {
       approved: true
     })
     ElMessage.success('版本审核通过')
-    // 重新加载版本审核列表
     loadVersionReviews()
   } catch (error) {
     console.error('审核版本失败:', error)
@@ -416,12 +521,11 @@ const approveVersion = async (review) => {
 // 拒绝版本
 const rejectVersion = async (review) => {
   try {
-    await axios.post(`/api/versions/${review.id}/review`, {
+    await api.post(`/versions/${review.id}/review`, {
       approved: false,
       rejectionReason: '不符合要求'
     })
     ElMessage.success('版本审核已拒绝')
-    // 重新加载版本审核列表
     loadVersionReviews()
   } catch (error) {
     console.error('审核版本失败:', error)
@@ -432,7 +536,7 @@ const rejectVersion = async (review) => {
 // 查看代码
 const viewCode = async (review) => {
   try {
-    const response = await axios.get(`/api/versions/${review.psuId}/code`)
+    const response = await api.get(`/versions/${review.psuId}/code`)
     viewingCode.value = response.data
     showCodeDialog.value = true
   } catch (error) {
@@ -449,7 +553,7 @@ const generateCode = async () => {
   }
   
   try {
-    const response = await axios.get(`/api/versions/${selectedCodeGenPsuId.value}/code`)
+    const response = await api.get(`/versions/${selectedCodeGenPsuId.value}/code`)
     generatedCode.value = response.data
     ElMessage.success('代码生成成功')
   } catch (error) {
@@ -483,20 +587,18 @@ const copyCode = () => {
 // 加载PSU列表
 const loadPsus = async () => {
   try {
-    // 模拟数据
-    psus.value = [
-      { id: 1, psuId: 'psu-001', name: '商品推荐PSU', description: '用于商品推荐的PSU单元', status: 'ACTIVE' },
-      { id: 2, psuId: 'psu-002', name: '客服对话PSU', description: '用于客服对话的PSU单元', status: 'ACTIVE' }
-    ]
+    const response = await psuApi.getPsus(psuPagination.page, psuPagination.size)
+    psus.value = response.data.content
+    psuPagination.total = response.data.totalElements
   } catch (error) {
     console.error('加载PSU列表失败:', error)
+    ElMessage.error('加载PSU列表失败')
   }
 }
 
 // 加载版本审核列表
 const loadVersionReviews = async () => {
   try {
-    // 模拟数据
     versionReviews.value = [
       { id: 1, psuId: 1, majorVersion: 1, minorVersion: 0, patchVersion: 0, status: 'PENDING', submitterId: 3, submittedAt: '2026-04-12 10:30:00' },
       { id: 2, psuId: 2, majorVersion: 1, minorVersion: 1, patchVersion: 0, status: 'APPROVED', submitterId: 3, submittedAt: '2026-04-12 09:30:00' }

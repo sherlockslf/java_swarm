@@ -100,9 +100,9 @@ src/main/java/com/example/psu/
 ## 数据库设计
 
 ### 表结构
-- `users`: 用户表（用户名、角色、启用状态等）
-- `psu_units`: PSU单元表（PSU ID、名称、描述、状态等）
-- `json_schemas`: JSON Schema表（Schema内容、版本、修改者等）
+- `ai_prompt_users`: 用户表（用户名、角色、启用状态、手机号码等）
+- `ai_prompt_psu`: PSU单元表（PSU ID、名称、描述、状态等）
+- `ai_prompt_json_schemas`: JSON Schema表（Schema内容、版本、修改者等）
 - `prompt_fragments`: Prompt片段表（片段内容、类型、可编辑状态等）
 - `version_reviews`: 版本审核表（版本信息、审核状态、代码内容等）
 - `system_configs`: 系统配置表（API密钥等配置）

@@ -1,22 +1,23 @@
 -- PSU全生命周期管理平台数据库初始化脚本
 
 -- 创建用户表
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE IF NOT EXISTS ai_prompt_users (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(50) NOT NULL UNIQUE COMMENT '用户名',
     password VARCHAR(100) NOT NULL COMMENT '加密密码',
     role ENUM('ADMIN', 'DEVELOPER', 'BUSINESS') NOT NULL COMMENT '角色',
     enabled TINYINT(1) DEFAULT 1 COMMENT '启用状态: 1-启用, 0-停用',
+    phone_number VARCHAR(20) COMMENT '手机号码',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
     INDEX idx_users_username (username),
     INDEX idx_users_role (role),
     INDEX idx_users_enabled (enabled)
-) COMMENT '用户表';
+) COMMENT 'AI Prompt用户表';
 
 -- 创建PSU单元表
-CREATE TABLE IF NOT EXISTS psu_units (
+CREATE TABLE IF NOT EXISTS ai_prompt_psu (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     psu_id VARCHAR(100) NOT NULL UNIQUE COMMENT '全局唯一PSU ID',
     name VARCHAR(200) NOT NULL COMMENT 'PSU名称',
@@ -30,10 +31,10 @@ CREATE TABLE IF NOT EXISTS psu_units (
     INDEX idx_psu_units_status (status),
     INDEX idx_psu_units_creator (creator_id),
     INDEX idx_psu_units_created (created_at)
-) COMMENT 'PSU单元表';
+) COMMENT 'AI Prompt PSU单元表';
 
 -- 创建JSON Schema表
-CREATE TABLE IF NOT EXISTS json_schemas (
+CREATE TABLE IF NOT EXISTS ai_prompt_json_schemas (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     psu_id BIGINT NOT NULL COMMENT '关联PSU ID',
     schema_content JSON NOT NULL COMMENT 'JSON Schema内容',
@@ -48,7 +49,7 @@ CREATE TABLE IF NOT EXISTS json_schemas (
     INDEX idx_json_schemas_created (created_at),
     
     CONSTRAINT uk_json_schemas_psu_version UNIQUE (psu_id, version)
-) COMMENT 'JSON Schema表';
+) COMMENT 'AI Prompt JSON Schema表';
 
 -- 创建Prompt片段表
 CREATE TABLE IF NOT EXISTS prompt_fragments (
@@ -131,7 +132,7 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 ) COMMENT '审计日志表';
 
 -- 初始化预置用户（每种角色一个）
-INSERT IGNORE INTO users (username, password, role, enabled) 
+INSERT IGNORE INTO ai_prompt_users (username, password, role, enabled) 
 VALUES 
 ('admin_user', '$2a$10$vDtCxgJ5qwnH3Hmm.RB3D.Ke0gBPnPvGoTEmZ8Tk6AuNx.n2BRklW', 'ADMIN', 1),  -- password: Admin@123
 ('dev_user', '$2a$10$vDtCxgJ5qwnH3Hmm.RB3D.Ke0gBPnPvGoTEmZ8Tk6AuNx.n2BRklW', 'DEVELOPER', 1),  -- password: Dev@123

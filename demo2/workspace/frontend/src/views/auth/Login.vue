@@ -46,8 +46,9 @@ const rules = {
   ]
 }
 
+const loginFormRef = ref(null)
+
 const handleLogin = async () => {
-  const loginFormRef = ref(null)
   const valid = await loginFormRef.value.validate().catch(() => false)
   if (!valid) return
 
@@ -59,6 +60,7 @@ const handleLogin = async () => {
     // 存储token和角色信息
     localStorage.setItem('token', token)
     localStorage.setItem('userRole', role)
+    localStorage.setItem('username', response.data.username) // 存储用户名
     
     // 根据角色跳转到相应页面
     if (role === 'ADMIN') {

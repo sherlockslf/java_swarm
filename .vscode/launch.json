@@ -1,5 +1,6 @@
 {
     "configurations": [
+    
         {
             "type": "java",
             "name": "Spring Boot-MainServiceApplication<main-service>",
@@ -18,6 +19,16 @@
             "cwd": "${workspaceFolder}",
             "mainClass": "com.example.subagentservice.SubAgentServiceApplication",
             "projectName": "subagent-service",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-PsuPlatformApplication<psu-platform>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.example.psu.PsuPlatformApplication",
+            "projectName": "psu-platform",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
         }

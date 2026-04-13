@@ -57,9 +57,7 @@ security:
 
 # 服务器配置
 server:
-  port: 8082
-  servlet:
-    context-path: /api
+  port: 8084
 
 # 日志配置
 logging:
