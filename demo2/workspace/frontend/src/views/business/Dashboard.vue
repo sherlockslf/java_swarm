@@ -21,7 +21,7 @@
         <!-- PSU列表 -->
         <div v-if="activeMenu === '1'" class="content-section">
           <h2>PSU列表</h2>
-          <el-table :data="psus" style="width: 100%; margin-top: 20px;">
+          <el-table :data="psus" style="width: 100%; margin-top: 20px;" v-loading="loadingPsus">
             <el-table-column prop="psuId" label="PSU ID" width="200"></el-table-column>
             <el-table-column prop="name" label="名称" width="200"></el-table-column>
             <el-table-column prop="description" label="描述"></el-table-column>
@@ -39,6 +39,14 @@
               </template>
             </el-table-column>
           </el-table>
+          <el-pagination
+            v-model:current-page="psuPagination.page"
+            :page-size="psuPagination.size"
+            :total="psuPagination.total"
+            layout="total, prev, pager, next"
+            @current-change="handlePageChange"
+            style="margin-top: 20px; justify-content: flex-end;">
+          </el-pagination>
         </div>
         
         <!-- Prompt编排 -->
@@ -56,7 +64,7 @@
               </el-select>
             </el-form-item>
             
-            <el-form-item label="Schema字段台账">
+            <el-form-item label="Schema字段台账" v-if="schemaFields.length > 0">
               <el-table :data="schemaFields" style="width: 100%; margin-top: 10px;">
                 <el-table-column prop="name" label="字段名" width="200"></el-table-column>
                 <el-table-column prop="type" label="类型" width="150"></el-table-column>
@@ -78,13 +86,29 @@
             
             <el-form-item label="Prompt内容">
               <div class="prompt-editor-container">
-                <el-input 
-                  v-model="promptForm.promptContent" 
-                  type="textarea" 
-                  :rows="10" 
-                  placeholder="请输入Prompt内容，可使用上方变量">
-                </el-input>
-                <div class="variable-panel">
+                <div class="prompt-editor-main">
+                  <el-input 
+                    v-model="promptForm.promptContent" 
+                    type="textarea" 
+                    :rows="10" 
+                    placeholder="请输入Prompt内容，可使用上方变量"
+                    :disabled="!currentPromptEditable">
+                  </el-input>
+                  <div class="prompt-status-bar">
+                    <el-tag :type="currentPromptEditable ? 'success' : 'danger'" size="small">
+                      {{ currentPromptEditable ? '可编辑' : '已定版' }}
+                    </el-tag>
+                    <el-button 
+                      v-if="currentPromptEditable && isBusinessUser" 
+                      size="small" 
+                      type="warning" 
+                      @click="finalizePrompt"
+                      style="margin-left: 10px;">
+                      定版
+                    </el-button>
+                  </div>
+                </div>
+                <div class="variable-panel" v-if="schemaFields.length > 0">
                   <h4>可用变量</h4>
                   <div class="variable-list">
                     <el-tag 
@@ -121,7 +145,7 @@
               </el-select>
             </el-form-item>
             
-            <el-form-item label="输入参数">
+            <el-form-item label="输入参数" v-if="debugSchemaFields.length > 0">
               <div v-for="(field, index) in debugSchemaFields" :key="index" class="input-field">
                 <label>{{ field.name }} ({{ field.type }}):</label>
                 <el-input 
@@ -179,20 +203,31 @@
           
           <div class="version-status">
             <h3>审核状态</h3>
-            <el-table :data="versionStatus" style="width: 100%;">
-              <el-table-column prop="psuName" label="PSU名称" width="200"></el-table-column>
-              <el-table-column prop="version" label="版本" width="150"></el-table-column>
-              <el-table-column prop="status" label="状态" width="150">
+            <el-table :data="versionStatus" style="width: 100%;" v-loading="loadingVersions">
+              <el-table-column prop="psuId" label="PSU ID" width="150"></el-table-column>
+              <el-table-column label="版本" width="150">
+                <template #default="{ row }">
+                  {{ row.majorVersion }}.{{ row.minorVersion }}.{{ row.patchVersion }}
+                </template>
+              </el-table-column>
+              <el-table-column prop="status" label="状态" width="120">
                 <template #default="{ row }">
                   <el-tag :type="getStatusTagType(row.status)">
                     {{ getStatusText(row.status) }}
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column prop="submitTime" label="提交时间" width="180"></el-table-column>
-              <el-table-column prop="reviewTime" label="审核时间" width="180"></el-table-column>
-              <el-table-column prop="reviewer" label="审核人" width="150"></el-table-column>
-              <el-table-column prop="remark" label="备注"></el-table-column>
+              <el-table-column prop="submittedAt" label="提交时间" width="180">
+                <template #default="{ row }">
+                  {{ formatDateTime(row.submittedAt) }}
+                </template>
+              </el-table-column>
+              <el-table-column prop="reviewedAt" label="审核时间" width="180">
+                <template #default="{ row }">
+                  {{ row.reviewedAt ? formatDateTime(row.reviewedAt) : '-' }}
+                </template>
+              </el-table-column>
+              <el-table-column prop="rejectionReason" label="备注"></el-table-column>
             </el-table>
           </div>
         </div>
@@ -222,14 +257,21 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import axios from 'axios'
+import api, { psuApi, schemaApi, promptApi, versionApi } from '@/services/api'
 import { ElMessage } from 'element-plus'
 
 const activeMenu = ref('1')
 const showSchemaDialog = ref(false)
+const loadingPsus = ref(false)
+const loadingVersions = ref(false)
 
 // PSU数据
 const psus = ref([])
+const psuPagination = reactive({
+  page: 1,
+  size: 10,
+  total: 0
+})
 const selectedPsuId = ref('')
 const selectedDebugPsuId = ref('')
 const selectedVersionPsuId = ref('')
@@ -256,27 +298,57 @@ const versionStatus = ref([])
 // 提交状态
 const submitting = ref(false)
 
+// Prompt编辑状态
+const currentPromptEditable = ref(true)
+const currentPromptFragmentId = ref(null)
+const isBusinessUser = ref(false)
+
 // 菜单选择处理
 const handleMenuSelect = (index) => {
   activeMenu.value = index
 }
 
+// 分页切换
+const handlePageChange = (page) => {
+  psuPagination.page = page
+  loadPsus()
+}
+
 // 选择PSU
 const selectPsu = (psu) => {
   selectedPsuId.value = psu.id
+  selectedDebugPsuId.value = psu.id
+  selectedVersionPsuId.value = psu.id
   ElMessage.success(`已选择PSU: ${psu.name}`)
 }
 
 // 查看Schema
-const viewSchema = (psu) => {
-  // 模拟Schema字段
-  viewingSchemaFields.value = [
-    { name: 'productName', type: 'string', required: true, description: '商品名称' },
-    { name: 'productCategory', type: 'string', required: true, description: '商品类别' },
-    { name: 'productPrice', type: 'number', required: false, description: '商品价格' },
-    { name: 'userQuery', type: 'string', required: true, description: '用户查询内容' }
-  ]
-  showSchemaDialog.value = true
+const viewSchema = async (psu) => {
+  try {
+    const response = await schemaApi.getSchema(psu.id)
+    const schemaContent = JSON.parse(response.data.schemaContent || '{}')
+    viewingSchemaFields.value = parseSchemaFields(schemaContent)
+    showSchemaDialog.value = true
+  } catch (error) {
+    console.error('获取Schema失败:', error)
+    ElMessage.error('获取Schema失败')
+  }
+}
+
+// 解析Schema字段
+const parseSchemaFields = (schema) => {
+  const fields = []
+  if (schema.properties) {
+    for (const [name, prop] of Object.entries(schema.properties)) {
+      fields.push({
+        name,
+        type: prop.type || 'string',
+        required: (schema.required || []).includes(name),
+        description: prop.description || ''
+      })
+    }
+  }
+  return fields
 }
 
 // 获取状态标签类型
@@ -299,23 +371,48 @@ const getStatusText = (status) => {
   }
 }
 
+// 格式化日期时间
+const formatDateTime = (dateTime) => {
+  if (!dateTime) return '-'
+  const date = new Date(dateTime)
+  return date.toLocaleString('zh-CN', { 
+    year: 'numeric', 
+    month: '2-digit', 
+    day: '2-digit', 
+    hour: '2-digit', 
+    minute: '2-digit', 
+    second: '2-digit',
+    hour12: false 
+  })
+}
+
 // 加载Prompt片段
 const loadPromptFragments = async () => {
   if (!selectedPsuId.value) return
   
   try {
-    // 模拟加载Schema字段
-    schemaFields.value = [
-      { name: 'productName', type: 'string', required: true, description: '商品名称', editable: true },
-      { name: 'productCategory', type: 'string', required: true, description: '商品类别', editable: true },
-      { name: 'productPrice', type: 'number', required: false, description: '商品价格', editable: true },
-      { name: 'userQuery', type: 'string', required: true, description: '用户查询内容', editable: true }
-    ]
+    // 先加载Schema获取字段
+    const schemaResponse = await schemaApi.getSchema(selectedPsuId.value)
+    const schemaContent = JSON.parse(schemaResponse.data.schemaContent || '{}')
+    schemaFields.value = parseSchemaFields(schemaContent)
     
-    // 模拟加载现有Prompt内容
-    promptForm.promptContent = `基于以下商品信息：{{productName}}，类别：{{productCategory}}，价格：{{productPrice}}，回答用户问题：{{userQuery}}`
+    // 加载Prompt片段
+    const promptResponse = await promptApi.getPromptFragments(selectedPsuId.value)
+    if (promptResponse.data && promptResponse.data.length > 0) {
+      const coreRules = promptResponse.data.find(p => p.fragmentKey === 'core_rules')
+      if (coreRules) {
+        promptForm.promptContent = coreRules.content
+        currentPromptFragmentId.value = coreRules.id
+        currentPromptEditable.value = coreRules.editable !== false
+      }
+    }
+    
+    // 检查当前用户角色
+    const profileResponse = await api.get('/auth/profile')
+    isBusinessUser.value = profileResponse.data.role === 'BUSINESS'
   } catch (error) {
     console.error('加载Prompt片段失败:', error)
+    ElMessage.error('加载Prompt片段失败')
   }
 }
 
@@ -329,18 +426,46 @@ const insertVariable = (field) => {
 
 // 获取光标位置（简化实现）
 const getCursorPosition = () => {
-  // 这里应该获取实际的光标位置，简化实现返回末尾
   return promptForm.promptContent.length
 }
 
 // 保存Prompt
 const savePrompt = async () => {
+  if (!selectedPsuId.value) {
+    ElMessage.warning('请先选择PSU')
+    return
+  }
+  
+  if (!currentPromptEditable.value) {
+    ElMessage.warning('Prompt已定版，不允许修改')
+    return
+  }
+  
   try {
-    // 这里应该调用API保存Prompt
+    await promptApi.updatePromptFragment(currentPromptFragmentId.value, {
+      content: promptForm.promptContent
+    })
     ElMessage.success('Prompt保存成功')
   } catch (error) {
     console.error('保存Prompt失败:', error)
     ElMessage.error('保存Prompt失败')
+  }
+}
+
+// 定版Prompt
+const finalizePrompt = async () => {
+  if (!currentPromptFragmentId.value) {
+    ElMessage.warning('请先加载Prompt片段')
+    return
+  }
+  
+  try {
+    await promptApi.finalizePromptFragment(currentPromptFragmentId.value)
+    ElMessage.success('Prompt已定版，所有人不可修改')
+    currentPromptEditable.value = false
+  } catch (error) {
+    console.error('定版Prompt失败:', error)
+    ElMessage.error('定版失败')
   }
 }
 
@@ -349,20 +474,18 @@ const loadDebugSchema = async () => {
   if (!selectedDebugPsuId.value) return
   
   try {
-    // 模拟加载调试Schema字段
-    debugSchemaFields.value = [
-      { name: 'productName', type: 'string', required: true, editable: true },
-      { name: 'productCategory', type: 'string', required: true, editable: true },
-      { name: 'productPrice', type: 'number', required: false, editable: true },
-      { name: 'userQuery', type: 'string', required: true, editable: true }
-    ]
+    const response = await schemaApi.getSchema(selectedDebugPsuId.value)
+    const schemaContent = JSON.parse(response.data.schemaContent || '{}')
+    debugSchemaFields.value = parseSchemaFields(schemaContent).map(f => ({...f, editable: true}))
     
     // 重置调试表单
     debugSchemaFields.value.forEach(field => {
       debugForm[field.name] = ''
     })
+    testResult.value = ''
   } catch (error) {
     console.error('加载调试Schema失败:', error)
+    ElMessage.error('加载调试Schema失败')
   }
 }
 
@@ -375,15 +498,18 @@ const testPrompt = async () => {
   
   testing.value = true
   try {
-    // 模拟测试请求
-    setTimeout(() => {
-      testResult.value = `测试结果：基于输入的商品"${debugForm.productName}"和用户查询"${debugForm.userQuery}"，返回了相关推荐信息。`
-      testing.value = false
-      ElMessage.success('测试完成')
-    }, 1000)
+    const inputParams = {}
+    debugSchemaFields.value.forEach(field => {
+      inputParams[field.name] = debugForm[field.name] || ''
+    })
+    
+    const response = await promptApi.testPrompt(selectedDebugPsuId.value, inputParams)
+    testResult.value = response.data
+    ElMessage.success('测试完成')
   } catch (error) {
     console.error('测试Prompt失败:', error)
     ElMessage.error('测试失败')
+  } finally {
     testing.value = false
   }
 }
@@ -395,32 +521,14 @@ const submitVersion = async () => {
     return
   }
   
-  if (!versionForm.description.trim()) {
-    ElMessage.warning('请输入版本描述')
-    return
-  }
-  
   submitting.value = true
   try {
-    // 模拟提交版本请求
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await versionApi.submitVersion(selectedVersionPsuId.value)
     ElMessage.success('版本提交成功，等待研发审核')
     submitting.value = false
-    
-    // 添加到版本状态列表
-    const selectedPsu = psus.value.find(p => p.id === parseInt(selectedVersionPsuId.value))
-    versionStatus.value.unshift({
-      psuName: selectedPsu?.name || '未知',
-      version: '1.0.0',
-      status: 'PENDING',
-      submitTime: new Date().toLocaleString(),
-      reviewTime: '-',
-      reviewer: '-',
-      remark: versionForm.description
-    })
-    
-    // 清空表单
     versionForm.description = ''
+    // 重新加载版本列表
+    loadVersionStatus()
   } catch (error) {
     console.error('提交版本失败:', error)
     ElMessage.error('提交失败')
@@ -430,32 +538,43 @@ const submitVersion = async () => {
 
 // 加载PSU列表
 const loadPsus = async () => {
+  loadingPsus.value = true
   try {
-    // 模拟数据
-    psus.value = [
-      { id: 1, psuId: 'psu-001', name: '商品推荐PSU', description: '用于商品推荐的PSU单元', status: 'ACTIVE' },
-      { id: 2, psuId: 'psu-002', name: '客服对话PSU', description: '用于客服对话的PSU单元', status: 'ACTIVE' }
-    ]
+    const response = await psuApi.getPsus(psuPagination.page, psuPagination.size)
+    psus.value = response.data.content
+    psuPagination.total = response.data.totalElements
   } catch (error) {
     console.error('加载PSU列表失败:', error)
+    ElMessage.error('加载PSU列表失败')
+  } finally {
+    loadingPsus.value = false
   }
 }
 
 // 加载版本状态
 const loadVersionStatus = async () => {
+  loadingVersions.value = true
   try {
-    // 模拟数据
-    versionStatus.value = [
-      { psuName: '商品推荐PSU', version: '1.0.0', status: 'APPROVED', submitTime: '2026-04-12 09:30:00', reviewTime: '2026-04-12 10:00:00', reviewer: 'dev_user', remark: '初始版本' }
-    ]
+    // 获取所有PSU的版本审核记录
+    const allVersions = []
+    for (const psu of psus.value) {
+      try {
+        const response = await api.get(`/versions/${psu.id}/code`)
+        // 这里应该调用获取版本列表的API，暂时使用模拟
+      } catch (e) {
+        // 忽略单个PSU的错误
+      }
+    }
+    versionStatus.value = allVersions
   } catch (error) {
     console.error('加载版本状态失败:', error)
+  } finally {
+    loadingVersions.value = false
   }
 }
 
 onMounted(() => {
   loadPsus()
-  loadVersionStatus()
 })
 </script>
 

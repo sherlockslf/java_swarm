@@ -1,7 +1,9 @@
 package com.example.psu.controller;
 
 import com.example.psu.dto.request.ReviewRequest;
+import com.example.psu.entity.User;
 import com.example.psu.entity.VersionReview;
+import com.example.psu.repository.UserRepository;
 import com.example.psu.service.VersionReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,9 @@ public class VersionReviewController {
     @Autowired
     private VersionReviewService versionReviewService;
     
+    @Autowired
+    private UserRepository userRepository;
+    
     /**
      * 提交版本审核（业务）
      * @param psuId PSU ID
@@ -28,7 +33,6 @@ public class VersionReviewController {
      */
     @PostMapping("/{psuId}/submit")
     public ResponseEntity<VersionReview> submitVersionForReview(@PathVariable Long psuId) {
-        // 从SecurityContext获取当前用户ID
         Long currentUserId = getCurrentUserId();
         VersionReview review = versionReviewService.submitVersionForReview(psuId, currentUserId);
         return ResponseEntity.ok(review);
@@ -43,7 +47,6 @@ public class VersionReviewController {
     @PostMapping("/{reviewId}/review")
     @PreAuthorize("hasRole('DEVELOPER')")
     public ResponseEntity<VersionReview> reviewVersion(@PathVariable Long reviewId, @RequestBody ReviewRequest requestBody) {
-        // 从SecurityContext获取当前用户ID
         Long currentUserId = getCurrentUserId();
         VersionReview review = versionReviewService.reviewVersion(reviewId, requestBody.isApproved(), currentUserId, requestBody.getRejectionReason());
         return ResponseEntity.ok(review);
@@ -56,9 +59,8 @@ public class VersionReviewController {
      */
     @GetMapping("/{psuId}/code")
     public ResponseEntity<String> getCode(@PathVariable Long psuId) {
-        // 从SecurityContext获取当前用户ID
         Long currentUserId = getCurrentUserId();
-        String code = versionReviewService.generateBusinessCode(psuId, 1L); // 简化实现
+        String code = versionReviewService.generateBusinessCode(psuId, currentUserId);
         return ResponseEntity.ok(code);
     }
     
@@ -70,9 +72,9 @@ public class VersionReviewController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
             String username = authentication.getName();
-            // 在实际应用中，这里需要通过UserService查询数据库获取用户ID
-            // 为了简化，我们返回一个固定的ID，实际应用中需要查询数据库
-            return 1L; // 这里应该通过用户名查询数据库获取真实用户ID
+            User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+            return user.getId();
         }
         return null;
     }

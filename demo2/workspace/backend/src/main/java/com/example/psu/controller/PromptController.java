@@ -1,18 +1,26 @@
 package com.example.psu.controller;
 
-import com.example.psu.dto.request.UpdatePromptRequest;
-import com.example.psu.entity.PromptFragment;
-import com.example.psu.service.PromptService;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.Map;
+import com.example.psu.dto.request.UpdatePromptRequest;
+import com.example.psu.entity.PromptFragment;
+import com.example.psu.entity.User;
+import com.example.psu.repository.UserRepository;
+import com.example.psu.service.PromptService;
 
 /**
  * Prompt管理控制器
@@ -23,6 +31,9 @@ public class PromptController {
     
     @Autowired
     private PromptService promptService;
+    
+    @Autowired
+    private UserRepository userRepository;
     
     /**
      * 获取Prompt片段
@@ -37,15 +48,27 @@ public class PromptController {
     
     /**
      * 更新Prompt片段（权限分级）
+     * 规则：editable=true时所有人可编辑，editable=false（已定版）所有人不可修改
      * @param fragmentId 片段ID
      * @param requestBody 更新请求
      * @return 更新后的片段
      */
     @PutMapping("/{fragmentId}")
     public ResponseEntity<PromptFragment> updatePromptFragment(@PathVariable Long fragmentId, @RequestBody UpdatePromptRequest requestBody) {
-        // 从SecurityContext获取当前用户ID
         Long currentUserId = getCurrentUserId();
         PromptFragment fragment = promptService.updatePromptFragment(fragmentId, requestBody.getContent(), currentUserId);
+        return ResponseEntity.ok(fragment);
+    }
+    
+    /**
+     * 定版Prompt片段（仅运营可操作）
+     * @param fragmentId 片段ID
+     * @return 定版后的片段
+     */
+    @PostMapping("/{fragmentId}/finalize")
+    public ResponseEntity<PromptFragment> finalizePromptFragment(@PathVariable Long fragmentId) {
+        Long currentUserId = getCurrentUserId();
+        PromptFragment fragment = promptService.finalizePromptFragment(fragmentId, currentUserId);
         return ResponseEntity.ok(fragment);
     }
     
@@ -69,9 +92,9 @@ public class PromptController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
             String username = authentication.getName();
-            // 在实际应用中，这里需要通过UserService查询数据库获取用户ID
-            // 为了简化，我们返回一个固定的ID，实际应用中需要查询数据库
-            return 1L; // 这里应该通过用户名查询数据库获取真实用户ID
+            User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+            return user.getId();
         }
         return null;
     }

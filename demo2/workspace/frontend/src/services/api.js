@@ -75,6 +75,8 @@ export const promptApi = {
   getPromptFragments: (psuId) => api.get(`/prompts/${psuId}`),
   // 更新Prompt片段
   updatePromptFragment: (fragmentId, data) => api.put(`/prompts/${fragmentId}`, data),
+  // 定版Prompt片段（仅运营）
+  finalizePromptFragment: (fragmentId) => api.post(`/prompts/${fragmentId}/finalize`),
   // 测试Prompt
   testPrompt: (psuId, data) => api.post(`/prompts/${psuId}/test`, data)
 }
@@ -93,4 +95,15 @@ export const userApi = {
   getUsers: () => api.get('/users'),
   // 创建用户
   createUser: (data) => api.post('/users', data)
+}
+
+export const testDatasetApi = {
+  // 获取PSU的测试数据集列表
+  getTestDatasets: (psuId) => api.get('/test-datasets', { params: { psuId } }),
+  // 创建测试数据集
+  createTestDataset: (psuId, data) => api.post('/test-datasets', data, { params: { psuId } }),
+  // 更新测试数据集
+  updateTestDataset: (id, data) => api.put(`/test-datasets/${id}`, data),
+  // 删除测试数据集
+  deleteTestDataset: (id) => api.delete(`/test-datasets/${id}`)
 }

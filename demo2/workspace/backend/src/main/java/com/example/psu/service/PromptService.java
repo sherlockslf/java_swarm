@@ -43,6 +43,9 @@ public class PromptService {
     
     /**
      * 更新Prompt片段（权限分级）
+     * 规则：
+     * - editable=true：所有人可编辑
+     * - editable=false（已定版）：所有人不可修改
      * @param fragmentId 片段ID
      * @param content 内容
      * @param userId 用户ID
@@ -57,18 +60,43 @@ public class PromptService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
         
-        // 如果片段是锁定的（不可编辑），只有研发可以修改
-        if (!fragment.getEditable() && user.getRole() != User.UserRole.DEVELOPER) {
-            throw new RuntimeException("This prompt fragment is locked and can only be edited by developers");
+        // 已定版的Prompt（editable=false）所有人不可修改
+        if (!fragment.getEditable()) {
+            throw new RuntimeException("Prompt已定版，不允许修改");
         }
         
-        // 业务用户只能编辑可编辑的片段
-        if (user.getRole() == User.UserRole.BUSINESS && !fragment.getEditable()) {
-            throw new RuntimeException("Business users cannot edit locked prompt fragments");
-        }
-        
-        // 更新内容
+        // editable=true时，所有人可编辑
         fragment.setContent(content);
+        
+        return promptFragmentRepository.save(fragment);
+    }
+    
+    /**
+     * 定版Prompt片段（仅运营可操作）
+     * @param fragmentId 片段ID
+     * @param userId 用户ID
+     * @return 定版后的片段
+     */
+    public PromptFragment finalizePromptFragment(Long fragmentId, Long userId) {
+        // 获取片段
+        PromptFragment fragment = promptFragmentRepository.findById(fragmentId)
+                .orElseThrow(() -> new RuntimeException("Prompt fragment not found: " + fragmentId));
+        
+        // 检查用户权限（仅运营可定版）
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+        
+        if (user.getRole() != User.UserRole.BUSINESS) {
+            throw new RuntimeException("只有运营人员可以定版Prompt");
+        }
+        
+        // 如果已经定版，不允许重复定版
+        if (!fragment.getEditable()) {
+            throw new RuntimeException("Prompt已定版，无需重复操作");
+        }
+        
+        // 定版：设置editable=false
+        fragment.setEditable(false);
         
         return promptFragmentRepository.save(fragment);
     }

@@ -2,6 +2,8 @@ package com.example.psu.controller;
 
 import com.example.psu.dto.request.UpdateSchemaRequest;
 import com.example.psu.entity.JsonSchema;
+import com.example.psu.entity.User;
+import com.example.psu.repository.UserRepository;
 import com.example.psu.service.JsonSchemaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,9 @@ public class JsonSchemaController {
     @Autowired
     private JsonSchemaService jsonSchemaService;
     
+    @Autowired
+    private UserRepository userRepository;
+    
     /**
      * 获取Schema（研发可编辑，业务只读）
      * @param psuId PSU ID
@@ -30,7 +35,6 @@ public class JsonSchemaController {
      */
     @GetMapping("/{psuId}")
     public ResponseEntity<JsonSchema> getSchemaByPsuId(@PathVariable Long psuId) {
-        // 从SecurityContext获取当前用户ID
         Long currentUserId = getCurrentUserId();
         JsonSchema schema = jsonSchemaService.getSchemaByPsuId(psuId, currentUserId);
         return ResponseEntity.ok(schema);
@@ -45,7 +49,6 @@ public class JsonSchemaController {
     @PutMapping("/{psuId}")
     @PreAuthorize("hasRole('DEVELOPER')")
     public ResponseEntity<JsonSchema> updateSchema(@PathVariable Long psuId, @RequestBody UpdateSchemaRequest requestBody) {
-        // 从SecurityContext获取当前用户ID
         Long currentUserId = getCurrentUserId();
         JsonSchema schema = jsonSchemaService.updateSchema(psuId, requestBody.getSchemaContent(), currentUserId, requestBody.getChangeLog());
         return ResponseEntity.ok(schema);
@@ -70,9 +73,9 @@ public class JsonSchemaController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
             String username = authentication.getName();
-            // 在实际应用中，这里需要通过UserService查询数据库获取用户ID
-            // 为了简化，我们返回一个固定的ID，实际应用中需要查询数据库
-            return 1L; // 这里应该通过用户名查询数据库获取真实用户ID
+            User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+            return user.getId();
         }
         return null;
     }

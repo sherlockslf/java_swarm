@@ -2,6 +2,8 @@ package com.example.psu.controller;
 
 import com.example.psu.dto.PsuCreateRequest;
 import com.example.psu.entity.PsuUnit;
+import com.example.psu.entity.User;
+import com.example.psu.repository.UserRepository;
 import com.example.psu.service.PsuService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,9 @@ public class PsuController {
     @Autowired
     private PsuService psuService;
     
+    @Autowired
+    private UserRepository userRepository;
+    
     /**
      * 创建PSU（仅研发）
      * @param request 创建请求
@@ -31,20 +36,18 @@ public class PsuController {
     @PostMapping
     @PreAuthorize("hasRole('DEVELOPER')")
     public ResponseEntity<PsuUnit> createPsu(@Valid @RequestBody PsuCreateRequest request) {
-        // 从SecurityContext获取当前用户ID
         Long currentUserId = getCurrentUserId();
         PsuUnit psu = psuService.createPsu(request, currentUserId);
         return ResponseEntity.ok(psu);
     }
     
     /**
-     * 分页查询PSU列表
+     * 分页查询PSU列表（所有登录用户可访问）
      * @param page 页码（默认1）
      * @param size 每页大小（默认10）
      * @return 分页结果
      */
     @GetMapping
-    @PreAuthorize("hasRole('DEVELOPER')")
     public ResponseEntity<Page<PsuUnit>> getPsus(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
@@ -85,9 +88,9 @@ public class PsuController {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
             String username = authentication.getName();
-            // 在实际应用中，这里需要通过UserService查询数据库获取用户ID
-            // 为了简化，我们返回一个固定的ID，实际应用中需要查询数据库
-            return 1L; // 这里应该通过用户名查询数据库获取真实用户ID
+            User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+            return user.getId();
         }
         return null;
     }

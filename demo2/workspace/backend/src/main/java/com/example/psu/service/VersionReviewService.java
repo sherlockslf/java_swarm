@@ -113,13 +113,13 @@ public class VersionReviewService {
     /**
      * 生成业务代码（研发）
      * @param psuId PSU ID
-     * @param versionId 版本ID
+     * @param userId 用户ID
      * @return 生成的代码内容
      */
-    public String generateBusinessCode(Long psuId, Long versionId) {
+    public String generateBusinessCode(Long psuId, Long userId) {
         // 检查用户权限（只有研发可以生成代码）
-        User user = userRepository.findById(1L) // 简化实现
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
         
         if (user.getRole() != User.UserRole.DEVELOPER) {
             throw new RuntimeException("Only developers can generate business code");
@@ -128,12 +128,13 @@ public class VersionReviewService {
         // 使用代码生成服务生成完整业务代码
         String code = codeGeneratorService.generateCompleteBusinessCode(psuId);
         
-        // 更新版本记录中的代码内容
-        VersionReview review = versionReviewRepository.findById(versionId)
-                .orElseThrow(() -> new RuntimeException("Version review not found: " + versionId));
-        
-        review.setCodeContent(code);
-        versionReviewRepository.save(review);
+        // 查找该PSU的最新版本记录并更新代码内容
+        List<VersionReview> reviews = versionReviewRepository.findByPsuIdOrderBySubmittedAtDesc(psuId);
+        if (!reviews.isEmpty()) {
+            VersionReview review = reviews.get(0);
+            review.setCodeContent(code);
+            versionReviewRepository.save(review);
+        }
         
         return code;
     }

@@ -37,4 +37,11 @@ public interface VersionReviewRepository extends JpaRepository<VersionReview, Lo
      * @return 版本列表
      */
     List<VersionReview> findByStatus(VersionReview.ReviewStatus status);
+    
+    /**
+     * 根据PSU ID查找所有版本，按提交时间倒序
+     * @param psuId PSU ID
+     * @return 版本列表
+     */
+    List<VersionReview> findByPsuIdOrderBySubmittedAtDesc(Long psuId);
 }

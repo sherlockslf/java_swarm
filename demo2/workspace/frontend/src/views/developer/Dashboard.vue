@@ -95,6 +95,34 @@
               <el-button @click="loadSchema">加载最新版本</el-button>
             </el-form-item>
           </el-form>
+          
+          <!-- 测试数据集管理 -->
+          <div class="test-dataset-section" v-if="selectedPsuId">
+            <div class="section-header">
+              <h3>测试数据集</h3>
+              <el-button type="primary" size="small" @click="showCreateDatasetDialog = true">新建数据集</el-button>
+            </div>
+            <el-table :data="testDatasets" style="width: 100%; margin-top: 10px;" v-loading="loadingDatasets">
+              <el-table-column prop="name" label="数据集名称" width="200"></el-table-column>
+              <el-table-column prop="description" label="描述" width="300"></el-table-column>
+              <el-table-column label="数据内容" min-width="200">
+                <template #default="{ row }">
+                  <el-button size="small" @click="viewDatasetData(row)">查看</el-button>
+                </template>
+              </el-table-column>
+              <el-table-column prop="createdAt" label="创建时间" width="180">
+                <template #default="{ row }">
+                  {{ formatDateTime(row.createdAt) }}
+                </template>
+              </el-table-column>
+              <el-table-column label="操作" width="200">
+                <template #default="{ row }">
+                  <el-button size="small" @click="editDataset(row)">编辑</el-button>
+                  <el-button size="small" type="danger" @click="deleteDataset(row)">删除</el-button>
+                </template>
+              </el-table-column>
+            </el-table>
+          </div>
         </div>
         
         <!-- Prompt管理 -->
@@ -260,12 +288,45 @@
         <el-button type="primary" @click="copyCode">复制代码</el-button>
       </template>
     </el-dialog>
+    
+    <!-- 创建/编辑测试数据集对话框 -->
+    <el-dialog v-model="showCreateDatasetDialog" :title="editingDatasetId ? '编辑测试数据集' : '新建测试数据集'" width="700px">
+      <el-form :model="datasetForm" label-width="100px">
+        <el-form-item label="数据集名称">
+          <el-input v-model="datasetForm.name" placeholder="请输入数据集名称"></el-input>
+        </el-form-item>
+        <el-form-item label="描述">
+          <el-input v-model="datasetForm.description" type="textarea" :rows="2" placeholder="请输入描述"></el-input>
+        </el-form-item>
+        <el-form-item label="数据内容">
+          <el-input 
+            v-model="datasetForm.dataContent" 
+            type="textarea" 
+            :rows="10" 
+            placeholder="请输入JSON格式的测试数据">
+          </el-input>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="showCreateDatasetDialog = false">取消</el-button>
+        <el-button type="primary" @click="saveDataset">保存</el-button>
+      </template>
+    </el-dialog>
+    
+    <!-- 查看数据集数据对话框 -->
+    <el-dialog v-model="showViewDatasetDialog" title="数据内容" width="700px">
+      <pre class="data-display">{{ viewingDatasetData }}</pre>
+      <template #footer>
+        <el-button @click="showViewDatasetDialog = false">关闭</el-button>
+        <el-button type="primary" @click="copyDatasetData">复制数据</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import api, { psuApi } from '@/services/api'
+import api, { psuApi, testDatasetApi } from '@/services/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const activeMenu = ref('1')
@@ -273,6 +334,8 @@ const showCreatePsuDialog = ref(false)
 const showEditPsuDialog = ref(false)
 const showEditPromptDialog = ref(false)
 const showCodeDialog = ref(false)
+const showCreateDatasetDialog = ref(false)
+const showViewDatasetDialog = ref(false)
 
 // PSU数据
 const psus = ref([])
@@ -312,6 +375,17 @@ const versionReviews = ref([])
 const selectedCodeGenPsuId = ref('')
 const generatedCode = ref('')
 const viewingCode = ref('')
+
+// 测试数据集数据
+const testDatasets = ref([])
+const loadingDatasets = ref(false)
+const editingDatasetId = ref(null)
+const datasetForm = reactive({
+  name: '',
+  description: '',
+  dataContent: ''
+})
+const viewingDatasetData = ref('')
 
 // 表单验证规则
 const psuRules = {
@@ -463,11 +537,109 @@ const loadSchema = async () => {
     const response = await api.get(`/schemas/${selectedPsuId.value}`)
     schemaForm.schemaContent = response.data.schemaContent
     schemaForm.changeLog = response.data.changeLog || ''
+    // 加载Schema后同时加载测试数据集
+    loadTestDatasets()
   } catch (error) {
     console.error('加载Schema失败:', error)
     schemaForm.schemaContent = '{}'
     schemaForm.changeLog = ''
   }
+}
+
+// 加载测试数据集
+const loadTestDatasets = async () => {
+  if (!selectedPsuId.value) return
+  
+  loadingDatasets.value = true
+  try {
+    const response = await testDatasetApi.getTestDatasets(selectedPsuId.value)
+    testDatasets.value = response.data
+  } catch (error) {
+    console.error('加载测试数据集失败:', error)
+    testDatasets.value = []
+  } finally {
+    loadingDatasets.value = false
+  }
+}
+
+// 保存测试数据集
+const saveDataset = async () => {
+  if (!datasetForm.name || !datasetForm.dataContent) {
+    ElMessage.warning('请填写数据集名称和数据内容')
+    return
+  }
+  
+  try {
+    if (editingDatasetId.value) {
+      await testDatasetApi.updateTestDataset(editingDatasetId.value, {
+        name: datasetForm.name,
+        description: datasetForm.description,
+        dataContent: datasetForm.dataContent
+      })
+      ElMessage.success('数据集更新成功')
+    } else {
+      await testDatasetApi.createTestDataset(selectedPsuId.value, {
+        name: datasetForm.name,
+        description: datasetForm.description,
+        dataContent: datasetForm.dataContent
+      })
+      ElMessage.success('数据集创建成功')
+    }
+    showCreateDatasetDialog.value = false
+    resetDatasetForm()
+    loadTestDatasets()
+  } catch (error) {
+    console.error('保存数据集失败:', error)
+    ElMessage.error('保存数据集失败')
+  }
+}
+
+// 编辑数据集
+const editDataset = (dataset) => {
+  editingDatasetId.value = dataset.id
+  datasetForm.name = dataset.name
+  datasetForm.description = dataset.description || ''
+  datasetForm.dataContent = dataset.dataContent
+  showCreateDatasetDialog.value = true
+}
+
+// 删除数据集
+const deleteDataset = async (dataset) => {
+  try {
+    await ElMessageBox.confirm(`确定要删除数据集 "${dataset.name}" 吗？`, '确认删除', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    await testDatasetApi.deleteTestDataset(dataset.id)
+    ElMessage.success('数据集已删除')
+    loadTestDatasets()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除数据集失败:', error)
+      ElMessage.error('删除数据集失败')
+    }
+  }
+}
+
+// 查看数据集数据
+const viewDatasetData = (dataset) => {
+  viewingDatasetData.value = dataset.dataContent
+  showViewDatasetDialog.value = true
+}
+
+// 复制数据集数据
+const copyDatasetData = () => {
+  navigator.clipboard.writeText(viewingDatasetData.value)
+  ElMessage.success('数据已复制到剪贴板')
+}
+
+// 重置数据集表单
+const resetDatasetForm = () => {
+  editingDatasetId.value = null
+  datasetForm.name = ''
+  datasetForm.description = ''
+  datasetForm.dataContent = ''
 }
 
 // 加载Prompt片段

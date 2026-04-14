@@ -1,17 +1,22 @@
 package com.example.psu.config;
 
+import com.example.psu.entity.PromptFragment;
+import com.example.psu.entity.PsuUnit;
 import com.example.psu.entity.User;
 import com.example.psu.entity.User.UserRole;
+import com.example.psu.repository.PromptFragmentRepository;
+import com.example.psu.repository.PsuRepository;
 import com.example.psu.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 /**
- * 数据初始化器 - 确保系统中有默认用户
+ * 数据初始化器 - 确保系统中有默认用户和Prompt片段
  */
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -21,6 +26,12 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+    
+    @Autowired
+    private PsuRepository psuRepository;
+    
+    @Autowired
+    private PromptFragmentRepository promptFragmentRepository;
 
     @Override
     public void run(String... args) throws Exception {
@@ -28,6 +39,9 @@ public class DataInitializer implements CommandLineRunner {
         ensureDefaultUser("admin_user", "Admin@123", UserRole.ADMIN);
         ensureDefaultUser("dev_user", "Dev@123", UserRole.DEVELOPER);
         ensureDefaultUser("bus_user", "Bus@123", UserRole.BUSINESS);
+        
+        // 初始化默认Prompt片段
+        ensureDefaultPromptFragments();
     }
 
     private void ensureDefaultUser(String username, String rawPassword, UserRole role) {
@@ -65,6 +79,35 @@ public class DataInitializer implements CommandLineRunner {
         if (needUpdate) {
             userRepository.save(existing);
             System.out.println("已修正默认用户: " + username);
+        }
+    }
+    
+    /**
+     * 确保每个PSU都有默认的Prompt片段
+     */
+    private void ensureDefaultPromptFragments() {
+        // 获取所有PSU
+        java.util.List<PsuUnit> allPsus = psuRepository.findAll();
+        
+        for (PsuUnit psu : allPsus) {
+            // 检查是否已有core_rules片段
+            Optional<PromptFragment> existingOpt = promptFragmentRepository.findByPsuIdAndFragmentKey(
+                psu.getId(), "core_rules");
+            
+            if (existingOpt.isEmpty()) {
+                // 创建默认Prompt片段
+                PromptFragment fragment = new PromptFragment();
+                fragment.setPsuId(psu.getId());
+                fragment.setFragmentKey("core_rules");
+                fragment.setContent("你是一个专业的购物助手，请根据用户需求推荐商品。");
+                fragment.setEditable(true);
+                fragment.setType(PromptFragment.FragmentType.CORE_RULES);
+                fragment.setSortOrder(1);
+                fragment.setCreatedAt(LocalDateTime.now());
+                fragment.setUpdatedAt(LocalDateTime.now());
+                promptFragmentRepository.save(fragment);
+                System.out.println("已为PSU " + psu.getName() + " 创建默认Prompt片段");
+            }
         }
     }
 }

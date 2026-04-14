@@ -35,7 +35,7 @@ public class PromptFragment {
     private String content;            // Prompt内容
     
     @Column(nullable = false)
-    private Boolean editable;          // 是否可编辑（false=锁定，true=可编辑）
+    private Boolean editable;          // 是否可编辑（false=已定版锁定，true=可编辑）
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
