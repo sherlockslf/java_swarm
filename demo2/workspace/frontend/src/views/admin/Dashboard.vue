@@ -91,7 +91,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import axios from 'axios'
+import { userApi, auditLogApi, configApi } from '@/services/api'
 import { ElMessage } from 'element-plus'
 
 const activeMenu = ref('1')
@@ -133,15 +133,21 @@ const handleMenuSelect = (index) => {
 }
 
 // 切换用户状态
-const toggleUserStatus = (user) => {
-  user.enabled = !user.enabled
-  // 这里应该调用API更新用户状态
+const toggleUserStatus = async (user) => {
+  try {
+    await userApi.toggleUserStatus(user.id)
+    ElMessage.success('用户状态已更新')
+    loadUsers()
+  } catch (error) {
+    console.error('切换用户状态失败:', error)
+    ElMessage.error('切换用户状态失败')
+  }
 }
 
 // 创建用户
 const createUser = async () => {
   try {
-    await axios.post('/api/users', {
+    await userApi.createUser({
       username: newUserForm.username,
       password: newUserForm.password,
       role: newUserForm.role,
@@ -149,7 +155,10 @@ const createUser = async () => {
     })
     ElMessage.success('用户创建成功')
     showCreateUserDialog.value = false
-    // 重新加载用户列表
+    newUserForm.username = ''
+    newUserForm.password = ''
+    newUserForm.role = 'DEVELOPER'
+    newUserForm.enabled = true
     loadUsers()
   } catch (error) {
     console.error('创建用户失败:', error)
@@ -160,34 +169,33 @@ const createUser = async () => {
 // 加载用户列表
 const loadUsers = async () => {
   try {
-    // 模拟数据
-    users.value = [
-      { id: 1, username: 'admin_user', role: 'ADMIN', enabled: true },
-      { id: 2, username: 'dev_user', role: 'DEVELOPER', enabled: true },
-      { id: 3, username: 'bus_user', role: 'BUSINESS', enabled: true }
-    ]
+    const response = await userApi.getUsers()
+    users.value = response.data
   } catch (error) {
     console.error('加载用户列表失败:', error)
+    ElMessage.error('加载用户列表失败')
   }
 }
 
 // 加载审计日志
 const loadAuditLogs = async () => {
   try {
-    // 模拟数据
-    auditLogs.value = [
-      { username: 'admin_user', operation: '登录系统', targetType: 'AUTH', createdAt: '2026-04-12 10:00:00', details: '用户登录' },
-      { username: 'dev_user', operation: '创建PSU', targetType: 'PSU', createdAt: '2026-04-12 09:30:00', details: '创建新的PSU单元' }
-    ]
+    const response = await auditLogApi.getAllAuditLogs()
+    auditLogs.value = response.data
   } catch (error) {
     console.error('加载审计日志失败:', error)
+    auditLogs.value = []
   }
 }
 
 // 保存配置
 const saveConfig = async () => {
   try {
-    // 这里应该调用API保存配置
+    await configApi.saveConfig({
+      configKey: 'default_api_key',
+      configValue: configForm.apiKey,
+      configType: 'API_KEY'
+    })
     ElMessage.success('配置保存成功')
   } catch (error) {
     console.error('保存配置失败:', error)

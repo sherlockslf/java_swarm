@@ -13,6 +13,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 /**
  * 版本审核控制器
  */
@@ -25,6 +27,22 @@ public class VersionReviewController {
     
     @Autowired
     private UserRepository userRepository;
+    
+    /**
+     * 获取版本审核列表（所有登录用户可访问）
+     * @param psuId PSU ID（可选，不传则获取所有）
+     * @return 版本审核列表
+     */
+    @GetMapping
+    public ResponseEntity<List<VersionReview>> getVersionReviews(@RequestParam(required = false) Long psuId) {
+        List<VersionReview> reviews;
+        if (psuId != null) {
+            reviews = versionReviewService.getVersionReviewsByPsuId(psuId);
+        } else {
+            reviews = versionReviewService.getAllVersionReviews();
+        }
+        return ResponseEntity.ok(reviews);
+    }
     
     /**
      * 提交版本审核（业务）

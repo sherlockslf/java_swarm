@@ -326,7 +326,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import api, { psuApi, testDatasetApi } from '@/services/api'
+import api, { psuApi, testDatasetApi, versionReviewApi } from '@/services/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
 const activeMenu = ref('1')
@@ -679,7 +679,7 @@ const savePromptFragment = async () => {
 // 通过版本
 const approveVersion = async (review) => {
   try {
-    await api.post(`/versions/${review.id}/review`, {
+    await versionReviewApi.reviewVersion(review.id, {
       approved: true
     })
     ElMessage.success('版本审核通过')
@@ -693,7 +693,7 @@ const approveVersion = async (review) => {
 // 拒绝版本
 const rejectVersion = async (review) => {
   try {
-    await api.post(`/versions/${review.id}/review`, {
+    await versionReviewApi.reviewVersion(review.id, {
       approved: false,
       rejectionReason: '不符合要求'
     })
@@ -708,7 +708,7 @@ const rejectVersion = async (review) => {
 // 查看代码
 const viewCode = async (review) => {
   try {
-    const response = await api.get(`/versions/${review.psuId}/code`)
+    const response = await versionReviewApi.getCode(review.psuId)
     viewingCode.value = response.data
     showCodeDialog.value = true
   } catch (error) {
@@ -725,7 +725,7 @@ const generateCode = async () => {
   }
   
   try {
-    const response = await api.get(`/versions/${selectedCodeGenPsuId.value}/code`)
+    const response = await versionReviewApi.getCode(selectedCodeGenPsuId.value)
     generatedCode.value = response.data
     ElMessage.success('代码生成成功')
   } catch (error) {
@@ -771,12 +771,11 @@ const loadPsus = async () => {
 // 加载版本审核列表
 const loadVersionReviews = async () => {
   try {
-    versionReviews.value = [
-      { id: 1, psuId: 1, majorVersion: 1, minorVersion: 0, patchVersion: 0, status: 'PENDING', submitterId: 3, submittedAt: '2026-04-12 10:30:00' },
-      { id: 2, psuId: 2, majorVersion: 1, minorVersion: 1, patchVersion: 0, status: 'APPROVED', submitterId: 3, submittedAt: '2026-04-12 09:30:00' }
-    ]
+    const response = await versionReviewApi.getVersionReviews()
+    versionReviews.value = response.data
   } catch (error) {
     console.error('加载版本审核列表失败:', error)
+    versionReviews.value = []
   }
 }
 

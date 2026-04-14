@@ -94,7 +94,9 @@ export const userApi = {
   // 获取用户列表
   getUsers: () => api.get('/users'),
   // 创建用户
-  createUser: (data) => api.post('/users', data)
+  createUser: (data) => api.post('/users', data),
+  // 切换用户状态
+  toggleUserStatus: (id) => api.put(`/users/${id}/toggle-status`)
 }
 
 export const testDatasetApi = {
@@ -106,4 +108,38 @@ export const testDatasetApi = {
   updateTestDataset: (id, data) => api.put(`/test-datasets/${id}`, data),
   // 删除测试数据集
   deleteTestDataset: (id) => api.delete(`/test-datasets/${id}`)
+}
+
+export const versionReviewApi = {
+  // 获取版本审核列表
+  getVersionReviews: (psuId) => {
+    if (psuId) {
+      return api.get('/versions', { params: { psuId } })
+    }
+    return api.get('/versions')
+  },
+  // 提交版本审核
+  submitVersion: (psuId) => api.post(`/versions/${psuId}/submit`),
+  // 审核版本
+  reviewVersion: (reviewId, data) => api.post(`/versions/${reviewId}/review`, data),
+  // 获取生成的代码
+  getCode: (psuId) => api.get(`/versions/${psuId}/code`)
+}
+
+export const configApi = {
+  // 获取所有系统配置
+  getAllConfigs: () => api.get('/configs'),
+  // 根据配置键获取配置
+  getConfigByKey: (configKey) => api.get(`/configs/${configKey}`),
+  // 创建或更新系统配置
+  saveConfig: (data) => api.post('/configs', data),
+  // 删除系统配置
+  deleteConfig: (id) => api.delete(`/configs/${id}`)
+}
+
+export const auditLogApi = {
+  // 获取所有审计日志
+  getAllAuditLogs: () => api.get('/audit-logs'),
+  // 根据用户ID获取审计日志
+  getAuditLogsByUserId: (userId) => api.get(`/audit-logs/user/${userId}`)
 }

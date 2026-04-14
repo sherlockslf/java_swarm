@@ -257,7 +257,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import api, { psuApi, schemaApi, promptApi, versionApi } from '@/services/api'
+import api, { psuApi, schemaApi, promptApi, versionApi, versionReviewApi } from '@/services/api'
 import { ElMessage } from 'element-plus'
 
 const activeMenu = ref('1')
@@ -527,7 +527,6 @@ const submitVersion = async () => {
     ElMessage.success('版本提交成功，等待研发审核')
     submitting.value = false
     versionForm.description = ''
-    // 重新加载版本列表
     loadVersionStatus()
   } catch (error) {
     console.error('提交版本失败:', error)
@@ -555,19 +554,11 @@ const loadPsus = async () => {
 const loadVersionStatus = async () => {
   loadingVersions.value = true
   try {
-    // 获取所有PSU的版本审核记录
-    const allVersions = []
-    for (const psu of psus.value) {
-      try {
-        const response = await api.get(`/versions/${psu.id}/code`)
-        // 这里应该调用获取版本列表的API，暂时使用模拟
-      } catch (e) {
-        // 忽略单个PSU的错误
-      }
-    }
-    versionStatus.value = allVersions
+    const response = await versionReviewApi.getVersionReviews()
+    versionStatus.value = response.data
   } catch (error) {
     console.error('加载版本状态失败:', error)
+    versionStatus.value = []
   } finally {
     loadingVersions.value = false
   }
@@ -575,6 +566,7 @@ const loadVersionStatus = async () => {
 
 onMounted(() => {
   loadPsus()
+  loadVersionStatus()
 })
 </script>
 

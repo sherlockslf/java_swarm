@@ -32,6 +32,23 @@ public class VersionReviewService {
     private CodeGeneratorService codeGeneratorService;
     
     /**
+     * 获取所有版本审核记录
+     * @return 版本审核列表
+     */
+    public List<VersionReview> getAllVersionReviews() {
+        return versionReviewRepository.findAll();
+    }
+    
+    /**
+     * 根据PSU ID获取版本审核记录
+     * @param psuId PSU ID
+     * @return 版本审核列表
+     */
+    public List<VersionReview> getVersionReviewsByPsuId(Long psuId) {
+        return versionReviewRepository.findByPsuIdOrderBySubmittedAtDesc(psuId);
+    }
+    
+    /**
      * 提交版本审核（业务）
      * @param psuId PSU ID
      * @param userId 用户ID

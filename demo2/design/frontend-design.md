@@ -1,50 +1,72 @@
 # PSU全生命周期管理平台 - 前端设计文档
 
 ## 1. 技术栈选型
-- **框架**: Vue 3 (Composition API)
-- **状态管理**: Pinia
-- **UI组件库**: Element Plus
-- **HTTP客户端**: Axios
-- **构建工具**: Vite
-- **路由**: Vue Router 4
+- **框架**: Vue 3.4 (Composition API)
+- **状态管理**: Pinia 2.1.7
+- **UI组件库**: Element Plus 2.4.0
+- **HTTP客户端**: Axios 1.6.0
+- **构建工具**: Vite 5.0
+- **路由**: Vue Router 4.2.5
 
 ## 2. 整体架构设计
 
 ### 2.1 应用结构
 ```
 src/
-├── assets/                 # 静态资源
 ├── components/            # 公共组件
-│   ├── common/           # 通用组件
-│   ├── admin/            # 管理员组件
-│   ├── developer/        # 研发组件  
-│   └── business/         # 业务组件
+│   └── Layout.vue        # 布局组件
 ├── views/                 # 页面视图
 │   ├── auth/             # 认证相关
+│   │   └── Login.vue     # 登录页面
 │   ├── admin/            # 超级管理员视图
+│   │   └── Dashboard.vue # 管理员仪表盘
 │   ├── developer/        # 研发工程空间视图
+│   │   └── Dashboard.vue # 研发仪表盘
 │   └── business/         # 业务配置空间视图
+│       └── Dashboard.vue # 业务仪表盘
 ├── stores/                # Pinia状态管理
-│   ├── auth.js          # 认证状态
-│   ├── psu.js           # PSU状态管理
-│   └── system.js        # 系统配置状态
+│   └── user.js           # 用户状态管理
 ├── services/              # API服务层
-│   ├── api.js           # API封装
-│   ├── auth.js          # 认证API
-│   ├── psu.js           # PSU相关API
-│   └── system.js        # 系统配置API
-├── utils/                 # 工具函数
+│   └── api.js            # 统一API封装
 ├── router/                # 路由配置
-└── App.vue               # 根组件
+│   └── index.js          # 路由定义和守卫
+├── App.vue               # 根组件
+└── main.js               # 应用入口
 ```
+
+**注意**: 实际实现中结构更加扁平化，未使用 `assets/`、`utils/` 等目录，组件按角色划分在 views 中。
 
 ### 2.2 权限路由设计
 基于角色的动态路由：
-- **超级管理员**: `/admin/*` 
-- **研发**: `/developer/*`
-- **产品/运营**: `/business/*`
+- **超级管理员**: `/admin` 
+- **研发**: `/developer`
+- **产品/运营**: `/business`
 
-路由守卫严格控制访问权限，无权限页面直接拦截。
+路由守卫实现：
+```javascript
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  
+  if (to.meta.requiresAuth !== false && !token) {
+    next('/login')
+  } else if (to.meta.role) {
+    const userRole = localStorage.getItem('userRole')
+    if (userRole === to.meta.role) {
+      next()
+    } else {
+      // 重定向到对应角色的首页
+      if (userRole === 'ADMIN') next('/admin')
+      else if (userRole === 'DEVELOPER') next('/developer')
+      else if (userRole === 'BUSINESS') next('/business')
+      else next('/login')
+    }
+  } else {
+    next()
+  }
+})
+```
+
+**注意**: 使用 localStorage 存储 token 和 userRole，而非 Pinia store。
 
 ## 3. 核心页面设计
 
@@ -129,27 +151,51 @@ src/
 
 ### 5.1 认证相关
 - `POST /api/auth/login`: 用户登录
-- `GET /api/auth/profile`: 获取用户信息
-- `POST /api/auth/logout`: 用户登出
+- `GET /api/auth/profile`: 获取当前用户信息
 
 ### 5.2 PSU管理
-- `GET /api/psu/list`: 获取PSU列表
-- `POST /api/psu/create`: 创建PSU
-- `GET /api/psu/{id}`: 获取PSU详情
-- `PUT /api/psu/{id}/archive`: 下架PSU
+- `GET /api/psus?page=1&size=10`: 分页获取PSU列表
+- `POST /api/psus`: 创建PSU（仅研发）
+- `PUT /api/psus/{id}`: 更新PSU（仅研发）
+- `DELETE /api/psus/{id}`: 删除PSU（归档，仅研发）
 
 ### 5.3 Schema管理
-- `GET /api/schema/{psuId}`: 获取Schema（研发可编辑，业务只读）
-- `PUT /api/schema/{psuId}`: 更新Schema（仅研发）
-- `GET /api/schema/{psuId}/versions`: 获取Schema版本历史
+- `GET /api/schemas/{psuId}`: 获取Schema（研发可编辑，业务只读）
+- `PUT /api/schemas/{psuId}`: 更新Schema（仅研发）
+- `GET /api/schemas/{psuId}/versions`: 获取Schema版本历史
 
-### 5.6 系统管理（仅管理员）
-- `GET /api/system/config`: 获取系统配置
-- `PUT /api/system/config`: 更新系统配置
-- `GET /api/system/users`: 获取用户列表
-- `PUT /api/system/users/{userId}/status`: 更新用户状态
-- `POST /api/system/users/{userId}/reset-password`: 重置密码
-- `GET /api/system/audit-logs`: 获取审计日志
+### 5.4 Prompt管理
+- `GET /api/prompts/{psuId}`: 获取Prompt片段列表
+- `PUT /api/prompts/{fragmentId}`: 更新Prompt片段（权限分级）
+- `POST /api/prompts/{fragmentId}/finalize`: 定版Prompt片段（仅运营）
+- `POST /api/prompts/{psuId}/test`: 测试Prompt效果
+
+### 5.5 版本审核
+- `GET /api/versions?psuId={psuId}`: 获取版本审核列表
+- `POST /api/versions/{psuId}/submit`: 提交版本审核（业务）
+- `POST /api/versions/{reviewId}/review`: 审核版本（研发）
+- `GET /api/versions/{psuId}/code`: 获取生成的代码
+
+### 5.6 用户管理（仅管理员）
+- `GET /api/users`: 获取用户列表
+- `POST /api/users`: 创建用户
+- `PUT /api/users/{userId}/toggle-status`: 切换用户状态
+
+### 5.7 系统管理（仅管理员）
+- `GET /api/configs`: 获取所有系统配置
+- `GET /api/configs/{configKey}`: 根据配置键获取配置
+- `POST /api/configs`: 创建或更新系统配置
+- `DELETE /api/configs/{id}`: 删除系统配置
+
+### 5.8 审计日志（仅管理员）
+- `GET /api/audit-logs`: 获取所有审计日志
+- `GET /api/audit-logs/user/{userId}`: 根据用户ID获取审计日志
+
+### 5.9 测试数据集
+- `GET /api/test-datasets?psuId={psuId}`: 获取PSU的测试数据集列表
+- `POST /api/test-datasets?psuId={psuId}`: 创建测试数据集
+- `PUT /api/test-datasets/{id}`: 更新测试数据集
+- `DELETE /api/test-datasets/{id}`: 删除测试数据集
 
 ## 6. 安全设计
 

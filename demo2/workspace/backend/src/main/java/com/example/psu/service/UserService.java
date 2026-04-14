@@ -13,6 +13,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * 用户服务
  */
@@ -59,6 +61,14 @@ public class UserService {
     }
     
     /**
+     * 获取所有用户列表
+     * @return 用户列表
+     */
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
+    
+    /**
      * 创建用户（仅管理员使用）
      * @param user 用户实体
      * @return 创建的用户
@@ -69,6 +79,18 @@ public class UserService {
         }
         
         user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
+    }
+    
+    /**
+     * 切换用户启用状态
+     * @param id 用户ID
+     * @return 更新后的用户
+     */
+    public User toggleUserStatus(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found: " + id));
+        user.setEnabled(!user.getEnabled());
         return userRepository.save(user);
     }
 }
