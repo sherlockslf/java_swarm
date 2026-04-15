@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
  * Prompt片段实体类
  */
 @Entity
-@Table(name = "prompt_fragments", 
+@Table(name = "ai_prompt_prompt_fragments", 
        indexes = {
            @Index(name = "idx_prompt_fragments_psu_id", columnList = "psuId"),
            @Index(name = "idx_prompt_fragments_type", columnList = "type"),

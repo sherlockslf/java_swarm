@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
  * 审计日志实体类
  */
 @Entity
-@Table(name = "audit_logs", 
+@Table(name = "ai_prompt_audit_logs", 
        indexes = {
            @Index(name = "idx_audit_logs_user_id", columnList = "userId"),
            @Index(name = "idx_audit_logs_operation", columnList = "operation"),

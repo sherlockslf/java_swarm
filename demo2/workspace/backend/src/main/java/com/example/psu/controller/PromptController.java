@@ -5,9 +5,11 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.psu.dto.request.CreatePromptRequest;
 import com.example.psu.dto.request.UpdatePromptRequest;
 import com.example.psu.entity.PromptFragment;
 import com.example.psu.entity.User;
@@ -47,6 +50,19 @@ public class PromptController {
     }
     
     /**
+     * 创建Prompt片段（仅研发可操作）
+     * @param request 创建请求
+     * @return 创建的片段
+     */
+    @PostMapping
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public ResponseEntity<PromptFragment> createPromptFragment(@RequestBody CreatePromptRequest request) {
+        Long currentUserId = getCurrentUserId();
+        PromptFragment fragment = promptService.createPromptFragment(request, currentUserId);
+        return ResponseEntity.ok(fragment);
+    }
+    
+    /**
      * 更新Prompt片段（权限分级）
      * 规则：editable=true时所有人可编辑，editable=false（已定版）所有人不可修改
      * @param fragmentId 片段ID
@@ -58,6 +74,18 @@ public class PromptController {
         Long currentUserId = getCurrentUserId();
         PromptFragment fragment = promptService.updatePromptFragment(fragmentId, requestBody.getContent(), currentUserId);
         return ResponseEntity.ok(fragment);
+    }
+    
+    /**
+     * 删除Prompt片段（仅研发可操作）
+     * @param fragmentId 片段ID
+     */
+    @DeleteMapping("/{fragmentId}")
+    @PreAuthorize("hasRole('DEVELOPER')")
+    public ResponseEntity<Void> deletePromptFragment(@PathVariable Long fragmentId) {
+        Long currentUserId = getCurrentUserId();
+        promptService.deletePromptFragment(fragmentId, currentUserId);
+        return ResponseEntity.noContent().build();
     }
     
     /**

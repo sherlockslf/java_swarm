@@ -30,7 +30,7 @@ public class User {
     @Column(nullable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
-    private String password;           // 加密密码
+    private String password;           // 明文密码
     
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

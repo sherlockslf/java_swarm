@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
  * 系统配置实体类
  */
 @Entity
-@Table(name = "system_configs", 
+@Table(name = "ai_prompt_system_configs", 
        indexes = {
            @Index(name = "idx_system_configs_key", columnList = "configKey"),
            @Index(name = "idx_system_configs_type", columnList = "configType")

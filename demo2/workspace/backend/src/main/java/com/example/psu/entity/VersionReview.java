@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
  * 版本审核实体类
  */
 @Entity
-@Table(name = "version_reviews", 
+@Table(name = "ai_prompt_version_reviews", 
        indexes = {
            @Index(name = "idx_version_reviews_psu_id", columnList = "psuId"),
            @Index(name = "idx_version_reviews_status", columnList = "status"),

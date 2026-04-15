@@ -6,27 +6,29 @@
 
 **生效日期**：2026年04月10日
 
-**适配技术栈**：前端Vue3 + 后端Java Spring Boot 3.x（**全程不支持Python**）
+**适配技术栈**：
+- 前端：Vue 3.4 (Composition API) + Pinia 2.1.7 + Element Plus 2.4.0 + Vue Router 4.2.5 + Axios 1.6.0 + Vite 5.0
+- 后端：Java 17 + Spring Boot 3.2.0 + Spring Security + Spring Data JPA + MySQL 8.0 + Redis + JWT (jjwt 0.11.5) + Lombok + SpringDoc OpenAPI 2.2.0 + BCrypt + AES-256
 
 **部署形态**：私有化部署、仅手工/半自动化发布、不依赖平台侧流水线
 
 **核心前置约束（已逐条锁死，开发不可扩范围）**：
 
-2. RBAC权限极简收拢：只保留核心在岗角色，**平台不新增、不配置、不预留任何只读账号/只读权限体系**；
+1. RBAC权限极简收拢：只保留核心在岗角色，**平台不新增、不配置、不预留任何只读账号/只读权限体系**；
 
-3. 全局系统配置入口强隔离：仅超级管理员可见可操作，全员屏蔽，配置项只保留核心可用API密钥，冗余配置全部砍掉；
+2. 全局系统配置入口强隔离：仅超级管理员可见可操作，全员屏蔽，配置项只保留核心可用API密钥，冗余配置全部砍掉；
 
-4. 代码生成能力定向收敛：只输出各业务服务专属的参数拼装、Prompt组装标准底层业务代码，**不生成任何前后端交互接口、Controller层、网关层关联代码**，生成后由研发人工核验手动引入工程；
+3. 代码生成能力定向收敛：只输出各业务服务专属的参数拼装、Prompt组装标准底层业务代码，**不生成任何前后端交互接口、Controller层、网关层关联代码**，生成后由研发人工核验手动引入工程；
 
-5. PSU全域落地核心准则：全流程围绕标准化代码Git入库闭环推进，业务资产、版本、配置全部绑定代码台账，弱化页面兜底能力，不依托前端界面做生产级上线交付；
+4. PSU全域落地核心准则：全流程围绕标准化代码Git入库闭环推进，业务资产、版本、配置全部绑定代码台账，弱化页面兜底能力，不依托前端界面做生产级上线交付；
 
-7. 版本&命名空间轻量化简化：不设计复杂环境隔离命名空间、不做多层灰度版本链路，固定上线闭环：产品/运营双人在线验收实测 → 确认锁定可用版本 → 研发介入合规复测 + 批量生成标准业务代码 → 强制Git合规落库登记 → 研发侧自主完成服务打包上线，全程平台仅做流程串联，不接管发布权限；
+5. 版本&命名空间轻量化简化：不设计复杂环境隔离命名空间、不做多层灰度版本链路，固定上线闭环：产品/运营双人在线验收实测 → 确认锁定可用版本 → 研发介入合规复测 + 批量生成标准业务代码 → 强制Git合规落库登记 → 研发侧自主完成服务打包上线，全程平台仅做流程串联，不接管发布权限；
 
-8. 零流水线设计：平台内部不搭建、不对接、不联动任何CI/CD流水线，无流水线配置面板、无流水线日志、无流水线触发按钮；
+6. 零流水线设计：平台内部不搭建、不对接、不联动任何CI/CD流水线，无流水线配置面板、无流水线日志、无流水线触发按钮；
 
-10. 生态能力清零：不开发、不接入、不兼容任何第三方插件市场、自定义插件、拓展插件能力；
+7. 生态能力清零：不开发、不接入、不兼容任何第三方插件市场、自定义插件、拓展插件能力；
 
-11. 强结构权限刚性管控：JSON入参/出参Schema**仅研发账号可编辑、可新增、可修改、可下线**；产品、运营、业务岗全程只读，仅可查看结构台账、拖拽编排Prompt、定点填入业务变量，无任何Schema修改权限入口。
+8. 强结构权限刚性管控：JSON入参/出参Schema**仅研发账号可编辑、可新增、可修改、可下线**；产品、运营、业务岗全程只读，仅可查看结构台账、拖拽编排Prompt、定点填入业务变量，无任何Schema修改权限入口。
 
 ## 一、修订追溯台账（合规归档）
 
@@ -35,6 +37,7 @@
 |V0.1|2026.04.10|初稿搭建，完成双空间架构、PSU核心模型、基础流程底座搭建|产品部|
 |V0.2|2026.04.10|第一轮刚性删减：剔除Python、删减运维模块、关停流水线、取消一键部署、收拢RBAC权限|产研同步对齐|
 |V1.0 终版|2026.04.10|第二轮权限强控定稿：锁定JSON Schema研发专属编辑权，业务侧仅只读编排；同步固化半自动化发布、代码入库全流程，全约束闭环定稿|产研终审签字|
+|V1.1 对齐版|2026.04.15|第三轮设计稿对齐：补充完整技术栈明细（Vue3.4/Pinia/Element Plus/Spring Boot 3.2/MySQL 8.0/Redis/JWT）、对齐数据库表结构（ai_prompt_*前缀、新增test_datasets）、补充完整API接口设计（9大模块）、补充前端架构设计、补充安全设计（JWT/BCrypt/AES-256/LLM集成）、修正Prompt定版逻辑（业务角色finalize）|产研终审签字|
 ## 二、核心名词释义（统一口径，避免研发歧义）
 
 |名词缩写|完整全称|现场落地释义|
@@ -128,68 +131,239 @@
 **8.2.1 PSU全生命周期资产管控**
 
 支持新建、台账查看、版本快照归档、无效资产下架，PSU唯一ID全局不可重复，创建后永久锁定，方便全链路溯源对账。
+- 数据库表：`ai_prompt_psu`（主键自增BIGINT，psu_id唯一索引）
+- 状态枚举：ACTIVE（活跃）/ ARCHIVED（已归档）
+- 分页查询：支持page/size参数，默认每页10条
 
 **8.2.2 JSON Schema结构化专属编辑器（核心强控）**
 
 1. 访问权限：仅研发+管理员可打开，业务侧全程无入口、无接口权限；
-
 2. 能力全覆盖：可视化拖拽配置字段类型、必填校验、长度限制、枚举约束、嵌套结构体，无需手写原生JSON；
-
-3. 强联动兜底">Schema一旦定稿锁定，业务侧只能引用已有字段编排Prompt，无法新增非标变量、无法篡改字段格式；
-
-4. 版本强追溯：每一次Schema改动自动生成新版本号，自动记录前后结构差异，方便线上故障回溯。
+3. 强联动兜底：Schema一旦定稿锁定，业务侧只能引用已有字段编排Prompt，无法新增非标变量、无法篡改字段格式；
+4. 版本强追溯：每一次Schema改动自动生成新版本号，自动记录前后结构差异，方便线上故障回溯；
+5. 数据库表：`ai_prompt_json_schemas`（psu_id + version联合唯一约束，schema_content使用JSON类型存储）；
+6. 变更日志：每次修改记录changeLog字段，支持版本历史查询。
 
 **8.2.3 Prompt片段拆分 & 权限分级锁定**
 
 研发可自主拆分多段Prompt，区分固定硬核片段、业务可调片段：核心规则、模型底层参数全部锁定不可改，仅话术类内容开放给业务侧微调，兼顾安全与迭代效率。
+- 数据库表：`ai_prompt_prompt_fragments`（psu_id + fragmentKey联合唯一约束）
+- 片段类型：CORE_RULES（核心规则片段）/ MESSAGE_TEMPLATE（消息模板片段）
+- 权限分级：editable字段控制（false=已定版锁定，true=可编辑）
+- 定版操作：仅业务角色可执行finalize操作，定版后editable=false，所有人不可修改
 
 **8.2.4 定向业务代码生成（严格收敛范围）**
 
 1. 输出边界：只生成参数合法性校验代码、上下游参数拼装代码、完整版Prompt自动组装核心业务代码；
-
 2. 严格禁止：不生成Controller接口、不生成网关路由、不生成前端对接逻辑、不生成运维部署脚本；
-
 3. 落地方式：代码在线预览、打包下载，研发人工核验合规后，手动引入对应业务工程，平台不自动推送、不自动部署；
-
-4. 入库联动：生成记录自动绑定PSU版本台账，后续对接Git完成合规入库归档。
+4. 入库联动：生成记录自动绑定PSU版本台账，后续对接Git完成合规入库归档；
+5. 代码生成服务：`CodeGeneratorService`提供三类代码生成：
+   - `generateParameterValidationCode`：基于JSON Schema生成参数校验代码
+   - `generateParameterAssemblyCode`：基于输入/输出Schema生成参数拼装代码
+   - `generatePromptAssemblyCode`：基于Prompt片段生成Prompt组装代码
+   - `generateCompleteBusinessCode`：组合生成完整业务代码
 
 ### 8.3 业务配置空间（纯调优阵地，无结构操作）
 
 **8.3.1 可视化Prompt编排调试**
 
-业务侧可查看全量Schema字段说明，一键引用合规变量拼接话术，实时在线调试大模型返回效果，全程不触碰底层技术结构，零代码上手。
+业务侧可查看全量Schema字段台账，一键引用合规变量拼接话术，实时在线调试大模型返回效果，全程不触碰底层技术结构，零代码上手。
+- Prompt测试接口：`POST /api/prompts/{psuId}/test`，传入测试参数返回大模型效果
+- 片段更新：`PUT /api/prompts/{fragmentId}`，仅editable=true的片段可编辑
 
 **8.3.2 标准化测试用例批量维护**
 
 可常态化维护正向、边界、异常场景测试用例，一键批量回归核验，确保Prompt迭代后功能不翻车，验收达标后再提交送审。
+- 数据库表：`ai_prompt_test_datasets`（新增，关联psu_id，data_content使用TEXT存储JSON格式测试数据）
+- 测试数据集API：`/api/test-datasets`（支持增删改查，按psuId筛选）
+- 创建请求：包含name、dataContent、description字段
 
 **8.3.3 版本提交送审 & 进度可视化跟进**
 
 调试验收全部通过后，一键提交版本给研发审核，实时查看审核状态、驳回原因、定稿进度，全程线上留痕，无需线下反复沟通。
+- 提交审核：`POST /api/versions/{psuId}/submit`（业务角色）
+- 审核状态：PENDING（待审核）/ APPROVED（已通过）/ REJECTED（已驳回）
+- 版本审核列表：`GET /api/versions?psuId={psuId}`
 
 ### 8.4 版本审核 & 半自动化发布闭环（无流水线、无一键部署）
 
-1. 版本简化：只保留主、次、修订三级版本，不叠加环境命名空间、不叠加灰度版本；
-
+1. 版本简化：只保留主、次、修订三级版本（majorVersion/minorVersion/patchVersion），不叠加环境命名空间、不叠加灰度版本；
 2. 验收前置：必须产品+运营双人实测通过，才可发起研发复核流程；
-
 3. 人工复核：研发核验Schema无风险、Prompt合规、用例全过，再执行代码生成；
+4. 台账入库：代码生成后强制登记Git提交记录（gitCommitHash字段）、责任人、时间戳，资产永久归档；
+5. 自主上线：研发拿到合规代码后，自行完成业务服务打包、发布、运维，平台不介入、不接管、不自动化执行；
+6. 数据库表：`version_reviews`（psu_id + majorVersion + minorVersion + patchVersion联合唯一约束）
+7. 代码生成接口：`GET /api/versions/{psuId}/code`，返回生成的完整业务代码
+8. 审核接口：`POST /api/versions/{reviewId}/review`（研发角色），传入approved和rejectionReason
 
-4. 台账入库：代码生成后强制登记Git提交记录、责任人、时间戳，资产永久归档；
+## 九、核心API接口设计（RESTful规范，/api/v1/版本控制）
 
-5. 自主上线：研发拿到合规代码后，自行完成业务服务打包、发布、运维，平台不介入、不接管、不自动化执行。
+### 9.1 认证模块 `/api/auth/**`
+- `POST /api/auth/login` - 用户登录（返回JWT Token）
+- `GET /api/auth/profile` - 获取当前用户信息
 
-## 九、非功能刚性要求（上线必达标，验收硬指标）
+### 9.2 PSU管理 `/api/psus/**`
+- `POST /api/psus` - 创建PSU（仅研发，@PreAuthorize("hasRole('DEVELOPER')")）
+- `GET /api/psus?page=1&size=10` - 分页查询PSU列表（所有登录用户）
+- `PUT /api/psus/{id}` - 更新PSU（仅研发）
+- `DELETE /api/psus/{id}` - 删除PSU/归档（仅研发）
+
+### 9.3 Schema管理 `/api/schemas/**`
+- `GET /api/schemas/{psuId}` - 获取Schema（研发可编辑，业务只读）
+- `PUT /api/schemas/{psuId}` - 更新Schema（仅研发，传入schemaContent和changeLog）
+- `GET /api/schemas/{psuId}/versions` - 获取Schema版本历史
+
+### 9.4 Prompt管理 `/api/prompts/**`
+- `GET /api/prompts/{psuId}` - 获取Prompt片段列表
+- `PUT /api/prompts/{fragmentId}` - 更新Prompt片段（权限分级：editable=true时所有人可编辑）
+- `POST /api/prompts/{fragmentId}/finalize` - 定版Prompt片段（仅业务角色）
+- `POST /api/prompts/{psuId}/test` - 测试Prompt效果（传入测试参数）
+
+### 9.5 版本审核 `/api/versions/**`
+- `GET /api/versions?psuId={psuId}` - 获取版本审核列表（psuId可选）
+- `POST /api/versions/{psuId}/submit` - 提交版本审核（业务角色）
+- `POST /api/versions/{reviewId}/review` - 审核版本（仅研发，传入approved和rejectionReason）
+- `GET /api/versions/{psuId}/code` - 获取生成的业务代码
+
+### 9.6 用户管理 `/api/users/**`（仅管理员）
+- `GET /api/users` - 获取用户列表（@PreAuthorize("hasRole('ADMIN')")）
+- `POST /api/users` - 创建用户（传入username、password、role、enabled）
+- `PUT /api/users/{id}/toggle-status` - 切换用户启用状态
+
+### 9.7 系统配置 `/api/configs/**`（仅管理员）
+- `GET /api/configs` - 获取所有配置
+- `GET /api/configs/{configKey}` - 根据配置键获取配置
+- `POST /api/configs` - 创建或更新配置（传入configKey、configValue、configType）
+- `DELETE /api/configs/{id}` - 删除配置
+
+### 9.8 审计日志 `/api/audit-logs/**`（仅管理员）
+- `GET /api/audit-logs` - 获取所有审计日志
+- `GET /api/audit-logs/user/{userId}` - 根据用户ID获取审计日志
+
+### 9.9 测试数据集 `/api/test-datasets/**`
+- `GET /api/test-datasets?psuId={psuId}` - 获取测试数据集列表
+- `POST /api/test-datasets?psuId={psuId}` - 创建测试数据集（传入name、dataContent、description）
+- `PUT /api/test-datasets/{id}` - 更新测试数据集
+- `DELETE /api/test-datasets/{id}` - 删除测试数据集
+
+## 十、非功能刚性要求（上线必达标，验收硬指标）
 
 1. 安全：密钥全程加密、接口全鉴权、Schema防越权篡改、核心操作全审计；
-
 2. 性能：页面秒开、常规接口响应≤100ms、支持50路并发调试不卡顿；
+3. 兼容：适配主流浏览器（Chrome/Firefox/Edge/Safari最新版）、适配Linux私有化服务器、适配标准Java工程；
+4. 运维极简：无依赖中间件、无复杂集群、无日常值守运维压力；
+5. 数据库：MySQL 8.0，utf8mb4字符集，InnoDB引擎，关键字段建立索引优化查询；
+6. 缓存：Redis用于会话管理和热点数据缓存（用户信息、PSU元数据、Schema版本）；
+7. 前端响应式：支持桌面端（≥1200px）和平板端（768px-1199px），不强制支持移动端。
 
-3. 兼容：适配主流浏览器、适配Linux私有化服务器、适配标准Java工程；
+## 十一、数据库设计（核心表结构对齐）
 
-4. 运维极简：无依赖中间件、无复杂集群、无日常值守运维压力。
+### 11.1 用户表 `ai_prompt_users`
+- 主键：id（BIGINT自增）
+- 字段：username（唯一）、password（BCrypt加密）、role（ADMIN/DEVELOPER/BUSINESS）、enabled、phoneNumber
+- 索引：idx_users_username、idx_users_role、idx_users_enabled
+- 初始化：预置admin_user/dev_user/bus_user三个默认账号
 
-## 十、验收通过标准（逐条打勾，缺一不可上线）
+### 11.2 PSU单元表 `ai_prompt_psu`
+- 主键：id（BIGINT自增）
+- 字段：psuId（唯一）、name、description、status（ACTIVE/ARCHIVED）、creatorId
+- 索引：idx_psu_units_psu_id、idx_psu_units_status、idx_psu_units_creator、idx_psu_units_created
+
+### 11.3 JSON Schema表 `ai_prompt_json_schemas`
+- 主键：id（BIGINT自增）
+- 字段：psuId、schemaContent（JSON类型）、version、modifiedBy、changeLog
+- 联合唯一约束：(psuId, version)
+- 索引：idx_json_schemas_psu_id、idx_json_schemas_version、idx_json_schemas_modified_by
+
+### 11.4 Prompt片段表 `ai_prompt_prompt_fragments`
+- 主键：id（BIGINT自增）
+- 字段：psuId、fragmentKey、content（TEXT，最大10000字符）、editable、type（CORE_RULES/MESSAGE_TEMPLATE）、sortOrder
+- 联合唯一约束：(psuId, fragmentKey)
+- 索引：idx_prompt_fragments_psu_id、idx_prompt_fragments_type、idx_prompt_fragments_editable
+
+### 11.5 版本审核表 `ai_prompt_version_reviews`
+- 主键：id（BIGINT自增）
+- 字段：psuId、majorVersion、minorVersion、patchVersion、status（PENDING/APPROVED/REJECTED）、submitterId、reviewerId、rejectionReason、gitCommitHash、codeContent（LONGTEXT）
+- 联合唯一约束：(psuId, majorVersion, minorVersion, patchVersion)
+- 索引：idx_version_reviews_psu_id、idx_version_reviews_status、idx_version_reviews_git_hash
+
+### 11.6 系统配置表 `ai_prompt_system_configs`
+- 主键：id（BIGINT自增）
+- 字段：configKey（唯一）、configValue（AES-256加密）、configType（API_KEY/OTHER）
+- 索引：idx_system_configs_key、idx_system_configs_type
+
+### 11.7 审计日志表 `ai_prompt_audit_logs`
+- 主键：id（BIGINT自增）
+- 字段：userId、username、operation、targetType、targetId、details（JSON）、ipAddress
+- 索引：idx_audit_logs_user_id、idx_audit_logs_operation、idx_audit_logs_created
+- 特性：只追加不更新，操作可追溯
+
+### 11.8 测试数据集表 `ai_prompt_test_datasets`（新增）
+- 主键：id（BIGINT自增）
+- 字段：psuId、name、dataContent（TEXT，最大10000字符）、description（VARCHAR 500）
+- 索引：idx_test_datasets_psu_id
+
+## 十二、前端架构设计（Vue3 + Element Plus）
+
+### 12.1 应用结构
+```
+src/
+├── components/            # 公共组件
+│   └── Layout.vue        # 布局组件
+├── views/                 # 页面视图（按角色划分）
+│   ├── auth/Login.vue    # 登录页面
+│   ├── admin/Dashboard.vue    # 超级管理员仪表盘
+│   ├── developer/Dashboard.vue # 研发工程空间
+│   └── business/Dashboard.vue  # 业务配置空间
+├── stores/user.js         # Pinia用户状态管理
+├── services/api.js        # Axios统一API封装
+├── router/index.js        # Vue Router路由定义和守卫
+├── App.vue               # 根组件
+└── main.js               # 应用入口
+```
+
+### 12.2 权限路由设计
+- 基于角色的动态路由：`/admin`（管理员）、`/developer`（研发）、`/business`（业务）
+- 路由守卫：检查localStorage中的token和userRole，未登录跳转/login，角色不匹配重定向到对应首页
+- Token存储：localStorage（非Pinia store）
+
+### 12.3 API服务层
+- 统一Axios实例：baseURL='/api'，timeout=10000ms
+- 请求拦截器：自动添加Bearer Token到Authorization头
+- 响应拦截器：401自动清除token并跳转登录页
+
+## 十三、安全设计（全链路防护）
+
+### 13.1 认证授权
+- JWT Token认证：登录返回Token，后续请求携带Bearer Token
+- 密码BCrypt加密存储：永不返回明文密码
+- Token过期时间配置：支持刷新Token机制
+- Spring Security方法级权限：@PreAuthorize注解控制接口访问
+
+### 13.2 数据安全
+- API密钥AES-256加密存储：system_configs.configValue字段加密
+- 敏感数据脱敏返回：前端只显示密钥掩码（如：sk-****-abcd）
+- SQL注入防护：JPA参数化查询
+- XSS防护：前端输入验证和转义
+
+### 13.3 权限安全
+- 严格RBAC权限控制：ADMIN/DEVELOPER/BUSINESS三角色
+- 方法级权限注解：@PreAuthorize("hasRole('XXX')")
+- 自定义权限检查：Schema编辑仅研发，Prompt定版仅业务
+- 越权操作拦截：后台接口层拦截，前端无隐藏入口
+
+### 13.4 审计追踪
+- 关键操作全量审计日志：userId、username、operation、targetType、targetId、details、ipAddress
+- 不可篡改的日志存储：只追加不更新
+- 操作可追溯到具体用户和时间
+
+### 13.5 LLM集成安全
+- 大模型API配置：application.yml中llm.provider、llm.api-key、llm.base-url
+- 所有大模型调用强制后端中转：禁止前端直连外网接口
+- 支持多API Key配置：逗号分隔，自动轮询或故障转移
+
+## 十四、验收通过标准（逐条打勾，缺一不可上线）
 
 ✅ 全平台无Python依赖、无Python运行入口、无Python相关配置文件；
 

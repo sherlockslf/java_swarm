@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
  * 测试数据集实体类
  */
 @Entity
-@Table(name = "test_datasets", 
+@Table(name = "ai_prompt_test_datasets", 
        indexes = {
            @Index(name = "idx_test_datasets_psu_id", columnList = "psuId")
        })

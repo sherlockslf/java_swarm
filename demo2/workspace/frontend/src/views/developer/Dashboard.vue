@@ -833,7 +833,31 @@ onMounted(() => {
   overflow-y: auto;
 }
 
-h2 {
+.data-display {
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.test-dataset-section {
+  margin-top: 30px;
+  padding-top: 20px;
+  border-top: 1px solid #dcdfe6;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.section-header h3 {
+  margin: 0;
+}
+
+h2, h3 {
   margin-bottom: 20px;
 }
 </style>

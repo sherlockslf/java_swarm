@@ -5,7 +5,7 @@ spring:
   # 数据库配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://rm-bp1v0aoc564umyqbp.mysql.rds.aliyuncs.com:3306/aim_product_dev?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://rm-bp1v0aoc564umyqbp.mysql.rds.aliyuncs.com:3306/aim_product_ai?useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai
     username: aim_user
     password: Aim@2026
     

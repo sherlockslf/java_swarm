@@ -4,7 +4,7 @@
 CREATE TABLE IF NOT EXISTS ai_prompt_users (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     username VARCHAR(50) NOT NULL UNIQUE COMMENT '用户名',
-    password VARCHAR(100) NOT NULL COMMENT '加密密码',
+    password VARCHAR(100) NOT NULL COMMENT '明文密码',
     role ENUM('ADMIN', 'DEVELOPER', 'BUSINESS') NOT NULL COMMENT '角色',
     enabled TINYINT(1) DEFAULT 1 COMMENT '启用状态: 1-启用, 0-停用',
     phone_number VARCHAR(20) COMMENT '手机号码',
@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS ai_prompt_json_schemas (
 ) COMMENT 'AI Prompt JSON Schema表';
 
 -- 创建Prompt片段表
-CREATE TABLE IF NOT EXISTS prompt_fragments (
+CREATE TABLE IF NOT EXISTS ai_prompt_prompt_fragments (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     psu_id BIGINT NOT NULL COMMENT '关联PSU ID',
     fragment_key VARCHAR(100) NOT NULL COMMENT '片段标识',
@@ -69,10 +69,10 @@ CREATE TABLE IF NOT EXISTS prompt_fragments (
     INDEX idx_prompt_fragments_sort (sort_order),
     
     CONSTRAINT uk_prompt_fragments_psu_key UNIQUE (psu_id, fragment_key)
-) COMMENT 'Prompt片段表';
+) COMMENT 'AI Prompt片段表';
 
 -- 创建版本审核表
-CREATE TABLE IF NOT EXISTS version_reviews (
+CREATE TABLE IF NOT EXISTS ai_prompt_version_reviews (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     psu_id BIGINT NOT NULL COMMENT '关联PSU ID',
     major_version INT NOT NULL DEFAULT 1 COMMENT '主版本',
@@ -97,10 +97,10 @@ CREATE TABLE IF NOT EXISTS version_reviews (
     INDEX idx_version_reviews_git_hash (git_commit_hash),
     
     CONSTRAINT uk_version_reviews_version UNIQUE (psu_id, major_version, minor_version, patch_version)
-) COMMENT '版本审核表';
+) COMMENT 'AI Prompt版本审核表';
 
 -- 创建系统配置表
-CREATE TABLE IF NOT EXISTS system_configs (
+CREATE TABLE IF NOT EXISTS ai_prompt_system_configs (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     config_key VARCHAR(100) NOT NULL UNIQUE COMMENT '配置键',
     config_value TEXT NOT NULL COMMENT '配置值（加密存储）',
@@ -110,10 +110,10 @@ CREATE TABLE IF NOT EXISTS system_configs (
     
     INDEX idx_system_configs_key (config_key),
     INDEX idx_system_configs_type (config_type)
-) COMMENT '系统配置表（仅存储API密钥等核心配置）';
+) COMMENT 'AI Prompt系统配置表（仅存储API密钥等核心配置）';
 
 -- 创建审计日志表
-CREATE TABLE IF NOT EXISTS audit_logs (
+CREATE TABLE IF NOT EXISTS ai_prompt_audit_logs (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id BIGINT COMMENT '操作用户ID',
     username VARCHAR(50) NOT NULL COMMENT '操作用户名',
@@ -129,14 +129,27 @@ CREATE TABLE IF NOT EXISTS audit_logs (
     INDEX idx_audit_logs_target_type (targetType),
     INDEX idx_audit_logs_target_id (target_id),
     INDEX idx_audit_logs_created (created_at)
-) COMMENT '审计日志表';
+) COMMENT 'AI Prompt审计日志表';
+
+-- 创建测试数据集表
+CREATE TABLE IF NOT EXISTS ai_prompt_test_datasets (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    psu_id BIGINT NOT NULL COMMENT '关联PSU ID',
+    name VARCHAR(200) NOT NULL COMMENT '数据集名称',
+    data_content TEXT NOT NULL COMMENT '测试数据内容（JSON格式）',
+    description VARCHAR(500) COMMENT '描述',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    
+    INDEX idx_test_datasets_psu_id (psu_id)
+) COMMENT 'AI Prompt测试数据集表';
 
 -- 初始化预置用户（每种角色一个）
 INSERT IGNORE INTO ai_prompt_users (username, password, role, enabled) 
 VALUES 
-('admin_user', '$2a$10$vDtCxgJ5qwnH3Hmm.RB3D.Ke0gBPnPvGoTEmZ8Tk6AuNx.n2BRklW', 'ADMIN', 1),  -- password: Admin@123
-('dev_user', '$2a$10$vDtCxgJ5qwnH3Hmm.RB3D.Ke0gBPnPvGoTEmZ8Tk6AuNx.n2BRklW', 'DEVELOPER', 1),  -- password: Dev@123
-('bus_user', '$2a$10$vDtCxgJ5qwnH3Hmm.RB3D.Ke0gBPnPvGoTEmZ8Tk6AuNx.n2BRklW', 'BUSINESS', 1);  -- password: Bus@123
+('admin_user', 'Admin@123', 'ADMIN', 1),
+('dev_user', 'Dev@123', 'DEVELOPER', 1),
+('bus_user', 'Bus@123', 'BUSINESS', 1);
 
-INSERT IGNORE INTO system_configs (config_key, config_value, config_type) 
+INSERT IGNORE INTO ai_prompt_system_configs (config_key, config_value, config_type) 
 VALUES ('default_api_key', 'encrypted_value_placeholder', 'API_KEY');

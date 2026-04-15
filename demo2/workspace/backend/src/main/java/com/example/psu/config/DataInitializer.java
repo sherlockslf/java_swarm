@@ -9,7 +9,6 @@ import com.example.psu.repository.PsuRepository;
 import com.example.psu.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -23,9 +22,6 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private UserRepository userRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
     
     @Autowired
     private PsuRepository psuRepository;
@@ -51,7 +47,7 @@ public class DataInitializer implements CommandLineRunner {
             // 不存在则直接创建默认账号
             User user = new User();
             user.setUsername(username);
-            user.setPassword(passwordEncoder.encode(rawPassword));
+            user.setPassword(rawPassword);
             user.setRole(role);
             user.setEnabled(true);
             userRepository.save(user);
@@ -63,8 +59,8 @@ public class DataInitializer implements CommandLineRunner {
         User existing = existingOpt.get();
         boolean needUpdate = false;
 
-        if (!passwordEncoder.matches(rawPassword, existing.getPassword())) {
-            existing.setPassword(passwordEncoder.encode(rawPassword));
+        if (!rawPassword.equals(existing.getPassword())) {
+            existing.setPassword(rawPassword);
             needUpdate = true;
         }
         if (existing.getRole() != role) {

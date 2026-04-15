@@ -145,6 +145,17 @@
               </el-select>
             </el-form-item>
             
+            <el-form-item label="选择测试数据集" v-if="debugDatasets.length > 0">
+              <el-select v-model="selectedDatasetId" placeholder="请选择测试数据集" @change="loadDatasetData" clearable>
+                <el-option 
+                  v-for="dataset in debugDatasets" 
+                  :key="dataset.id" 
+                  :label="dataset.name" 
+                  :value="dataset.id">
+                </el-option>
+              </el-select>
+            </el-form-item>
+            
             <el-form-item label="输入参数" v-if="debugSchemaFields.length > 0">
               <div v-for="(field, index) in debugSchemaFields" :key="index" class="input-field">
                 <label>{{ field.name }} ({{ field.type }}):</label>
@@ -257,7 +268,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import api, { psuApi, schemaApi, promptApi, versionApi, versionReviewApi } from '@/services/api'
+import api, { psuApi, schemaApi, promptApi, versionApi, versionReviewApi, testDatasetApi } from '@/services/api'
 import { ElMessage } from 'element-plus'
 
 const activeMenu = ref('1')
@@ -288,6 +299,8 @@ const debugForm = reactive({})
 const debugSchemaFields = ref([])
 const testResult = ref('')
 const testing = ref(false)
+const debugDatasets = ref([])
+const selectedDatasetId = ref('')
 
 // 版本相关
 const versionForm = reactive({
@@ -483,9 +496,38 @@ const loadDebugSchema = async () => {
       debugForm[field.name] = ''
     })
     testResult.value = ''
+    selectedDatasetId.value = ''
+    
+    // 加载测试数据集
+    const datasetsResponse = await testDatasetApi.getTestDatasets(selectedDebugPsuId.value)
+    debugDatasets.value = datasetsResponse.data
   } catch (error) {
     console.error('加载调试Schema失败:', error)
     ElMessage.error('加载调试Schema失败')
+  }
+}
+
+// 加载数据集数据
+const loadDatasetData = () => {
+  if (!selectedDatasetId.value) {
+    // 清空表单
+    debugSchemaFields.value.forEach(field => {
+      debugForm[field.name] = ''
+    })
+    return
+  }
+  
+  const dataset = debugDatasets.value.find(d => d.id === selectedDatasetId.value)
+  if (dataset) {
+    try {
+      const data = JSON.parse(dataset.dataContent)
+      debugSchemaFields.value.forEach(field => {
+        debugForm[field.name] = data[field.name] || ''
+      })
+    } catch (error) {
+      console.error('解析数据集失败:', error)
+      ElMessage.error('数据集格式错误')
+    }
   }
 }
 

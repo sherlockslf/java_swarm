@@ -73,8 +73,12 @@ export const schemaApi = {
 export const promptApi = {
   // 获取Prompt片段
   getPromptFragments: (psuId) => api.get(`/prompts/${psuId}`),
+  // 创建Prompt片段（仅研发）
+  createPromptFragment: (data) => api.post('/prompts', data),
   // 更新Prompt片段
   updatePromptFragment: (fragmentId, data) => api.put(`/prompts/${fragmentId}`, data),
+  // 删除Prompt片段（仅研发）
+  deletePromptFragment: (fragmentId) => api.delete(`/prompts/${fragmentId}`),
   // 定版Prompt片段（仅运营）
   finalizePromptFragment: (fragmentId) => api.post(`/prompts/${fragmentId}/finalize`),
   // 测试Prompt
