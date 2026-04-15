@@ -1,10 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 
-// 路由组件（后续实现）
 const Login = () => import('../views/auth/Login.vue')
 const AdminDashboard = () => import('../views/admin/Dashboard.vue')
 const DeveloperDashboard = () => import('../views/developer/Dashboard.vue')
 const BusinessDashboard = () => import('../views/business/Dashboard.vue')
+const PromptComposer = () => import('../views/business/PromptComposer.vue')
 
 const routes = [
   {
@@ -29,6 +29,12 @@ const routes = [
     path: '/business',
     name: 'Business',
     component: BusinessDashboard,
+    meta: { requiresAuth: true, role: 'BUSINESS' }
+  },
+  {
+    path: '/business/psus/:psuId/composer',
+    name: 'PromptComposer',
+    component: PromptComposer,
     meta: { requiresAuth: true, role: 'BUSINESS' }
   },
   {

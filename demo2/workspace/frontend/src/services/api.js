@@ -53,6 +53,10 @@ export const authApi = {
 export const psuApi = {
   // 分页获取PSU列表
   getPsus: (page = 1, size = 10) => api.get('/psus', { params: { page, size } }),
+  // 根据数据库ID获取PSU
+  getPsuById: (id) => api.get(`/psus/${id}`),
+  // 根据PSU ID（全局唯一ID）获取PSU
+  getPsuByPsuId: (psuId) => api.get(`/psus/by-psu-id/${psuId}`),
   // 创建PSU
   createPsu: (data) => api.post('/psus', data),
   // 更新PSU
@@ -146,4 +150,17 @@ export const auditLogApi = {
   getAllAuditLogs: () => api.get('/audit-logs'),
   // 根据用户ID获取审计日志
   getAuditLogsByUserId: (userId) => api.get(`/audit-logs/user/${userId}`)
+}
+
+export const compositionApi = {
+  getComposition: (psuId) => api.get('/compositions', { params: { psuId } }),
+  saveDraft: (psuId, data) => api.put('/compositions', data, { params: { psuId } }),
+  validate: (psuId, data) => api.post('/compositions/validate', data, { params: { psuId } }),
+  render: (psuId, data) => api.post('/compositions/render', data, { params: { psuId } }),
+  submit: (psuId) => api.post('/compositions/submit', null, { params: { psuId } })
+}
+
+export const testRunApi = {
+  runTest: (psuId, datasetId) => api.post('/test-runs', null, { params: { psuId, datasetId } }),
+  getTestRun: (runId) => api.get(`/test-runs/${runId}`)
 }

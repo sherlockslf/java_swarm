@@ -75,12 +75,17 @@ public class VersionReviewService {
             }
         }
         
+        // 获取当前PSU的版本号并递增修订版本号
+        Integer majorVersion = psu.getMajorVersion();
+        Integer minorVersion = psu.getMinorVersion();
+        Integer patchVersion = psu.getPatchVersion() + 1; // 业务提交时修订版本号递增
+        
         // 创建新的版本审核记录
         VersionReview review = new VersionReview();
         review.setPsuId(psuId);
-        review.setMajorVersion(1); // 简化实现，从1.0.0开始
-        review.setMinorVersion(0);
-        review.setPatchVersion(0);
+        review.setMajorVersion(majorVersion);
+        review.setMinorVersion(minorVersion);
+        review.setPatchVersion(patchVersion);
         review.setStatus(VersionReview.ReviewStatus.PENDING);
         review.setSubmitterId(userId);
         review.setSubmittedAt(LocalDateTime.now());
@@ -119,6 +124,16 @@ public class VersionReviewService {
         
         if (approved) {
             review.setStatus(VersionReview.ReviewStatus.APPROVED);
+            
+            // 如果审核通过，更新PSU的主版本号
+            PsuUnit psu = psuRepository.findById(review.getPsuId())
+                    .orElseThrow(() -> new RuntimeException("PSU not found: " + review.getPsuId()));
+            
+            // 主版本号递增，次版本号和修订版本号重置
+            psu.setMajorVersion(psu.getMajorVersion() + 1);
+            psu.setMinorVersion(0);
+            psu.setPatchVersion(0);
+            psuRepository.save(psu);
         } else {
             review.setStatus(VersionReview.ReviewStatus.REJECTED);
             review.setRejectionReason(rejectionReason);
@@ -167,5 +182,50 @@ public class VersionReviewService {
         
         review.setGitCommitHash(commitHash);
         versionReviewRepository.save(review);
+    }
+    
+    /**
+     * 更新PSU的JSON Schema版本（开发操作，次版本号递增）
+     * @param psuId PSU ID
+     * @return 更新后的PSU
+     */
+    public PsuUnit updateJsonSchemaVersion(Long psuId) {
+        PsuUnit psu = psuRepository.findById(psuId)
+                .orElseThrow(() -> new RuntimeException("PSU not found: " + psuId));
+        
+        // 次版本号递增，重置修订版本号
+        psu.setMinorVersion(psu.getMinorVersion() + 1);
+        psu.setPatchVersion(0);
+        
+        return psuRepository.save(psu);
+    }
+    
+    /**
+     * 发布PSU版本（产品审核发布，主版本号递增）
+     * @param psuId PSU ID
+     * @return 更新后的PSU
+     */
+    public PsuUnit publishPsuVersion(Long psuId) {
+        PsuUnit psu = psuRepository.findById(psuId)
+                .orElseThrow(() -> new RuntimeException("PSU not found: " + psuId));
+        
+        // 主版本号递增，重置次版本号和修订版本号
+        psu.setMajorVersion(psu.getMajorVersion() + 1);
+        psu.setMinorVersion(0);
+        psu.setPatchVersion(0);
+        
+        return psuRepository.save(psu);
+    }
+    
+    /**
+     * 获取PSU的当前版本号
+     * @param psuId PSU ID
+     * @return 包含版本号信息的PSU
+     */
+    public PsuUnit getCurrentVersion(Long psuId) {
+        PsuUnit psu = psuRepository.findById(psuId)
+                .orElseThrow(() -> new RuntimeException("PSU not found: " + psuId));
+        
+        return psu;
     }
 }

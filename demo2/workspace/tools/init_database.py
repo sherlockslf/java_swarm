@@ -19,7 +19,7 @@ DB_CONFIG = {
     'charset': 'utf8mb4'
 }
 
-# 预期表列表（8个）
+# 预期表列表（12个）
 EXPECTED_TABLES = [
     'ai_prompt_users',
     'ai_prompt_psu',
@@ -28,7 +28,11 @@ EXPECTED_TABLES = [
     'ai_prompt_version_reviews',
     'ai_prompt_system_configs',
     'ai_prompt_audit_logs',
-    'ai_prompt_test_datasets'
+    'ai_prompt_test_datasets',
+    'ai_prompt_compositions',           # 新增：编排草稿表
+    'ai_prompt_composition_revisions',  # 新增：编排版本快照表
+    'ai_prompt_test_runs',              # 新增：测试运行记录表
+    'ai_prompt_test_run_items'          # 新增：测试运行用例明细表
 ]
 
 # 建表SQL语句
@@ -180,6 +184,76 @@ CREATE_TABLE_SQLS = [
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         INDEX idx_test_datasets_psu_id (psu_id)
     ) COMMENT 'AI Prompt测试数据集表'
+    """,
+    
+    # 9. 编排草稿表 (新增)
+    """
+    CREATE TABLE IF NOT EXISTS ai_prompt_compositions (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        psu_id BIGINT NOT NULL COMMENT '关联PSU ID',
+        status ENUM('DRAFT', 'SUBMITTED', 'DEV_REVIEWING', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'DRAFT' COMMENT '状态',
+        content LONGTEXT COMMENT '编辑器原始内容',
+        spec_json LONGTEXT COMMENT '编排规格JSON',
+        schema_version VARCHAR(50) NOT NULL DEFAULT '1' COMMENT '关联Schema版本',
+        rejection_reason VARCHAR(500) COMMENT '驳回原因',
+        rejection_type VARCHAR(20) COMMENT '驳回类型: BACK_TO_DEV/BACK_TO_BIZ',
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        INDEX idx_compositions_psu_id (psu_id),
+        INDEX idx_compositions_status (status),
+        CONSTRAINT uk_compositions_psu_id UNIQUE (psu_id)
+    ) COMMENT 'AI Prompt编排草稿表'
+    """,
+    
+    # 10. 编排版本快照表 (新增)
+    """
+    CREATE TABLE IF NOT EXISTS ai_prompt_composition_revisions (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        composition_id BIGINT NOT NULL COMMENT '关联编排ID',
+        revision_no INT NOT NULL COMMENT '版本号',
+        psu_id BIGINT NOT NULL COMMENT '关联PSU ID',
+        status ENUM('DRAFT', 'SUBMITTED', 'DEV_REVIEWING', 'APPROVED', 'REJECTED') NOT NULL COMMENT '状态',
+        content LONGTEXT COMMENT '编排内容快照',
+        spec_json LONGTEXT COMMENT '编排规格快照',
+        schema_version VARCHAR(50) NOT NULL COMMENT 'Schema版本快照',
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_revisions_composition_id (composition_id),
+        INDEX idx_revisions_revision_no (revision_no)
+    ) COMMENT 'AI Prompt编排版本快照表'
+    """,
+    
+    # 11. 测试运行记录表 (新增)
+    """
+    CREATE TABLE IF NOT EXISTS ai_prompt_test_runs (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        psu_id BIGINT NOT NULL COMMENT '关联PSU ID',
+        dataset_id BIGINT NOT NULL COMMENT '关联测试集ID',
+        composition_id BIGINT NOT NULL COMMENT '关联编排ID',
+        total_cases INT NOT NULL DEFAULT 0 COMMENT '总用例数',
+        success_cases INT NOT NULL DEFAULT 0 COMMENT '成功用例数',
+        failed_cases INT NOT NULL DEFAULT 0 COMMENT '失败用例数',
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_test_runs_psu_id (psu_id),
+        INDEX idx_test_runs_dataset_id (dataset_id)
+    ) COMMENT 'AI Prompt测试运行记录表'
+    """,
+    
+    # 12. 测试运行用例明细表 (新增)
+    """
+    CREATE TABLE IF NOT EXISTS ai_prompt_test_run_items (
+        id BIGINT PRIMARY KEY AUTO_INCREMENT,
+        run_id BIGINT NOT NULL COMMENT '关联运行记录ID',
+        case_id BIGINT NOT NULL COMMENT '用例ID',
+        case_name VARCHAR(200) NOT NULL COMMENT '用例名称',
+        input_json LONGTEXT COMMENT '输入参数JSON',
+        rendered_prompt LONGTEXT COMMENT '渲染后的Prompt',
+        model_output LONGTEXT COMMENT '模型输出',
+        error_message TEXT COMMENT '错误信息',
+        success TINYINT(1) NOT NULL COMMENT '是否成功',
+        latency_ms BIGINT NOT NULL COMMENT '耗时(毫秒)',
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        INDEX idx_run_items_run_id (run_id)
+    ) COMMENT 'AI Prompt测试运行用例明细表'
     """
 ]
 
@@ -305,7 +379,7 @@ def init_database():
         
         print("\n" + "=" * 70)
         if not missing_tables:
-            print("✓ 数据库初始化完成！所有8个表均已创建并初始化。")
+            print("✓ 数据库初始化完成！所有12个表均已创建并初始化。")
         else:
             print(f"✗ 以下表缺失: {', '.join(missing_tables)}")
         print("=" * 70)

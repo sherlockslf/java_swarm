@@ -69,6 +69,28 @@ public class PsuController {
     }
     
     /**
+     * 根据数据库ID获取PSU信息
+     * @param id PSU数据库ID
+     * @return PSU信息
+     */
+    @GetMapping("/{id}")
+    public ResponseEntity<PsuUnit> getPsuById(@PathVariable Long id) {
+        PsuUnit psu = psuService.getPsuById(id);
+        return ResponseEntity.ok(psu);
+    }
+    
+    /**
+     * 根据PSU ID（全局唯一ID）获取PSU信息
+     * @param psuId PSU全局唯一ID
+     * @return PSU信息
+     */
+    @GetMapping("/by-psu-id/{psuId}")
+    public ResponseEntity<PsuUnit> getPsuByPsuId(@PathVariable String psuId) {
+        PsuUnit psu = psuService.getPsuByPsuId(psuId);
+        return ResponseEntity.ok(psu);
+    }
+    
+    /**
      * 删除PSU（归档，仅研发）
      * @param id PSU数据库ID
      * @return 无内容

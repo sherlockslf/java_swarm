@@ -75,6 +75,26 @@ public class PsuService {
     }
     
     /**
+     * 根据数据库ID获取PSU信息
+     * @param id PSU数据库ID
+     * @return PSU信息
+     */
+    public PsuUnit getPsuById(Long id) {
+        return psuRepository.findById(id)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "PSU not found with id: " + id));
+    }
+    
+    /**
+     * 根据PSU ID（全局唯一ID）获取PSU信息
+     * @param psuId PSU全局唯一ID
+     * @return PSU信息
+     */
+    public PsuUnit getPsuByPsuId(String psuId) {
+        return psuRepository.findByPsuId(psuId)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "PSU not found with psuId: " + psuId));
+    }
+    
+    /**
      * 删除PSU（归档）
      * @param id PSU数据库ID
      */

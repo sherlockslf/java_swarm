@@ -108,7 +108,17 @@ public class PromptService {
         // editable=true时，所有人可编辑
         fragment.setContent(content);
         
-        return promptFragmentRepository.save(fragment);
+        PromptFragment savedFragment = promptFragmentRepository.save(fragment);
+        
+        // 更新PSU的版本号（修订版本号递增）
+        // 获取对应的PSU并更新版本
+        PsuUnit psu = psuRepository.findById(fragment.getPsuId())
+                .orElseThrow(() -> new RuntimeException("PSU not found: " + fragment.getPsuId()));
+        
+        psu.setPatchVersion(psu.getPatchVersion() + 1); // 修订版本号递增
+        psuRepository.save(psu);
+        
+        return savedFragment;
     }
     
     /**

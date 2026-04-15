@@ -89,4 +89,24 @@ public class UserService {
         user.setEnabled(!user.getEnabled());
         return userRepository.save(user);
     }
+    
+    /**
+     * 获取当前用户信息
+     * @param authentication 当前认证信息
+     * @return 当前用户信息
+     */
+    public AuthResponse getCurrentUser(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new RuntimeException("User not authenticated");
+        }
+        
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+        
+        // 生成新的token（可选，也可以复用现有的token）
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
+        
+        return new AuthResponse(token, user.getUsername(), user.getRole().name());
+    }
 }

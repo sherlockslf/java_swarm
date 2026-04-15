@@ -267,7 +267,7 @@
 
 ### 11.2 PSU单元表 `ai_prompt_psu`
 - 主键：id（BIGINT自增）
-- 字段：psuId（唯一）、name、description、status（ACTIVE/ARCHIVED）、creatorId
+- 字段：psuId（唯一）、name、description、status（ACTIVE/ARCHIVED）、creatorId、majorVersion、minorVersion、patchVersion
 - 索引：idx_psu_units_psu_id、idx_psu_units_status、idx_psu_units_creator、idx_psu_units_created
 
 ### 11.3 JSON Schema表 `ai_prompt_json_schemas`

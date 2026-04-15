@@ -9,11 +9,11 @@
 
       <!-- PSU选择 -->
       <div class="psu-selection">
-        <el-select v-model="selectedPsuId" placeholder="请选择PSU" @change="onPsuChange" style="width: 300px;">
+        <el-select v-model="selectedPsuId" placeholder="请选择PSU" @change="onPsuChange" style="width: 400px;">
           <el-option
             v-for="psu in psuList"
             :key="psu.id"
-            :label="psu.name"
+            :label="`${psu.name} (v${psu.majorVersion}.${psu.minorVersion}.${psu.patchVersion})`"
             :value="psu.id"
           />
         </el-select>

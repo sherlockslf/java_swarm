@@ -45,6 +45,13 @@ com.example.psu
 - **audit-module**: 审计日志模块
 - **test-dataset-module**: 测试数据集模块（新增）
 
+### 2.3 数据库设计约束
+
+**重要**: 本系统不使用数据库级外键约束。
+- 所有表关系通过应用层JPA实体关系管理数据一致性
+- 数据库表统一使用 `ai_prompt_*` 前缀
+- 字段名统一使用蛇形命名（snake_case），如 `target_type` 而非 `targetType`
+
 ## 3. 核心实体设计
 
 ### 3.1 用户实体 (User)
@@ -87,6 +94,9 @@ public class PsuUnit {
     private String description;        // 描述
     private PsuStatus status;          // 状态：ACTIVE/ARCHIVED
     private Long creatorId;            // 创建者ID（研发）
+    private Integer majorVersion;      // 主版本号
+    private Integer minorVersion;      // 次版本号  
+    private Integer patchVersion;      // 修订版本号
     private LocalDateTime createdAt;   // 创建时间
     private LocalDateTime updatedAt;   // 更新时间
 }
@@ -121,7 +131,7 @@ public class JsonSchema {
 
 ```java
 @Entity
-@Table(name = "prompt_fragments")
+@Table(name = "ai_prompt_prompt_fragments")
 public class PromptFragment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -142,7 +152,7 @@ public class PromptFragment {
 
 ```java
 @Entity
-@Table(name = "version_reviews")
+@Table(name = "ai_prompt_version_reviews")
 public class VersionReview {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -169,7 +179,7 @@ public class VersionReview {
 
 ```java
 @Entity
-@Table(name = "system_configs")
+@Table(name = "ai_prompt_system_configs")
 public class SystemConfig {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -187,7 +197,7 @@ public class SystemConfig {
 
 ```java
 @Entity
-@Table(name = "audit_logs")
+@Table(name = "ai_prompt_audit_logs")
 public class AuditLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -208,7 +218,7 @@ public class AuditLog {
 
 ```java
 @Entity
-@Table(name = "test_datasets")
+@Table(name = "ai_prompt_test_datasets")
 public class TestDataset {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -253,9 +263,24 @@ public class TestDataset {
 - `reviewVersion(Long reviewId, boolean approved, Long reviewerId, String rejectionReason)`: 审核版本（研发）
 - `generateBusinessCode(Long psuId, Long userId)`: 生成业务代码
 
+### 4.4.1 版本号管理策略
+
+**三位版本号规则（主版本.次版本.修订版本）**：
+- **起始值**: 0.0.0
+- **次版本递增**: 开发定JSON Schema时，次版本号+1（0.1.0 → 0.2.0）
+- **修订版本递增**: 产品定提示词和参数动态编排时，修订版本号+1（0.0.1 → 0.0.2）  
+- **主版本递增**: 产品审核发布时，主版本号+1（1.0.0 → 2.0.0）
+
+**版本号存储位置**：
+- PSU表 (`ai_prompt_psu`) - 存储当前PSU的最新版本号
+- JSON Schema表 (`ai_prompt_json_schemas`) - 每个Schema版本关联版本号
+- Prompt片段表 (`ai_prompt_prompt_fragments`) - 每个Prompt版本关联版本号
+- 版本审核表 (`ai_prompt_version_reviews`) - 审核记录包含完整版本号
+
 ### 4.5 用户管理服务 (UserService)
 
 - `authenticate(AuthRequest request)`: 用户认证
+- `getCurrentUser(Authentication authentication)`: 获取当前用户信息（从数据库查询真实用户信息）
 - `getAllUsers()`: 获取用户列表（仅管理员）
 - `createUser(User user)`: 创建用户（仅管理员）
 - `toggleUserStatus(Long id)`: 切换用户启用状态（仅管理员）

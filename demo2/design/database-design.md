@@ -16,12 +16,12 @@
 - **轻量化**: 不包含CI/CD流水线、一键部署、插件市场相关表
 - **安全优先**: 敏感数据加密存储
 - **审计完整**: 关键操作全量审计日志
+- **不使用外键**: 所有表关系通过应用层JPA管理，数据库层面不设置外键约束
 
 ### 2.2 命名规范
-- **表名**: 小写蛇形命名，复数形式（users, psu_units）
-- **字段名**: 小写蛇形命名（user_id, created_at）
+- **表名**: 小写蛇形命名，统一使用 `ai_prompt_*` 前缀（ai_prompt_users, ai_prompt_psu）
+- **字段名**: 小写蛇形命名（user_id, created_at, target_type）
 - **索引名**: idx_{table}_{columns}（idx_users_username）
-- **外键名**: fk_{child_table}_{parent_table}（fk_psu_units_creator_id）
 
 ### 2.3 数据类型选择
 - **主键**: BIGINT（自增）
@@ -59,6 +59,9 @@ CREATE TABLE ai_prompt_psu (
     description TEXT COMMENT '描述',
     status ENUM('ACTIVE', 'ARCHIVED') NOT NULL DEFAULT 'ACTIVE' COMMENT '状态',
     creator_id BIGINT NOT NULL COMMENT '创建者ID',
+    major_version INT NOT NULL DEFAULT 0 COMMENT '主版本号',
+    minor_version INT NOT NULL DEFAULT 0 COMMENT '次版本号',
+    patch_version INT NOT NULL DEFAULT 0 COMMENT '修订版本号',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
@@ -89,9 +92,9 @@ CREATE TABLE ai_prompt_json_schemas (
 ) COMMENT 'AI Prompt JSON Schema表';
 ```
 
-### 3.4 Prompt片段表 (prompt_fragments)
+### 3.4 Prompt片段表 (ai_prompt_prompt_fragments)
 ```sql
-CREATE TABLE prompt_fragments (
+CREATE TABLE ai_prompt_prompt_fragments (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     psu_id BIGINT NOT NULL COMMENT '关联PSU ID',
     fragment_key VARCHAR(100) NOT NULL COMMENT '片段标识',
@@ -107,14 +110,13 @@ CREATE TABLE prompt_fragments (
     INDEX idx_prompt_fragments_editable (editable),
     INDEX idx_prompt_fragments_sort (sort_order),
     
-    CONSTRAINT fk_prompt_fragments_psu_id FOREIGN KEY (psu_id) REFERENCES psu_units(id),
     CONSTRAINT uk_prompt_fragments_psu_key UNIQUE (psu_id, fragment_key)
 ) COMMENT 'Prompt片段表';
 ```
 
-### 3.5 版本审核表 (version_reviews)
+### 3.5 版本审核表 (ai_prompt_version_reviews)
 ```sql
-CREATE TABLE version_reviews (
+CREATE TABLE ai_prompt_version_reviews (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     psu_id BIGINT NOT NULL COMMENT '关联PSU ID',
     major_version INT NOT NULL DEFAULT 1 COMMENT '主版本',
@@ -142,9 +144,9 @@ CREATE TABLE version_reviews (
 ) COMMENT '版本审核表';
 ```
 
-### 3.6 系统配置表 (system_configs)
+### 3.6 系统配置表 (ai_prompt_system_configs)
 ```sql
-CREATE TABLE system_configs (
+CREATE TABLE ai_prompt_system_configs (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     config_key VARCHAR(100) NOT NULL UNIQUE COMMENT '配置键',
     config_value TEXT NOT NULL COMMENT '配置值（加密存储）',
@@ -157,14 +159,14 @@ CREATE TABLE system_configs (
 ) COMMENT '系统配置表（仅存储API密钥等核心配置）';
 ```
 
-### 3.7 审计日志表 (audit_logs)
+### 3.7 审计日志表 (ai_prompt_audit_logs)
 ```sql
-CREATE TABLE audit_logs (
+CREATE TABLE ai_prompt_audit_logs (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     user_id BIGINT COMMENT '操作用户ID',
     username VARCHAR(50) NOT NULL COMMENT '操作用户名',
     operation VARCHAR(100) NOT NULL COMMENT '操作类型',
-    targetType VARCHAR(50) NOT NULL COMMENT '目标类型',
+    target_type VARCHAR(50) NOT NULL COMMENT '目标类型',
     target_id BIGINT COMMENT '目标ID',
     details JSON COMMENT '操作详情',
     ip_address VARCHAR(45) COMMENT 'IP地址',
@@ -172,15 +174,15 @@ CREATE TABLE audit_logs (
     
     INDEX idx_audit_logs_user_id (user_id),
     INDEX idx_audit_logs_operation (operation),
-    INDEX idx_audit_logs_target_type (targetType),
+    INDEX idx_audit_logs_target_type (target_type),
     INDEX idx_audit_logs_target_id (target_id),
     INDEX idx_audit_logs_created (created_at)
 ) COMMENT '审计日志表';
 ```
 
-### 3.8 测试数据集表 (test_datasets)
+### 3.8 测试数据集表 (ai_prompt_test_datasets)
 ```sql
-CREATE TABLE test_datasets (
+CREATE TABLE ai_prompt_test_datasets (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     psu_id BIGINT NOT NULL COMMENT '关联PSU ID',
     name VARCHAR(200) NOT NULL COMMENT '数据集名称',
@@ -199,27 +201,27 @@ CREATE TABLE test_datasets (
 ```
 ai_prompt_users (1) ──── (N) ai_prompt_psu
 ai_prompt_users (1) ──── (N) ai_prompt_json_schemas
-ai_prompt_users (1) ──── (N) version_reviews (submitter)
-ai_prompt_users (1) ──── (N) version_reviews (reviewer)
-ai_prompt_users (1) ──── (N) audit_logs
+ai_prompt_users (1) ──── (N) ai_prompt_version_reviews (submitter)
+ai_prompt_users (1) ──── (N) ai_prompt_version_reviews (reviewer)
+ai_prompt_users (1) ──── (N) ai_prompt_audit_logs
 
 ai_prompt_psu (1) ──── (N) ai_prompt_json_schemas
-ai_prompt_psu (1) ──── (N) prompt_fragments  
-ai_prompt_psu (1) ──── (N) version_reviews
-ai_prompt_psu (1) ──── (N) test_datasets
+ai_prompt_psu (1) ──── (N) ai_prompt_prompt_fragments  
+ai_prompt_psu (1) ──── (N) ai_prompt_version_reviews
+ai_prompt_psu (1) ──── (N) ai_prompt_test_datasets
 ```
 
-### 4.2 外键约束汇总
-**注意**: 实际实现中未使用数据库级外键约束，而是在应用层通过JPA关系管理数据一致性。
+### 4.2 外键约束说明
+**重要**: 本系统不使用数据库级外键约束，所有表关系通过应用层JPA实体关系管理数据一致性。
 - `ai_prompt_psu.creator_id` → `ai_prompt_users.id` (应用层管理)
 - `ai_prompt_json_schemas.psu_id` → `ai_prompt_psu.id` (应用层管理)
 - `ai_prompt_json_schemas.modified_by` → `ai_prompt_users.id` (应用层管理)
-- `prompt_fragments.psu_id` → `ai_prompt_psu.id` (应用层管理)
-- `version_reviews.psu_id` → `ai_prompt_psu.id` (应用层管理)
-- `version_reviews.submitter_id` → `ai_prompt_users.id` (应用层管理)
-- `version_reviews.reviewer_id` → `ai_prompt_users.id` (应用层管理)
-- `audit_logs.user_id` → `ai_prompt_users.id` (应用层管理)
-- `test_datasets.psu_id` → `ai_prompt_psu.id` (应用层管理)
+- `ai_prompt_prompt_fragments.psu_id` → `ai_prompt_psu.id` (应用层管理)
+- `ai_prompt_version_reviews.psu_id` → `ai_prompt_psu.id` (应用层管理)
+- `ai_prompt_version_reviews.submitter_id` → `ai_prompt_users.id` (应用层管理)
+- `ai_prompt_version_reviews.reviewer_id` → `ai_prompt_users.id` (应用层管理)
+- `ai_prompt_audit_logs.user_id` → `ai_prompt_users.id` (应用层管理)
+- `ai_prompt_test_datasets.psu_id` → `ai_prompt_psu.id` (应用层管理)
 
 ## 5. 索引策略
 
@@ -325,11 +327,10 @@ VALUES
 ('bus_user', '$2a$10$vDtCxgJ5qwnH3Hmm.RB3D.Ke0gBPnPvGoTEmZ8Tk6AuNx.n2BRklW', 'BUSINESS', 1);
 
 -- 初始化系统配置（API密钥占位）
-INSERT IGNORE INTO system_configs (config_key, config_value, config_type) 
+INSERT IGNORE INTO ai_prompt_system_configs (config_key, config_value, config_type) 
 VALUES ('default_api_key', 'encrypted_value_placeholder', 'API_KEY');
 ```
 
 ### 11.2 权限验证
-- 确保外键约束正确建立
 - 验证唯一性约束生效
 - 测试索引查询性能

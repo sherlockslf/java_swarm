@@ -6,6 +6,7 @@ import com.example.psu.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -31,12 +32,12 @@ public class AuthController {
     
     /**
      * 获取当前用户信息
+     * @param authentication 当前认证信息
      * @return 当前用户信息
      */
     @GetMapping("/profile")
-    public ResponseEntity<AuthResponse> getProfile() {
-        // 这里需要从SecurityContext获取当前用户信息
-        // 简化实现，实际项目中需要完善
-        return ResponseEntity.ok(new AuthResponse("", "current_user", "DEVELOPER"));
+    public ResponseEntity<AuthResponse> getProfile(Authentication authentication) {
+        AuthResponse response = userService.getCurrentUser(authentication);
+        return ResponseEntity.ok(response);
     }
 }
