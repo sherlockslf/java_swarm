@@ -57,18 +57,6 @@
                 <div v-else class="dataset-collapsed-tip">测试数据已收起，点击“展开测试数据”查看全文</div>
               </el-card>
             </div>
-            <el-divider content-position="left">模型测试</el-divider>
-            <el-select v-model="selectedModel" style="width: 100%" placeholder="请选择模型">
-              <el-option label="qwen-plus" value="qwen-plus" />
-              <el-option label="qwen3-max" value="qwen3-max" />
-              <el-option label="qwen3.6-plus" value="qwen3.6-plus" />
-            </el-select>
-            <el-button
-              style="margin-top: 8px"
-              type="success"
-              :loading="testingModel"
-              @click="runDashscopeTest"
-            >使用阿里云模型测试</el-button>
           </div>
         </el-aside>
 
@@ -102,13 +90,38 @@
             />
           </div>
           <div class="test-result-panel">
-            <h4>测试对话结果</h4>
+            <h4>接口测试（大模型对话）</h4>
+            <div class="chat-control-row">
+              <el-select v-model="selectedModel" style="width: 220px" placeholder="请选择模型">
+                <el-option label="qwen-plus" value="qwen-plus" />
+                <el-option label="qwen3-max" value="qwen3-max" />
+                <el-option label="qwen3.6-plus" value="qwen3.6-plus" />
+              </el-select>
+            </div>
+            <el-button
+              style="margin-top: 8px"
+              type="primary"
+              :loading="testingModel"
+              @click="runModelChatTest"
+            >按渲染文本测试</el-button>
+            <div v-if="chatMessages.length > 0" class="chat-history">
+              <div
+                v-for="(msg, idx) in chatMessages"
+                :key="`chat-${idx}`"
+                class="chat-item"
+                :class="msg.role === 'assistant' ? 'assistant' : 'user'"
+              >
+                <div class="chat-role">{{ msg.role === 'assistant' ? '模型回复' : '用户输入' }}</div>
+                <div class="chat-content">{{ msg.content }}</div>
+              </div>
+            </div>
             <el-input
               v-model="modelTestOutput"
+              style="margin-top: 8px"
               type="textarea"
               :rows="8"
               readonly
-              placeholder="模型测试结果将显示在这里"
+              placeholder="最近一次模型回复将显示在这里"
             />
             <el-alert
               v-if="modelTestError"
@@ -205,6 +218,7 @@ const selectedModel = ref('qwen-plus')
 const dashscopeApiKey = ref('')
 const modelTestOutput = ref('')
 const modelTestError = ref('')
+const chatMessages = ref([])
 const editorRef = ref(null)
 
 const isReadonly = computed(() => status.value !== 'DRAFT')
@@ -606,14 +620,11 @@ function cloneObject(value) {
   }
 }
 
-async function runDashscopeTest() {
-  // 使用当前页面渲染结果调用阿里云兼容接口进行模型测试
-  if (!selectedDatasetId.value) {
-    ElMessage.warning('请先选择测试数据集')
-    return
-  }
+async function runModelChatTest() {
+  // 严格使用“渲染预览”文本框中的当前文本进行接口测试
   if (!renderedPrompt.value?.trim()) {
-    await runRenderPreview()
+    ElMessage.warning('渲染预览文本为空，请先填写或渲染内容')
+    return
   }
   if (!dashscopeApiKey.value) {
     await loadDashscopeApiKey(true)
@@ -624,9 +635,12 @@ async function runDashscopeTest() {
     return
   }
   testingModel.value = true
-  modelTestOutput.value = ''
   modelTestError.value = ''
   try {
+    const requestMessages = [
+      ...chatMessages.value,
+      { role: 'user', content: renderedPrompt.value }
+    ]
     const response = await fetch('https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -635,12 +649,7 @@ async function runDashscopeTest() {
       },
       body: JSON.stringify({
         model: selectedModel.value,
-        messages: [
-          {
-            role: 'user',
-            content: renderedPrompt.value
-          }
-        ],
+        messages: requestMessages,
         stream: false,
         enable_thinking: false
       })
@@ -650,8 +659,12 @@ async function runDashscopeTest() {
       throw new Error(data?.error?.message || data?.message || `请求失败: ${response.status}`)
     }
     const output = data?.choices?.[0]?.message?.content || ''
+    chatMessages.value.push(
+      { role: 'user', content: renderedPrompt.value },
+      { role: 'assistant', content: output || '[空回复]' }
+    )
     modelTestOutput.value = output || JSON.stringify(data, null, 2)
-    ElMessage.success('阿里云模型测试完成')
+    ElMessage.success('接口测试完成')
   } catch (e) {
     modelTestError.value = e.message || '模型测试失败'
     ElMessage.error(modelTestError.value)
@@ -874,6 +887,47 @@ function formatTime(timeStr) {
 .test-result-panel h4 {
   margin: 0 0 8px 0;
   font-size: 14px;
+}
+
+.chat-control-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.chat-history {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.chat-item {
+  border: 1px solid #e4e7ed;
+  border-radius: 6px;
+  padding: 10px;
+}
+
+.chat-item.user {
+  background: #f5f7fa;
+}
+
+.chat-item.assistant {
+  background: #ecf5ff;
+  border-color: #b3d8ff;
+}
+
+.chat-role {
+  font-size: 12px;
+  color: #909399;
+  margin-bottom: 6px;
+}
+
+.chat-content {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-size: 13px;
+  color: #303133;
 }
 
 .dataset-preview-list,

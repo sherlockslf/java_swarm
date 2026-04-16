@@ -10,7 +10,7 @@
             <span>Prompt编排</span>
           </el-menu-item>
           <el-menu-item index="3">
-            <span>在线调试</span>
+            <span>接口测试</span>
           </el-menu-item>
           <el-menu-item index="4">
             <span>版本提交</span>
@@ -131,12 +131,12 @@
           </el-form>
         </div>
         
-        <!-- 在线调试 -->
+        <!-- 接口测试 -->
         <div v-if="activeMenu === '3'" class="content-section">
-          <h2>在线调试</h2>
-          <el-form :model="debugForm" label-width="120px">
+          <h2>接口测试（编排容器下方）</h2>
+          <el-form label-width="120px">
             <el-form-item label="选择PSU">
-              <el-select v-model="selectedDebugPsuId" placeholder="请选择PSU" @change="loadDebugSchema">
+              <el-select v-model="selectedApiTestPsuId" placeholder="请选择PSU">
                 <el-option 
                   v-for="psu in psus" 
                   :key="psu.id" 
@@ -145,41 +145,16 @@
                 </el-option>
               </el-select>
             </el-form-item>
-            
-            <el-form-item label="选择测试数据集" v-if="debugDatasets.length > 0">
-              <el-select v-model="selectedDatasetId" placeholder="请选择测试数据集" @change="loadDatasetData" clearable>
-                <el-option 
-                  v-for="dataset in debugDatasets" 
-                  :key="dataset.id" 
-                  :label="dataset.name" 
-                  :value="dataset.id">
-                </el-option>
-              </el-select>
-            </el-form-item>
-            
-            <el-form-item label="输入参数" v-if="debugSchemaFields.length > 0">
-              <div v-for="(field, index) in debugSchemaFields" :key="index" class="input-field">
-                <label>{{ field.name }} ({{ field.type }}):</label>
-                <el-input 
-                  v-model="debugForm[field.name]" 
-                  :placeholder="`请输入${field.name}`"
-                  :disabled="!field.editable">
-                </el-input>
-              </div>
-            </el-form-item>
-            
             <el-form-item>
-              <el-button type="primary" @click="testPrompt" :loading="testing">测试Prompt</el-button>
+              <el-alert
+                title="运营侧接口测试已迁移到 Prompt 编排页下方，支持直接调用大模型进行多轮对话测试。"
+                type="info"
+                :closable="false"
+                show-icon
+              />
             </el-form-item>
-            
-            <el-form-item label="测试结果">
-              <el-input 
-                v-model="testResult" 
-                type="textarea" 
-                :rows="8" 
-                readonly 
-                placeholder="测试结果将显示在这里...">
-              </el-input>
+            <el-form-item>
+              <el-button type="primary" @click="goToApiTestInComposer">进入编排页测试</el-button>
             </el-form-item>
           </el-form>
         </div>
@@ -287,7 +262,7 @@ const psuPagination = reactive({
   total: 0
 })
 const selectedPsuId = ref('')
-const selectedDebugPsuId = ref('')
+const selectedApiTestPsuId = ref('')
 const selectedVersionPsuId = ref('')
 
 // Schema相关
@@ -296,14 +271,6 @@ const viewingSchemaFields = ref([])
 const promptForm = reactive({
   promptContent: ''
 })
-
-// 调试相关
-const debugForm = reactive({})
-const debugSchemaFields = ref([])
-const testResult = ref('')
-const testing = ref(false)
-const debugDatasets = ref([])
-const selectedDatasetId = ref('')
 
 // 版本相关
 const versionForm = reactive({
@@ -342,7 +309,7 @@ const handlePageChange = (page) => {
 // 选择PSU
 const selectPsu = (psu) => {
   selectedPsuId.value = psu.id
-  selectedDebugPsuId.value = psu.id
+  selectedApiTestPsuId.value = psu.id
   selectedVersionPsuId.value = psu.id
   ElMessage.success(`已选择PSU: ${psu.name}`)
 }
@@ -569,81 +536,12 @@ const finalizePrompt = async () => {
   }
 }
 
-// 加载调试Schema
-const loadDebugSchema = async () => {
-  if (!selectedDebugPsuId.value) return
-  
-  try {
-    const response = await schemaApi.getSchema(selectedDebugPsuId.value)
-    let schemaContent = response.data.schemaContent || '{}'
-    if (typeof schemaContent === 'string') {
-      schemaContent = JSON.parse(schemaContent)
-    }
-    debugSchemaFields.value = parseSchemaFields(schemaContent).map(f => ({...f, editable: true}))
-    
-    // 重置调试表单
-    debugSchemaFields.value.forEach(field => {
-      debugForm[field.name] = ''
-    })
-    testResult.value = ''
-    selectedDatasetId.value = ''
-    
-    // 加载测试数据集
-    const datasetsResponse = await testDatasetApi.getTestDatasets(selectedDebugPsuId.value)
-    debugDatasets.value = datasetsResponse.data
-  } catch (error) {
-    console.error('加载调试Schema失败:', error)
-    ElMessage.error('加载调试Schema失败')
-  }
-}
-
-// 加载数据集数据
-const loadDatasetData = () => {
-  if (!selectedDatasetId.value) {
-    // 清空表单
-    debugSchemaFields.value.forEach(field => {
-      debugForm[field.name] = ''
-    })
+const goToApiTestInComposer = () => {
+  if (!selectedApiTestPsuId.value) {
+    ElMessage.warning('请先选择PSU')
     return
   }
-  
-  const dataset = debugDatasets.value.find(d => d.id === selectedDatasetId.value)
-  if (dataset) {
-    try {
-      const data = JSON.parse(dataset.dataContent)
-      debugSchemaFields.value.forEach(field => {
-        debugForm[field.name] = data[field.name] || ''
-      })
-    } catch (error) {
-      console.error('解析数据集失败:', error)
-      ElMessage.error('数据集格式错误')
-    }
-  }
-}
-
-// 测试Prompt
-const testPrompt = async () => {
-  if (!selectedDebugPsuId.value) {
-    ElMessage.warning('请选择PSU')
-    return
-  }
-  
-  testing.value = true
-  try {
-    const inputParams = {}
-    debugSchemaFields.value.forEach(field => {
-      inputParams[field.name] = debugForm[field.name] || ''
-    })
-    
-    const response = await promptApi.testPrompt(selectedDebugPsuId.value, inputParams)
-    testResult.value = response.data
-    ElMessage.success('测试完成')
-  } catch (error) {
-    console.error('测试Prompt失败:', error)
-    ElMessage.error('测试失败')
-  } finally {
-    testing.value = false
-  }
+  router.push(`/business/psus/${selectedApiTestPsuId.value}/composer`)
 }
 
 // 提交版本

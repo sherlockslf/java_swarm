@@ -802,8 +802,8 @@ const loadPsus = async () => {
 const loadVersionReviews = async () => {
   try {
     const response = await versionReviewApi.getVersionReviews(null, versionReviewPagination.page, versionReviewPagination.size)
-    versionReviews.value = response.data.content
-    versionReviewPagination.total = response.data.totalElements
+    versionReviews.value = Array.isArray(response.data?.content) ? response.data.content : []
+    versionReviewPagination.total = response.data?.totalElements || 0
   } catch (error) {
     console.error('加载版本审核列表失败:', error)
     versionReviews.value = []
