@@ -67,16 +67,36 @@ export const psuApi = {
 
 export const schemaApi = {
   // 获取Schema
-  getSchema: (psuId) => api.get(`/schemas/${psuId}`),
+  getSchema: (psuId) => {
+    if (!isValidPsuId(psuId)) {
+      return Promise.reject(new Error(`Invalid PSU ID: ${psuId}`));
+    }
+    return api.get(`/schemas/${psuId}`);
+  },
   // 更新Schema
-  updateSchema: (psuId, data) => api.put(`/schemas/${psuId}`, data),
+  updateSchema: (psuId, data) => {
+    if (!isValidPsuId(psuId)) {
+      return Promise.reject(new Error(`Invalid PSU ID: ${psuId}`));
+    }
+    return api.put(`/schemas/${psuId}`, data);
+  },
   // 获取Schema版本历史
-  getSchemaVersions: (psuId) => api.get(`/schemas/${psuId}/versions`)
+  getSchemaVersions: (psuId) => {
+    if (!isValidPsuId(psuId)) {
+      return Promise.reject(new Error(`Invalid PSU ID: ${psuId}`));
+    }
+    return api.get(`/schemas/${psuId}/versions`);
+  }
 }
 
 export const promptApi = {
   // 获取Prompt片段
-  getPromptFragments: (psuId) => api.get(`/prompts/${psuId}`),
+  getPromptFragments: (psuId) => {
+    if (!isValidPsuId(psuId)) {
+      return Promise.reject(new Error(`Invalid PSU ID: ${psuId}`));
+    }
+    return api.get(`/prompts/${psuId}`);
+  },
   // 创建Prompt片段（仅研发）
   createPromptFragment: (data) => api.post('/prompts', data),
   // 更新Prompt片段
@@ -86,7 +106,12 @@ export const promptApi = {
   // 定版Prompt片段（仅运营）
   finalizePromptFragment: (fragmentId) => api.post(`/prompts/${fragmentId}/finalize`),
   // 测试Prompt
-  testPrompt: (psuId, data) => api.post(`/prompts/${psuId}/test`, data)
+  testPrompt: (psuId, data) => {
+    if (!isValidPsuId(psuId)) {
+      return Promise.reject(new Error(`Invalid PSU ID: ${psuId}`));
+    }
+    return api.post(`/prompts/${psuId}/test`, data);
+  }
 }
 
 export const versionApi = {
@@ -121,17 +146,30 @@ export const testDatasetApi = {
 export const versionReviewApi = {
   // 获取版本审核列表
   getVersionReviews: (psuId) => {
+    if (psuId && !isValidPsuId(psuId)) {
+      return Promise.reject(new Error(`Invalid PSU ID: ${psuId}`));
+    }
     if (psuId) {
       return api.get('/versions', { params: { psuId } })
     }
     return api.get('/versions')
   },
   // 提交版本审核
-  submitVersion: (psuId) => api.post(`/versions/${psuId}/submit`),
+  submitVersion: (psuId) => {
+    if (!isValidPsuId(psuId)) {
+      return Promise.reject(new Error(`Invalid PSU ID: ${psuId}`));
+    }
+    return api.post(`/versions/${psuId}/submit`);
+  },
   // 审核版本
   reviewVersion: (reviewId, data) => api.post(`/versions/${reviewId}/review`, data),
   // 获取生成的代码
-  getCode: (psuId) => api.get(`/versions/${psuId}/code`)
+  getCode: (psuId) => {
+    if (!isValidPsuId(psuId)) {
+      return Promise.reject(new Error(`Invalid PSU ID: ${psuId}`));
+    }
+    return api.get(`/versions/${psuId}/code`);
+  }
 }
 
 export const configApi = {
@@ -155,14 +193,49 @@ export const auditLogApi = {
 }
 
 export const compositionApi = {
-  getComposition: (psuId) => api.get('/compositions', { params: { psuId } }),
-  saveDraft: (psuId, data) => api.put('/compositions', data, { params: { psuId } }),
-  validate: (psuId, data) => api.post('/compositions/validate', data, { params: { psuId } }),
-  render: (psuId, data) => api.post('/compositions/render', data, { params: { psuId } }),
-  submit: (psuId) => api.post('/compositions/submit', null, { params: { psuId } })
+  getComposition: (psuId) => {
+    if (!isValidPsuId(psuId)) {
+      return Promise.reject(new Error(`Invalid PSU ID: ${psuId}`));
+    }
+    return api.get('/compositions', { params: { psuId } });
+  },
+  saveDraft: (psuId, data) => {
+    if (!isValidPsuId(psuId)) {
+      return Promise.reject(new Error(`Invalid PSU ID: ${psuId}`));
+    }
+    return api.put('/compositions', data, { params: { psuId } });
+  },
+  validate: (psuId, data) => {
+    if (!isValidPsuId(psuId)) {
+      return Promise.reject(new Error(`Invalid PSU ID: ${psuId}`));
+    }
+    return api.post('/compositions/validate', data, { params: { psuId } });
+  },
+  render: (psuId, data) => {
+    if (!isValidPsuId(psuId)) {
+      return Promise.reject(new Error(`Invalid PSU ID: ${psuId}`));
+    }
+    return api.post('/compositions/render', data, { params: { psuId } });
+  },
+  submit: (psuId) => {
+    if (!isValidPsuId(psuId)) {
+      return Promise.reject(new Error(`Invalid PSU ID: ${psuId}`));
+    }
+    return api.post('/compositions/submit', null, { params: { psuId } });
+  }
 }
 
 export const testRunApi = {
-  runTest: (psuId, datasetId, data = {}) => api.post('/test-runs', data, { params: { psuId, datasetId } }),
+  runTest: (psuId, datasetId, data = {}) => {
+    if (!isValidPsuId(psuId)) {
+      return Promise.reject(new Error(`Invalid PSU ID: ${psuId}`));
+    }
+    return api.post('/test-runs', data, { params: { psuId, datasetId } });
+  },
   getTestRun: (runId) => api.get(`/test-runs/${runId}`)
+}
+
+// 验证PSU ID是否为有效的正整数
+function isValidPsuId(psuId) {
+  return Number.isInteger(Number(psuId)) && Number(psuId) > 0;
 }

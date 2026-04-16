@@ -190,12 +190,15 @@ const loadPsuList = async () => {
 
 // PSU变化时加载对应的Prompt片段和Schema
 const onPsuChange = async () => {
-  if (selectedPsuId.value) {
+  if (selectedPsuId.value && isValidPsuId(selectedPsuId.value)) {
     await Promise.all([
       loadPromptFragments(),
       loadSchemaInfo(),
       loadSchemaFields()
     ])
+  } else if (selectedPsuId.value) {
+    ElMessage.error('无效的PSU ID，请选择一个有效的PSU');
+    console.error('Invalid PSU ID:', selectedPsuId.value);
   }
 }
 
@@ -411,6 +414,11 @@ const testPrompt = async () => {
     console.error('测试Prompt失败:', error)
     ElMessage.error('测试失败: ' + (error.response?.data?.message || error.message))
   }
+}
+
+// 验证PSU ID是否为有效的正整数
+function isValidPsuId(psuId) {
+  return Number.isInteger(Number(psuId)) && Number(psuId) > 0;
 }
 
 // 格式化类型标签

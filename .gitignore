@@ -1,0 +1,10 @@
+demo2/workspace/backend/target/
+demo2/workspace/backend/target
+example/
+example
+example/demo.txt
+.vscode/settings.json
+dist/
+demo2/workspace/backend/target/classes/com/example/psu/config/GlobalExceptionHandler.class
+demo2/workspace/backend/target/classes/com/example/psu/config/DatabaseConfig.class
+demo2/workspace/backend/target/classes/com/example/psu/config/DataInitializer.class
