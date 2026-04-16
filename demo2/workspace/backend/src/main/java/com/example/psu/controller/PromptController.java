@@ -2,7 +2,9 @@ package com.example.psu.controller;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -20,10 +22,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.psu.dto.request.CreatePromptRequest;
 import com.example.psu.dto.request.UpdatePromptRequest;
+import com.example.psu.dto.response.PromptFragmentResponse;
 import com.example.psu.entity.PromptFragment;
 import com.example.psu.entity.User;
 import com.example.psu.repository.UserRepository;
 import com.example.psu.service.PromptService;
+
+import jakarta.validation.Valid;
 
 /**
  * Prompt管理控制器
@@ -44,9 +49,12 @@ public class PromptController {
      * @return Prompt片段列表
      */
     @GetMapping("/{psuId}")
-    public ResponseEntity<List<PromptFragment>> getPromptFragments(@PathVariable Long psuId) {
+    public ResponseEntity<List<PromptFragmentResponse>> getPromptFragments(@PathVariable Long psuId) {
         List<PromptFragment> fragments = promptService.getPromptFragments(psuId);
-        return ResponseEntity.ok(fragments);
+        List<PromptFragmentResponse> responses = fragments.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
     }
     
     /**
@@ -56,10 +64,11 @@ public class PromptController {
      */
     @PostMapping
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<PromptFragment> createPromptFragment(@RequestBody CreatePromptRequest request) {
+    public ResponseEntity<PromptFragmentResponse> createPromptFragment(@Valid @RequestBody CreatePromptRequest request) {
         Long currentUserId = getCurrentUserId();
         PromptFragment fragment = promptService.createPromptFragment(request, currentUserId);
-        return ResponseEntity.ok(fragment);
+        PromptFragmentResponse response = convertToResponse(fragment);
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -70,10 +79,13 @@ public class PromptController {
      * @return 更新后的片段
      */
     @PutMapping("/{fragmentId}")
-    public ResponseEntity<PromptFragment> updatePromptFragment(@PathVariable Long fragmentId, @RequestBody UpdatePromptRequest requestBody) {
+    public ResponseEntity<PromptFragmentResponse> updatePromptFragment(
+            @PathVariable Long fragmentId, 
+            @Valid @RequestBody UpdatePromptRequest requestBody) {
         Long currentUserId = getCurrentUserId();
         PromptFragment fragment = promptService.updatePromptFragment(fragmentId, requestBody.getContent(), currentUserId);
-        return ResponseEntity.ok(fragment);
+        PromptFragmentResponse response = convertToResponse(fragment);
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -85,7 +97,7 @@ public class PromptController {
     public ResponseEntity<Void> deletePromptFragment(@PathVariable Long fragmentId) {
         Long currentUserId = getCurrentUserId();
         promptService.deletePromptFragment(fragmentId, currentUserId);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
     
     /**
@@ -94,10 +106,11 @@ public class PromptController {
      * @return 定版后的片段
      */
     @PostMapping("/{fragmentId}/finalize")
-    public ResponseEntity<PromptFragment> finalizePromptFragment(@PathVariable Long fragmentId) {
+    public ResponseEntity<PromptFragmentResponse> finalizePromptFragment(@PathVariable Long fragmentId) {
         Long currentUserId = getCurrentUserId();
         PromptFragment fragment = promptService.finalizePromptFragment(fragmentId, currentUserId);
-        return ResponseEntity.ok(fragment);
+        PromptFragmentResponse response = convertToResponse(fragment);
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -125,5 +138,15 @@ public class PromptController {
             return user.getId();
         }
         return null;
+    }
+    
+    /**
+     * 将Prompt片段实体转换为响应DTO
+     */
+    private PromptFragmentResponse convertToResponse(PromptFragment fragment) {
+        PromptFragmentResponse response = new PromptFragmentResponse();
+        BeanUtils.copyProperties(fragment, response);
+        response.setType(fragment.getType().getCode());
+        return response;
     }
 }

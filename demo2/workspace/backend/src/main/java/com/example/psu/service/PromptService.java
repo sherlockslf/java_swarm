@@ -4,6 +4,7 @@ import com.example.psu.dto.request.CreatePromptRequest;
 import com.example.psu.entity.PromptFragment;
 import com.example.psu.entity.PsuUnit;
 import com.example.psu.entity.User;
+import com.example.psu.enums.UserRole;
 import com.example.psu.repository.PromptFragmentRepository;
 import com.example.psu.repository.PsuRepository;
 import com.example.psu.repository.UserRepository;
@@ -58,7 +59,7 @@ public class PromptService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
         
-        if (user.getRole() != User.UserRole.DEVELOPER) {
+        if (user.getRole() != UserRole.DEVELOPER) {
             throw new RuntimeException("只有研发人员可以创建Prompt片段");
         }
         
@@ -135,7 +136,7 @@ public class PromptService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
         
-        if (user.getRole() != User.UserRole.DEVELOPER) {
+        if (user.getRole() != UserRole.DEVELOPER) {
             throw new RuntimeException("只有研发人员可以删除Prompt片段");
         }
         
@@ -162,7 +163,7 @@ public class PromptService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
         
-        if (user.getRole() != User.UserRole.BUSINESS) {
+        if (user.getRole() != UserRole.BUSINESS) {
             throw new RuntimeException("只有运营人员可以定版Prompt");
         }
         

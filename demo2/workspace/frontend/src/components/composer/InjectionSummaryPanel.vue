@@ -20,6 +20,16 @@
     <div v-if="injectionPlan.length === 0" class="empty-hint">
       暂无变量，请从左侧 Schema 字段树插入变量
     </div>
+    <div v-else class="quick-hints">
+      <div v-if="invalidVars.length > 0" class="error-item">
+        <el-icon color="#f56c6c"><CircleCloseFilled /></el-icon>
+        <span>存在未在Schema中定义的变量: {{ invalidVars.map(v => v.path).join(', ') }}</span>
+      </div>
+      <div v-if="duplicateVars.length > 0" class="warning-item">
+        <el-icon color="#e6a23c"><WarningFilled /></el-icon>
+        <span>存在重复引用变量: {{ duplicateVars.map(v => `${v.path}(${v.count})`).join(', ') }}</span>
+      </div>
+    </div>
 
     <h4 style="margin-top: 16px">校验结果</h4>
     <div v-if="validationErrors.length > 0" class="error-list">
@@ -53,9 +63,10 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
 import { CircleCloseFilled, WarningFilled } from '@element-plus/icons-vue'
 
-defineProps({
+const props = defineProps({
   tokens: { type: Array, default: () => [] },
   injectionPlan: { type: Array, default: () => [] },
   validationErrors: { type: Array, default: () => [] },
@@ -63,8 +74,21 @@ defineProps({
   schemaFields: { type: Array, default: () => [] }
 })
 
+const invalidVars = computed(() => {
+  const rootNames = new Set((props.schemaFields || []).map(f => f.name))
+  return (props.injectionPlan || []).filter(item => {
+    const path = String(item?.path || '')
+    const root = path.split(/[.\[]/)[0]
+    return path && !rootNames.has(root)
+  })
+})
+
+const duplicateVars = computed(() => {
+  return (props.injectionPlan || []).filter(item => Number(item?.count || 0) > 1)
+})
+
 function isUsed(fieldName) {
-  return injectionPlan.value.some(item =>
+  return (props.injectionPlan || []).some(item =>
     item.path === fieldName || item.path.startsWith(fieldName + '.') || item.path.startsWith(fieldName + '[')
   )
 }

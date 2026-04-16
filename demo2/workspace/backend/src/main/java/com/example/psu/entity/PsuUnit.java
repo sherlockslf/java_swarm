@@ -1,5 +1,6 @@
 package com.example.psu.entity;
 
+import com.example.psu.enums.PsuStatus;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -64,13 +65,5 @@ public class PsuUnit {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
-    }
-    
-    /**
-     * PSU状态枚举
-     */
-    public enum PsuStatus {
-        ACTIVE,      // 活跃
-        ARCHIVED     // 已归档
     }
 }

@@ -3,8 +3,13 @@
     <el-form label-width="100px">
       <el-form-item label="选择测试集">
         <el-select
-          v-model="selectedDatasetId"
-          placeholder="请选择测试数据集"
+          v-model="selectedDatasetIds"
+          multiple
+          collapse-tags
+          collapse-tags-tooltip
+          filterable
+          clearable
+          placeholder="请选择一个或多个测试数据集"
           style="width: 100%"
           @change="onDatasetChange"
         >
@@ -22,8 +27,8 @@
           type="primary"
           @click="runTest"
           :loading="running"
-          :disabled="!selectedDatasetId"
-        >运行测试</el-button>
+          :disabled="selectedDatasetIds.length === 0"
+        >批量运行测试</el-button>
       </el-form-item>
     </el-form>
 
@@ -35,8 +40,8 @@
         <el-tag type="danger" style="margin-left: 8px">失败: {{ testResult.failedCases }}</el-tag>
       </div>
 
-      <el-table :data="testResult.items" style="width: 100%; margin-top: 12px" size="small">
-        <el-table-column prop="caseName" label="用例名称" width="150" />
+        <el-table :data="testResult.items" style="width: 100%; margin-top: 12px" size="small">
+          <el-table-column prop="name" label="用例名称" width="150" />
         <el-table-column label="状态" width="80" align="center">
           <template #default="{ row }">
             <el-tag :type="row.success ? 'success' : 'danger'" size="small">
@@ -51,7 +56,7 @@
         </el-table-column>
         <el-table-column label="错误摘要" min-width="150">
           <template #default="{ row }">
-            <span v-if="row.errorMessage" class="error-text">{{ row.errorMessage }}</span>
+            <span v-if="row.error" class="error-text">{{ row.error }}</span>
             <span v-else>-</span>
           </template>
         </el-table-column>
@@ -71,8 +76,8 @@
         <pre class="prompt-block">{{ detailItem.renderedPrompt || '-' }}</pre>
         <h5>模型输出</h5>
         <pre class="output-block">{{ detailItem.modelOutput || '-' }}</pre>
-        <div v-if="detailItem.errorMessage" class="error-block">
-          <strong>错误信息:</strong> {{ detailItem.errorMessage }}
+        <div v-if="detailItem.error" class="error-block">
+          <strong>错误信息:</strong> {{ detailItem.error }}
         </div>
       </div>
     </el-dialog>
@@ -88,10 +93,8 @@ const props = defineProps({
   psuId: { type: Number, required: true }
 })
 
-const emit = defineEmits(['close'])
-
 const datasets = ref([])
-const selectedDatasetId = ref('')
+const selectedDatasetIds = ref([])
 const running = ref(false)
 const testResult = ref(null)
 const showDetailDialog = ref(false)
@@ -115,20 +118,41 @@ function onDatasetChange() {
 }
 
 async function runTest() {
-  if (!selectedDatasetId.value) {
-    ElMessage.warning('请选择测试集')
+  // 对多选测试集逐个执行测试并汇总结果
+  if (selectedDatasetIds.value.length === 0) {
+    ElMessage.warning('请至少选择一个测试集')
     return
   }
 
   running.value = true
   testResult.value = null
   try {
-    const res = await testRunApi.runTest(props.psuId, selectedDatasetId.value)
-    testResult.value = res.data
-    if (res.data.failedCases === 0) {
-      ElMessage.success('全部测试通过')
+    const selected = datasets.value.filter(ds => selectedDatasetIds.value.includes(ds.id))
+    const merged = {
+      totalCases: 0,
+      successCases: 0,
+      failedCases: 0,
+      items: []
+    }
+
+    for (const dataset of selected) {
+      const res = await testRunApi.runTest(props.psuId, dataset.id, {})
+      const data = res.data || {}
+      merged.totalCases += Number(data.totalCases || 0)
+      merged.successCases += Number(data.successCases || 0)
+      merged.failedCases += Number(data.failedCases || 0)
+      const items = Array.isArray(data.items) ? data.items : []
+      merged.items.push(...items.map(item => ({
+        ...item,
+        name: `[${dataset.name}] ${item.name || '未命名用例'}`
+      })))
+    }
+
+    testResult.value = merged
+    if (merged.failedCases === 0) {
+      ElMessage.success('批量测试全部通过')
     } else {
-      ElMessage.warning(`测试完成: ${res.data.failedCases} 个失败`)
+      ElMessage.warning(`批量测试完成: ${merged.failedCases} 个失败`)
     }
   } catch (e) {
     ElMessage.error('运行测试失败: ' + (e.response?.data?.error || e.message))

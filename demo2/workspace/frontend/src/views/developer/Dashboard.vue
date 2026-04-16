@@ -326,9 +326,11 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import api, { psuApi, testDatasetApi, versionReviewApi } from '@/services/api'
+import { useRouter } from 'vue-router'
+import api, { psuApi, schemaApi, testDatasetApi, versionReviewApi } from '@/services/api'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
+const router = useRouter()
 const activeMenu = ref('1')
 const showCreatePsuDialog = ref(false)
 const showEditPsuDialog = ref(false)
@@ -399,6 +401,21 @@ const psuRules = {
 
 // 菜单选择处理
 const handleMenuSelect = (index) => {
+  if (index === '3') {
+    // 统一将开发侧Prompt管理入口切换到动态容器编排页面
+    if (selectedPsuId.value) {
+      router.push(`/business/psus/${selectedPsuId.value}/composer`)
+      return
+    }
+    if (psus.value.length > 0) {
+      const fallbackPsu = psus.value[0]
+      selectedPsuId.value = fallbackPsu.id
+      router.push(`/business/psus/${fallbackPsu.id}/composer`)
+      return
+    }
+    ElMessage.warning('请先创建或选择一个PSU后再进入动态容器页面')
+    return
+  }
   activeMenu.value = index
 }
 
@@ -534,7 +551,7 @@ const loadSchema = async () => {
   if (!selectedPsuId.value) return
   
   try {
-    const response = await api.get(`/schemas/${selectedPsuId.value}`)
+    const response = await schemaApi.getSchema(selectedPsuId.value)
     schemaForm.schemaContent = response.data.schemaContent
     schemaForm.changeLog = response.data.changeLog || ''
     // 加载Schema后同时加载测试数据集

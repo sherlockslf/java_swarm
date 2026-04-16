@@ -7,8 +7,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.example.psu.entity.PsuUnit;
+import com.example.psu.entity.PromptComposition;
+import com.example.psu.entity.PromptCompositionRevision;
 import com.example.psu.entity.User;
 import com.example.psu.entity.VersionReview;
+import com.example.psu.enums.CompositionStatus;
+import com.example.psu.enums.RejectionType;
+import com.example.psu.enums.ReviewStatus;
+import com.example.psu.enums.UserRole;
+import com.example.psu.repository.PromptCompositionRepository;
+import com.example.psu.repository.PromptCompositionRevisionRepository;
 import com.example.psu.repository.PsuRepository;
 import com.example.psu.repository.UserRepository;
 import com.example.psu.repository.VersionReviewRepository;
@@ -30,6 +38,15 @@ public class VersionReviewService {
     
     @Autowired
     private CodeGeneratorService codeGeneratorService;
+
+    @Autowired
+    private PromptCompositionRepository compositionRepository;
+
+    @Autowired
+    private PromptCompositionRevisionRepository compositionRevisionRepository;
+
+    @Autowired
+    private CompositionService compositionService;
     
     /**
      * 获取所有版本审核记录
@@ -63,12 +80,19 @@ public class VersionReviewService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
         
-        if (user.getRole() != User.UserRole.BUSINESS) {
+        if (user.getRole() != UserRole.BUSINESS) {
             throw new RuntimeException("Only business users can submit version for review");
+        }
+
+        // 提交版本前必须存在已提交的编排，确保审核对象可追溯。
+        PromptComposition composition = compositionRepository.findByPsuId(psuId)
+                .orElseThrow(() -> new RuntimeException("Composition not found for PSU: " + psuId));
+        if (composition.getStatus() != CompositionStatus.SUBMITTED) {
+            throw new RuntimeException("请先在编排页面提交审核");
         }
         
         // 检查是否已有待审核的版本
-        List<VersionReview> pendingReviews = versionReviewRepository.findByStatus(VersionReview.ReviewStatus.PENDING);
+        List<VersionReview> pendingReviews = versionReviewRepository.findByStatus(ReviewStatus.PENDING);
         for (VersionReview review : pendingReviews) {
             if (review.getPsuId().equals(psuId)) {
                 throw new RuntimeException("There is already a pending review for this PSU");
@@ -86,9 +110,17 @@ public class VersionReviewService {
         review.setMajorVersion(majorVersion);
         review.setMinorVersion(minorVersion);
         review.setPatchVersion(patchVersion);
-        review.setStatus(VersionReview.ReviewStatus.PENDING);
+        review.setStatus(ReviewStatus.PENDING);
         review.setSubmitterId(userId);
         review.setSubmittedAt(LocalDateTime.now());
+        review.setCompositionId(composition.getId());
+        Integer revisionNo = compositionRevisionRepository.findTopByCompositionIdOrderByRevisionNoDesc(composition.getId())
+                .map(PromptCompositionRevision::getRevisionNo)
+                .orElse(null);
+        review.setCompositionRevisionNo(revisionNo);
+
+        // 进入开发审核阶段后，编排状态同步为DEV_REVIEWING。
+        compositionService.updateStatusFromReview(psuId, CompositionStatus.DEV_REVIEWING);
         
         return versionReviewRepository.save(review);
     }
@@ -101,12 +133,12 @@ public class VersionReviewService {
      * @param rejectionReason 驳回原因（如果不批准）
      * @return 审核后的记录
      */
-    public VersionReview reviewVersion(Long reviewId, boolean approved, Long userId, String rejectionReason) {
+    public VersionReview reviewVersion(Long reviewId, boolean approved, Long userId, String rejectionReason, RejectionType rejectionType) {
         // 检查用户权限（只有研发可以审核）
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
         
-        if (user.getRole() != User.UserRole.DEVELOPER) {
+        if (user.getRole() != UserRole.DEVELOPER) {
             throw new RuntimeException("Only developers can review versions");
         }
         
@@ -114,7 +146,7 @@ public class VersionReviewService {
         VersionReview review = versionReviewRepository.findById(reviewId)
                 .orElseThrow(() -> new RuntimeException("Version review not found: " + reviewId));
         
-        if (review.getStatus() != VersionReview.ReviewStatus.PENDING) {
+        if (review.getStatus() != ReviewStatus.PENDING) {
             throw new RuntimeException("Version review is not in pending status");
         }
         
@@ -123,7 +155,7 @@ public class VersionReviewService {
         review.setReviewedAt(LocalDateTime.now());
         
         if (approved) {
-            review.setStatus(VersionReview.ReviewStatus.APPROVED);
+            review.setStatus(ReviewStatus.APPROVED);
             
             // 如果审核通过，更新PSU的主版本号
             PsuUnit psu = psuRepository.findById(review.getPsuId())
@@ -134,9 +166,12 @@ public class VersionReviewService {
             psu.setMinorVersion(0);
             psu.setPatchVersion(0);
             psuRepository.save(psu);
+            compositionService.updateStatusFromReview(review.getPsuId(), CompositionStatus.APPROVED);
         } else {
-            review.setStatus(VersionReview.ReviewStatus.REJECTED);
+            review.setStatus(ReviewStatus.REJECTED);
             review.setRejectionReason(rejectionReason);
+            review.setRejectionType(rejectionType);
+            compositionService.updateStatusFromReview(review.getPsuId(), CompositionStatus.REJECTED, rejectionReason, rejectionType);
         }
         
         return versionReviewRepository.save(review);
@@ -153,7 +188,7 @@ public class VersionReviewService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
         
-        if (user.getRole() != User.UserRole.DEVELOPER) {
+        if (user.getRole() != UserRole.DEVELOPER) {
             throw new RuntimeException("Only developers can generate business code");
         }
         

@@ -1,19 +1,28 @@
 package com.example.psu.controller;
 
-import com.example.psu.dto.request.ReviewRequest;
-import com.example.psu.entity.User;
-import com.example.psu.entity.VersionReview;
-import com.example.psu.repository.UserRepository;
-import com.example.psu.service.VersionReviewService;
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.example.psu.dto.request.ReviewRequest;
+import com.example.psu.entity.User;
+import com.example.psu.entity.VersionReview;
+import com.example.psu.repository.UserRepository;
+import com.example.psu.service.VersionReviewService;
+
+import jakarta.validation.Valid;
 
 /**
  * 版本审核控制器
@@ -64,9 +73,17 @@ public class VersionReviewController {
      */
     @PostMapping("/{reviewId}/review")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<VersionReview> reviewVersion(@PathVariable Long reviewId, @RequestBody ReviewRequest requestBody) {
+    public ResponseEntity<VersionReview> reviewVersion(
+            @PathVariable Long reviewId, 
+            @Valid @RequestBody ReviewRequest requestBody) {
         Long currentUserId = getCurrentUserId();
-        VersionReview review = versionReviewService.reviewVersion(reviewId, requestBody.isApproved(), currentUserId, requestBody.getRejectionReason());
+        VersionReview review = versionReviewService.reviewVersion(
+                reviewId,
+                requestBody.isApproved(),
+                currentUserId,
+                requestBody.getRejectionReason(),
+                requestBody.getRejectionType()
+        );
         return ResponseEntity.ok(review);
     }
     

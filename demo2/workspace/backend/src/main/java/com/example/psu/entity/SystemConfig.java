@@ -1,5 +1,6 @@
 package com.example.psu.entity;
 
+import com.example.psu.enums.ConfigType;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -48,13 +49,5 @@ public class SystemConfig {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
-    }
-    
-    /**
-     * 配置类型枚举
-     */
-    public enum ConfigType {
-        API_KEY,  // API密钥
-        OTHER     // 其他配置
     }
 }

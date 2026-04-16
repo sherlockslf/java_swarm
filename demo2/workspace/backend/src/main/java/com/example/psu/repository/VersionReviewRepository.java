@@ -1,6 +1,7 @@
 package com.example.psu.repository;
 
 import com.example.psu.entity.VersionReview;
+import com.example.psu.enums.ReviewStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -36,7 +37,7 @@ public interface VersionReviewRepository extends JpaRepository<VersionReview, Lo
      * @param status 状态
      * @return 版本列表
      */
-    List<VersionReview> findByStatus(VersionReview.ReviewStatus status);
+    List<VersionReview> findByStatus(ReviewStatus status);
     
     /**
      * 根据PSU ID查找所有版本，按提交时间倒序

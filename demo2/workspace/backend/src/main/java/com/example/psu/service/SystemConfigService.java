@@ -1,7 +1,9 @@
 package com.example.psu.service;
 
 import com.example.psu.entity.SystemConfig;
+import com.example.psu.enums.ConfigType;
 import com.example.psu.repository.SystemConfigRepository;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +17,9 @@ public class SystemConfigService {
     
     @Autowired
     private SystemConfigRepository systemConfigRepository;
+
+    @Value("${llm.api-key:}")
+    private String llmApiKey;
     
     /**
      * 获取所有系统配置
@@ -41,7 +46,7 @@ public class SystemConfigService {
      * @param configType 配置类型
      * @return 系统配置
      */
-    public SystemConfig saveConfig(String configKey, String configValue, SystemConfig.ConfigType configType) {
+    public SystemConfig saveConfig(String configKey, String configValue, ConfigType configType) {
         SystemConfig config = systemConfigRepository.findByConfigKey(configKey).orElse(new SystemConfig());
         config.setConfigKey(configKey);
         config.setConfigValue(configValue);
@@ -58,5 +63,26 @@ public class SystemConfigService {
             throw new RuntimeException("Config not found: " + id);
         }
         systemConfigRepository.deleteById(id);
+    }
+
+    /**
+     * 获取一个可用的DashScope API Key
+     * 优先读取配置文件llm.api-key（逗号分隔时取第一个），失败时回退系统配置表。
+     * @return 任意一个可用API Key
+     */
+    public String getAnyDashscopeApiKey() {
+        if (llmApiKey != null && !llmApiKey.isBlank()) {
+            String[] keys = llmApiKey.split(",");
+            for (String key : keys) {
+                if (key != null && !key.trim().isEmpty()) {
+                    return key.trim();
+                }
+            }
+        }
+
+        return systemConfigRepository.findByConfigKey("default_api_key")
+            .map(SystemConfig::getConfigValue)
+            .filter(value -> value != null && !value.isBlank())
+            .orElseThrow(() -> new RuntimeException("DashScope API Key not configured"));
     }
 }

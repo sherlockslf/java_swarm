@@ -1,16 +1,21 @@
 package com.example.psu.service;
 
 import com.example.psu.dto.PsuCreateRequest;
+import com.example.psu.dto.response.PsuResponse;
 import com.example.psu.entity.PsuUnit;
+import com.example.psu.entity.User;
+import com.example.psu.enums.PsuStatus;
+import com.example.psu.exception.BusinessException;
+import com.example.psu.exception.ErrorCode;
 import com.example.psu.repository.PsuRepository;
+import com.example.psu.repository.UserRepository;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 /**
  * PSU管理服务
@@ -21,6 +26,9 @@ public class PsuService {
     @Autowired
     private PsuRepository psuRepository;
     
+    @Autowired
+    private UserRepository userRepository;
+    
     /**
      * 创建PSU（仅研发可操作）
      * @param request 创建请求
@@ -30,15 +38,14 @@ public class PsuService {
     public PsuUnit createPsu(PsuCreateRequest request, Long creatorId) {
         // 检查PSU ID是否已存在
         if (psuRepository.existsByPsuId(request.getPsuId())) {
-            // 唯一键冲突时返回409，便于前端给出可理解提示
-            throw new ResponseStatusException(HttpStatus.CONFLICT, "PSU ID already exists: " + request.getPsuId());
+            throw new BusinessException(ErrorCode.PSU_ALREADY_EXISTS, "PSU ID已存在: " + request.getPsuId());
         }
         
         PsuUnit psu = new PsuUnit();
         psu.setPsuId(request.getPsuId());
         psu.setName(request.getName());
         psu.setDescription(request.getDescription());
-        psu.setStatus(PsuUnit.PsuStatus.ACTIVE);
+        psu.setStatus(PsuStatus.ACTIVE);
         psu.setCreatorId(creatorId);
         
         return psuRepository.save(psu);
@@ -65,7 +72,12 @@ public class PsuService {
      */
     public PsuUnit updatePsu(Long id, PsuCreateRequest request) {
         PsuUnit psu = psuRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "PSU not found with id: " + id));
+            .orElseThrow(() -> new BusinessException(ErrorCode.PSU_NOT_FOUND, "PSU不存在，ID: " + id));
+        
+        // 检查是否已归档
+        if (psu.getStatus() == PsuStatus.ARCHIVED) {
+            throw new BusinessException(ErrorCode.PSU_ARCHIVED, "PSU已归档，无法修改");
+        }
         
         // 更新字段
         psu.setName(request.getName());
@@ -81,7 +93,7 @@ public class PsuService {
      */
     public PsuUnit getPsuById(Long id) {
         return psuRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "PSU not found with id: " + id));
+            .orElseThrow(() -> new BusinessException(ErrorCode.PSU_NOT_FOUND, "PSU不存在，ID: " + id));
     }
     
     /**
@@ -91,7 +103,7 @@ public class PsuService {
      */
     public PsuUnit getPsuByPsuId(String psuId) {
         return psuRepository.findByPsuId(psuId)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "PSU not found with psuId: " + psuId));
+            .orElseThrow(() -> new BusinessException(ErrorCode.PSU_NOT_FOUND, "PSU不存在，PSU ID: " + psuId));
     }
     
     /**
@@ -100,10 +112,29 @@ public class PsuService {
      */
     public void deletePsu(Long id) {
         PsuUnit psu = psuRepository.findById(id)
-            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "PSU not found with id: " + id));
+            .orElseThrow(() -> new BusinessException(ErrorCode.PSU_NOT_FOUND, "PSU不存在，ID: " + id));
         
         // 软删除：将状态改为ARCHIVED
-        psu.setStatus(PsuUnit.PsuStatus.ARCHIVED);
+        psu.setStatus(PsuStatus.ARCHIVED);
         psuRepository.save(psu);
+    }
+    
+    /**
+     * 将PSU实体转换为响应DTO
+     * @param psu PSU实体
+     * @return PSU响应DTO
+     */
+    public PsuResponse convertToResponse(PsuUnit psu) {
+        PsuResponse response = new PsuResponse();
+        BeanUtils.copyProperties(psu, response);
+        response.setStatus(psu.getStatus().getCode());
+        response.setFullVersion(psu.getMajorVersion() + "." + psu.getMinorVersion() + "." + psu.getPatchVersion());
+        
+        // 获取创建者名称
+        userRepository.findById(psu.getCreatorId()).ifPresent(creator -> {
+            response.setCreatorName(creator.getUsername());
+        });
+        
+        return response;
     }
 }

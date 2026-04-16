@@ -3,7 +3,8 @@ package com.example.psu.config;
 import com.example.psu.entity.PromptFragment;
 import com.example.psu.entity.PsuUnit;
 import com.example.psu.entity.User;
-import com.example.psu.entity.User.UserRole;
+import com.example.psu.enums.FragmentType;
+import com.example.psu.enums.UserRole;
 import com.example.psu.repository.PromptFragmentRepository;
 import com.example.psu.repository.PsuRepository;
 import com.example.psu.repository.UserRepository;
@@ -97,7 +98,7 @@ public class DataInitializer implements CommandLineRunner {
                 fragment.setFragmentKey("core_rules");
                 fragment.setContent("你是一个专业的购物助手，请根据用户需求推荐商品。");
                 fragment.setEditable(true);
-                fragment.setType(PromptFragment.FragmentType.CORE_RULES);
+                fragment.setType(FragmentType.CORE_RULES);
                 fragment.setSortOrder(1);
                 fragment.setCreatedAt(LocalDateTime.now());
                 fragment.setUpdatedAt(LocalDateTime.now());

@@ -32,10 +32,11 @@
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="200">
+            <el-table-column label="操作" width="240">
               <template #default="{ row }">
                 <el-button size="small" @click="selectPsu(row)">选择</el-button>
                 <el-button size="small" @click="viewSchema(row)">查看Schema</el-button>
+                <el-button size="small" type="primary" @click="goToPsuComposer(row)">编排Prompt</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -268,9 +269,11 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import api, { psuApi, schemaApi, promptApi, versionApi, versionReviewApi, testDatasetApi } from '@/services/api'
 import { ElMessage } from 'element-plus'
 
+const router = useRouter()
 const activeMenu = ref('1')
 const showSchemaDialog = ref(false)
 const loadingPsus = ref(false)
@@ -318,7 +321,16 @@ const isBusinessUser = ref(false)
 
 // 菜单选择处理
 const handleMenuSelect = (index) => {
-  activeMenu.value = index
+  if (index === '2') {
+    // Prompt编排菜单项，导航到PromptComposer
+    if (selectedPsuId.value) {
+      router.push(`/business/psus/${selectedPsuId.value}/composer`)
+    } else {
+      ElMessage.warning('请先选择一个PSU')
+    }
+  } else {
+    activeMenu.value = index
+  }
 }
 
 // 分页切换
@@ -335,11 +347,19 @@ const selectPsu = (psu) => {
   ElMessage.success(`已选择PSU: ${psu.name}`)
 }
 
+// 导航到PSU的Prompt Composer
+const goToPsuComposer = (psu) => {
+  router.push(`/business/psus/${psu.id}/composer`)
+}
+
 // 查看Schema
 const viewSchema = async (psu) => {
   try {
     const response = await schemaApi.getSchema(psu.id)
-    const schemaContent = JSON.parse(response.data.schemaContent || '{}')
+    let schemaContent = response.data.schemaContent || '{}'
+    if (typeof schemaContent === 'string') {
+      schemaContent = JSON.parse(schemaContent)
+    }
     viewingSchemaFields.value = parseSchemaFields(schemaContent)
     showSchemaDialog.value = true
   } catch (error) {
@@ -348,9 +368,11 @@ const viewSchema = async (psu) => {
   }
 }
 
-// 解析Schema字段
+// 解析Schema字段(支持标准JSON Schema格式和扁平JSON格式)
 const parseSchemaFields = (schema) => {
   const fields = []
+  
+  // 标准JSON Schema格式: { properties: { ... }, required: [...] }
   if (schema.properties) {
     for (const [name, prop] of Object.entries(schema.properties)) {
       fields.push({
@@ -360,8 +382,31 @@ const parseSchemaFields = (schema) => {
         description: prop.description || ''
       })
     }
+  } 
+  // 扁平JSON格式: { key1: value1, key2: value2, ... }
+  else {
+    for (const [name, value] of Object.entries(schema)) {
+      fields.push({
+        name,
+        type: inferType(value),
+        required: false,
+        description: ''
+      })
+    }
   }
+  
   return fields
+}
+
+// 推断JSON值的类型
+const inferType = (value) => {
+  if (value === null || value === undefined) return 'null'
+  if (Array.isArray(value)) return 'array'
+  const type = typeof value
+  if (type === 'number') return 'number'
+  if (type === 'boolean') return 'boolean'
+  if (type === 'object') return 'object'
+  return 'string'
 }
 
 // 获取状态标签类型
@@ -406,17 +451,39 @@ const loadPromptFragments = async () => {
   try {
     // 先加载Schema获取字段
     const schemaResponse = await schemaApi.getSchema(selectedPsuId.value)
-    const schemaContent = JSON.parse(schemaResponse.data.schemaContent || '{}')
+    let schemaContent = schemaResponse.data.schemaContent || '{}'
+    if (typeof schemaContent === 'string') {
+      schemaContent = JSON.parse(schemaContent)
+    }
     schemaFields.value = parseSchemaFields(schemaContent)
     
     // 加载Prompt片段
     const promptResponse = await promptApi.getPromptFragments(selectedPsuId.value)
+    let coreRules = null
+    
     if (promptResponse.data && promptResponse.data.length > 0) {
-      const coreRules = promptResponse.data.find(p => p.fragmentKey === 'core_rules')
-      if (coreRules) {
-        promptForm.promptContent = coreRules.content
-        currentPromptFragmentId.value = coreRules.id
-        currentPromptEditable.value = coreRules.editable !== false
+      coreRules = promptResponse.data.find(p => p.fragmentKey === 'core_rules')
+    }
+    
+    if (coreRules) {
+      // 如果找到了核心规则片段
+      promptForm.promptContent = coreRules.content
+      currentPromptFragmentId.value = coreRules.id
+      currentPromptEditable.value = coreRules.editable !== false
+    } else {
+      // 如果没有找到核心规则片段，初始化为空内容
+      promptForm.promptContent = ''
+      currentPromptFragmentId.value = null
+      currentPromptEditable.value = true
+      
+      // 检查是否有可编辑的片段，如果有则使用第一个
+      if (promptResponse.data && promptResponse.data.length > 0) {
+        const firstEditable = promptResponse.data.find(p => p.editable)
+        if (firstEditable) {
+          promptForm.promptContent = firstEditable.content
+          currentPromptFragmentId.value = firstEditable.id
+          currentPromptEditable.value = firstEditable.editable !== false
+        }
       }
     }
     
@@ -455,9 +522,29 @@ const savePrompt = async () => {
   }
   
   try {
-    await promptApi.updatePromptFragment(currentPromptFragmentId.value, {
-      content: promptForm.promptContent
-    })
+    if (currentPromptFragmentId.value) {
+      // 更新现有的Prompt片段
+      await promptApi.updatePromptFragment(currentPromptFragmentId.value, {
+        content: promptForm.promptContent
+      })
+    } else {
+      // 创建新的Prompt片段
+      await promptApi.createPromptFragment({
+        psuId: selectedPsuId.value,
+        fragmentKey: 'core_rules',
+        content: promptForm.promptContent,
+        editable: true,
+        type: 'CORE_RULES',
+        sortOrder: 0
+      })
+      
+      // 重新加载片段以获取新创建的ID
+      const promptResponse = await promptApi.getPromptFragments(selectedPsuId.value)
+      const newCoreRules = promptResponse.data.find(p => p.fragmentKey === 'core_rules')
+      if (newCoreRules) {
+        currentPromptFragmentId.value = newCoreRules.id
+      }
+    }
     ElMessage.success('Prompt保存成功')
   } catch (error) {
     console.error('保存Prompt失败:', error)
@@ -488,7 +575,10 @@ const loadDebugSchema = async () => {
   
   try {
     const response = await schemaApi.getSchema(selectedDebugPsuId.value)
-    const schemaContent = JSON.parse(response.data.schemaContent || '{}')
+    let schemaContent = response.data.schemaContent || '{}'
+    if (typeof schemaContent === 'string') {
+      schemaContent = JSON.parse(schemaContent)
+    }
     debugSchemaFields.value = parseSchemaFields(schemaContent).map(f => ({...f, editable: true}))
     
     // 重置调试表单

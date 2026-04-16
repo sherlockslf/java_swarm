@@ -5,6 +5,7 @@ const AdminDashboard = () => import('../views/admin/Dashboard.vue')
 const DeveloperDashboard = () => import('../views/developer/Dashboard.vue')
 const BusinessDashboard = () => import('../views/business/Dashboard.vue')
 const PromptComposer = () => import('../views/business/PromptComposer.vue')
+const CompositionReview = () => import('../views/developer/CompositionReview.vue')
 
 const routes = [
   {
@@ -35,7 +36,13 @@ const routes = [
     path: '/business/psus/:psuId/composer',
     name: 'PromptComposer',
     component: PromptComposer,
-    meta: { requiresAuth: true, role: 'BUSINESS' }
+    meta: { requiresAuth: true, roles: ['BUSINESS', 'DEVELOPER'] }
+  },
+  {
+    path: '/developer/psus/:psuId/reviews/:reviewId',
+    name: 'CompositionReview',
+    component: CompositionReview,
+    meta: { requiresAuth: true, role: 'DEVELOPER' }
   },
   {
     path: '/',
@@ -54,10 +61,12 @@ router.beforeEach((to, from, next) => {
   
   if (to.meta.requiresAuth !== false && !token) {
     next('/login')
-  } else if (to.meta.role) {
-    // 角色权限检查（后续实现）
+  } else if (to.meta.role || to.meta.roles) {
+    // 角色权限检查（支持单角色或角色数组）
     const userRole = localStorage.getItem('userRole')
-    if (userRole === to.meta.role) {
+    if (to.meta.role && userRole === to.meta.role) {
+      next()
+    } else if (to.meta.roles && to.meta.roles.includes(userRole)) {
       next()
     } else {
       // 重定向到对应角色的首页

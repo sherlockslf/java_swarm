@@ -55,12 +55,12 @@ const handleLogin = async () => {
   loading.value = true
   try {
     const response = await axios.post('/api/auth/login', loginForm)
-    const { token, role } = response.data
+    const authData = response.data
+    const { token, role, username } = authData
     
-    // 存储token和角色信息
     localStorage.setItem('token', token)
     localStorage.setItem('userRole', role)
-    localStorage.setItem('username', response.data.username) // 存储用户名
+    localStorage.setItem('username', username) // 存储用户名
     
     // 根据角色跳转到相应页面
     if (role === 'ADMIN') {

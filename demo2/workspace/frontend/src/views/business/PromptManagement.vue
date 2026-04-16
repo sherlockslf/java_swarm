@@ -25,7 +25,12 @@
           <span>Schema结构信息</span>
         </template>
         <div class="schema-content">
-          <pre>{{ JSON.stringify(schemaInfo.schemaContent, null, 2) }}</pre>
+          <SchemaVariablePanel
+            :schema-fields="schemaFields"
+            :search-query="varSearch"
+            @insert-variable="insertVariable"
+            @update:search-query="varSearch = $event"
+          />
         </div>
       </el-card>
 
@@ -84,12 +89,10 @@
               </el-select>
             </el-form-item>
             <el-form-item label="内容">
-              <el-input
-                v-model="currentFragment.content"
-                type="textarea"
-                :rows="10"
-                placeholder="请输入Prompt内容"
-                :disabled="!currentFragment.editable"
+              <PromptTextEditor
+                v-model:content="currentFragment.content"
+                :readonly="!currentFragment.editable"
+                ref="editorRef"
               />
             </el-form-item>
             <el-form-item label="排序">
@@ -150,20 +153,25 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { api, promptApi, versionReviewApi } from '@/services/api'
+import { api, promptApi, versionReviewApi, schemaApi } from '@/services/api'
+import SchemaVariablePanel from '@/components/composer/SchemaVariablePanel.vue'
+import PromptTextEditor from '@/components/composer/PromptTextEditor.vue'
 
 // 响应式数据
 const selectedPsuId = ref(null)
 const psuList = ref([])
 const promptFragments = ref([])
 const schemaInfo = ref(null)
+const schemaFields = ref([])
 const editDialogVisible = ref(false)
 const currentFragment = ref(null)
 const testInput = ref('')
 const testResult = ref('')
 const isTesting = ref(false)
+const varSearch = ref('')
+const editorRef = ref(null)
 
 // 获取PSU列表
 const loadPsuList = async () => {
@@ -181,7 +189,8 @@ const onPsuChange = async () => {
   if (selectedPsuId.value) {
     await Promise.all([
       loadPromptFragments(),
-      loadSchemaInfo()
+      loadSchemaInfo(),
+      loadSchemaFields()
     ])
   }
 }
@@ -208,6 +217,76 @@ const loadSchemaInfo = async () => {
   }
 }
 
+// 加载Schema字段信息
+const loadSchemaFields = async () => {
+  try {
+    const response = await schemaApi.getSchema(selectedPsuId.value)
+    let schemaContent = response.data.schemaContent || '{}'
+    if (typeof schemaContent === 'string') {
+      schemaContent = JSON.parse(schemaContent)
+    }
+    schemaFields.value = parseSchemaFields(schemaContent)
+  } catch (error) {
+    console.error('获取Schema字段失败:', error)
+    schemaFields.value = []
+  }
+}
+
+// 解析Schema字段(支持标准JSON Schema格式和扁平JSON格式)
+function parseSchemaFields(schema) {
+  const fields = []
+  
+  // 标准JSON Schema格式: { properties: { ... }, required: [...] }
+  if (schema.properties) {
+    for (const [name, prop] of Object.entries(schema.properties)) {
+      fields.push({
+        name,
+        type: prop.type || 'string',
+        required: (schema.required || []).includes(name),
+        description: prop.description || ''
+      })
+    }
+  } 
+  // 扁平JSON格式: { key1: value1, key2: value2, ... }
+  else {
+    for (const [name, value] of Object.entries(schema)) {
+      fields.push({
+        name,
+        type: inferType(value),
+        required: false,
+        description: ''
+      })
+    }
+  }
+  
+  return fields
+}
+
+// 推断JSON值的类型
+function inferType(value) {
+  if (value === null || value === undefined) return 'null'
+  if (Array.isArray(value)) return 'array'
+  const type = typeof value
+  if (type === 'number') return 'number'
+  if (type === 'boolean') return 'boolean'
+  if (type === 'object') return 'object'
+  return 'string'
+}
+
+// 插入变量到编辑器
+function insertVariable(field) {
+  if (editorRef.value && typeof editorRef.value.insertAtCursor === 'function') {
+    editorRef.value.insertAtCursor(`{{${field.name}}}`)
+  } else {
+    // 如果ref还没准备好，稍后再尝试
+    nextTick(() => {
+      if (editorRef.value && typeof editorRef.value.insertAtCursor === 'function') {
+        editorRef.value.insertAtCursor(`{{${field.name}}}`)
+      }
+    })
+  }
+}
+
 // 打开编辑对话框
 const openEditDialog = (fragment) => {
   currentFragment.value = { ...fragment }
@@ -216,6 +295,11 @@ const openEditDialog = (fragment) => {
 
 // 保存编辑的片段
 const saveEditedFragment = async () => {
+  if (!currentFragment.value?.id) {
+    ElMessage.warning('无效的片段ID')
+    return
+  }
+  
   try {
     await promptApi.updatePromptFragment(currentFragment.value.id, {
       content: currentFragment.value.content
@@ -379,5 +463,48 @@ onMounted(async () => {
 
 .dialog-footer {
   text-align: right;
+}
+
+/* 新增样式 */
+.variable-panel {
+  padding: 15px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background-color: #fafafa;
+}
+
+.variable-item {
+  padding: 8px 12px;
+  margin: 5px 0;
+  background-color: white;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.variable-item:hover {
+  background-color: #f0f9ff;
+  border-color: #b3d8ff;
+}
+
+.variable-name {
+  font-weight: bold;
+  color: #409eff;
+}
+
+.variable-description {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 4px;
+}
+
+.search-box {
+  margin-bottom: 15px;
+}
+
+.insert-btn {
+  margin-left: 10px;
+  font-size: 12px;
 }
 </style>

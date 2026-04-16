@@ -1,19 +1,30 @@
 package com.example.psu.controller;
 
-import com.example.psu.dto.request.UpdateSchemaRequest;
-import com.example.psu.entity.JsonSchema;
-import com.example.psu.entity.User;
-import com.example.psu.repository.UserRepository;
-import com.example.psu.service.JsonSchemaService;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
+import com.example.psu.dto.request.UpdateSchemaRequest;
+import com.example.psu.dto.response.JsonSchemaResponse;
+import com.example.psu.entity.JsonSchema;
+import com.example.psu.entity.User;
+import com.example.psu.repository.UserRepository;
+import com.example.psu.service.JsonSchemaService;
+
+import jakarta.validation.Valid;
 
 /**
  * JSON Schema管理控制器
@@ -31,13 +42,14 @@ public class JsonSchemaController {
     /**
      * 获取Schema（研发可编辑，业务只读）
      * @param psuId PSU ID
-     * @return Schema实体
+     * @return Schema响应DTO
      */
     @GetMapping("/{psuId}")
-    public ResponseEntity<JsonSchema> getSchemaByPsuId(@PathVariable Long psuId) {
+    public ResponseEntity<JsonSchemaResponse> getSchemaByPsuId(@PathVariable Long psuId) {
         Long currentUserId = getCurrentUserId();
         JsonSchema schema = jsonSchemaService.getSchemaByPsuId(psuId, currentUserId);
-        return ResponseEntity.ok(schema);
+        JsonSchemaResponse response = convertToResponse(schema);
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -48,10 +60,13 @@ public class JsonSchemaController {
      */
     @PutMapping("/{psuId}")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<JsonSchema> updateSchema(@PathVariable Long psuId, @RequestBody UpdateSchemaRequest requestBody) {
+    public ResponseEntity<JsonSchemaResponse> updateSchema(
+            @PathVariable Long psuId, 
+            @Valid @RequestBody UpdateSchemaRequest requestBody) {
         Long currentUserId = getCurrentUserId();
         JsonSchema schema = jsonSchemaService.updateSchema(psuId, requestBody.getSchemaContent(), currentUserId, requestBody.getChangeLog());
-        return ResponseEntity.ok(schema);
+        JsonSchemaResponse response = convertToResponse(schema);
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -60,9 +75,12 @@ public class JsonSchemaController {
      * @return Schema版本列表
      */
     @GetMapping("/{psuId}/versions")
-    public ResponseEntity<List<JsonSchema>> getSchemaVersions(@PathVariable Long psuId) {
+    public ResponseEntity<List<JsonSchemaResponse>> getSchemaVersions(@PathVariable Long psuId) {
         List<JsonSchema> versions = jsonSchemaService.getSchemaVersions(psuId);
-        return ResponseEntity.ok(versions);
+        List<JsonSchemaResponse> responses = versions.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
     }
     
     /**
@@ -78,5 +96,20 @@ public class JsonSchemaController {
             return user.getId();
         }
         return null;
+    }
+    
+    /**
+     * 将Schema实体转换为响应DTO
+     */
+    private JsonSchemaResponse convertToResponse(JsonSchema schema) {
+        JsonSchemaResponse response = new JsonSchemaResponse();
+        BeanUtils.copyProperties(schema, response);
+        
+        // 获取修改者名称
+        userRepository.findById(schema.getModifiedBy()).ifPresent(modifier -> {
+            response.setModifierName(modifier.getUsername());
+        });
+        
+        return response;
     }
 }

@@ -1,12 +1,21 @@
 package com.example.psu.config;
 
+import com.example.psu.dto.ApiResponse;
+import com.example.psu.exception.BusinessException;
+import com.example.psu.exception.ErrorCode;
+import jakarta.validation.ConstraintViolationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 全局异常处理器
@@ -14,33 +23,64 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    
     /**
-     * 处理所有RuntimeException
-     * @param e 运行时异常
-     * @return 错误响应
+     * 处理业务异常
+     */
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ApiResponse<Void>> handleBusinessException(BusinessException e) {
+        logger.error("Business exception: code={}, message={}", e.getCode(), e.getMessage());
+        return ResponseEntity.status(e.getCode())
+                .body(ApiResponse.error(e.getCode(), e.getMessage()));
+    }
+    
+    /**
+     * 处理参数验证异常
+     */
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationException(MethodArgumentNotValidException e) {
+        Map<String, String> errors = e.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .collect(Collectors.toMap(
+                        FieldError::getField,
+                        FieldError::getDefaultMessage,
+                        (existing, replacement) -> existing
+                ));
+        
+        logger.error("Validation failed: {}", errors);
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(ErrorCode.BAD_REQUEST.getCode(), ErrorCode.BAD_REQUEST.getMessage(), errors));
+    }
+    
+    /**
+     * 处理约束违反异常
+     */
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleConstraintViolation(ConstraintViolationException e) {
+        logger.error("Constraint violation: {}", e.getMessage());
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(ErrorCode.BAD_REQUEST.getCode(), e.getMessage()));
+    }
+    
+    /**
+     * 处理非法参数异常
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(IllegalArgumentException e) {
+        logger.error("Illegal argument: {}", e.getMessage());
+        return ResponseEntity.badRequest()
+                .body(ApiResponse.error(ErrorCode.BAD_REQUEST.getCode(), e.getMessage()));
+    }
+    
+    /**
+     * 处理所有其他RuntimeException
      */
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException e) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("error", e.getMessage());
-        response.put("status", HttpStatus.BAD_REQUEST.value());
-        
-        String message = e.getMessage();
-        HttpStatus status = HttpStatus.BAD_REQUEST;
-        
-        // 根据异常消息判断合适的HTTP状态码
-        if (message.contains("not found") || message.contains("Not found")) {
-            status = HttpStatus.NOT_FOUND;
-        } else if (message.contains("Only developers") || message.contains("Only business") || 
-                   message.contains("can only be edited") || message.contains("cannot edit")) {
-            status = HttpStatus.FORBIDDEN;
-        } else if (message.contains("already exists") || message.contains("Already exists")) {
-            status = HttpStatus.CONFLICT;
-        } else if (message.contains("Invalid") || message.contains("invalid")) {
-            status = HttpStatus.BAD_REQUEST;
-        }
-        
-        response.put("status", status.value());
-        return ResponseEntity.status(status).body(response);
+    public ResponseEntity<ApiResponse<Void>> handleRuntimeException(RuntimeException e) {
+        logger.error("Unexpected runtime exception", e);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error(ErrorCode.INTERNAL_ERROR.getCode(), ErrorCode.INTERNAL_ERROR.getMessage()));
     }
 }

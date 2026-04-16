@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-PSU全生命周期管理平台 - 数据库初始化工具
-功能：创建所有ai_prompt_前缀的表并插入默认初始化数据
+PSU全生命周期管理平台 - 数据库完整初始化工具
+功能：一次性完成所有表创建、版本字段更新、默认数据插入
+适用于新库初始化，确保只需执行一次即可完成全部初始化工作
 """
 
 import pymysql
@@ -15,7 +16,7 @@ DB_CONFIG = {
     'port': 3306,
     'user': 'aim_user',
     'password': 'Aim@2026',
-    'database': 'aim_product_ai',  # 更新为新的数据库名
+    'database': 'aim_product_ai',
     'charset': 'utf8mb4'
 }
 
@@ -29,10 +30,10 @@ EXPECTED_TABLES = [
     'ai_prompt_system_configs',
     'ai_prompt_audit_logs',
     'ai_prompt_test_datasets',
-    'ai_prompt_compositions',           # 新增：编排草稿表
-    'ai_prompt_composition_revisions',  # 新增：编排版本快照表
-    'ai_prompt_test_runs',              # 新增：测试运行记录表
-    'ai_prompt_test_run_items'          # 新增：测试运行用例明细表
+    'ai_prompt_compositions',           # 编排草稿表
+    'ai_prompt_composition_revisions',  # 编排版本快照表
+    'ai_prompt_test_runs',              # 测试运行记录表
+    'ai_prompt_test_run_items'          # 测试运行用例明细表
 ]
 
 # 建表SQL语句
@@ -54,7 +55,7 @@ CREATE_TABLE_SQLS = [
     ) COMMENT 'AI Prompt用户表'
     """,
     
-    # 2. PSU单元表
+    # 2. PSU单元表（包含版本号字段）
     """
     CREATE TABLE IF NOT EXISTS ai_prompt_psu (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -63,6 +64,9 @@ CREATE_TABLE_SQLS = [
         description TEXT COMMENT '描述',
         status ENUM('ACTIVE', 'ARCHIVED') NOT NULL DEFAULT 'ACTIVE' COMMENT '状态',
         creator_id BIGINT NOT NULL COMMENT '创建者ID',
+        major_version INT NOT NULL DEFAULT 0 COMMENT '主版本号',
+        minor_version INT NOT NULL DEFAULT 0 COMMENT '次版本号',
+        patch_version INT NOT NULL DEFAULT 0 COMMENT '修订版本号',
         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         INDEX idx_psu_units_psu_id (psu_id),
@@ -186,7 +190,7 @@ CREATE_TABLE_SQLS = [
     ) COMMENT 'AI Prompt测试数据集表'
     """,
     
-    # 9. 编排草稿表 (新增)
+    # 9. 编排草稿表
     """
     CREATE TABLE IF NOT EXISTS ai_prompt_compositions (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -205,7 +209,7 @@ CREATE_TABLE_SQLS = [
     ) COMMENT 'AI Prompt编排草稿表'
     """,
     
-    # 10. 编排版本快照表 (新增)
+    # 10. 编排版本快照表
     """
     CREATE TABLE IF NOT EXISTS ai_prompt_composition_revisions (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -222,7 +226,7 @@ CREATE_TABLE_SQLS = [
     ) COMMENT 'AI Prompt编排版本快照表'
     """,
     
-    # 11. 测试运行记录表 (新增)
+    # 11. 测试运行记录表
     """
     CREATE TABLE IF NOT EXISTS ai_prompt_test_runs (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -238,7 +242,7 @@ CREATE_TABLE_SQLS = [
     ) COMMENT 'AI Prompt测试运行记录表'
     """,
     
-    # 12. 测试运行用例明细表 (新增)
+    # 12. 测试运行用例明细表
     """
     CREATE TABLE IF NOT EXISTS ai_prompt_test_run_items (
         id BIGINT PRIMARY KEY AUTO_INCREMENT,
@@ -256,6 +260,13 @@ CREATE_TABLE_SQLS = [
     ) COMMENT 'AI Prompt测试运行用例明细表'
     """
 ]
+
+# 默认账号密码映射
+DEFAULT_PASSWORDS = {
+    'admin_user': 'Admin@123',
+    'dev_user': 'Dev@123',
+    'bus_user': 'Bus@123'
+}
 
 # 初始化数据SQL
 INIT_DATA_SQLS = [
@@ -279,7 +290,7 @@ INIT_DATA_SQLS = [
 def print_header():
     """打印工具头部信息"""
     print("=" * 70)
-    print("PSU全生命周期管理平台 - 数据库初始化工具")
+    print("PSU全生命周期管理平台 - 数据库完整初始化工具")
     print(f"执行时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 70)
 
@@ -299,20 +310,27 @@ def print_info(msg):
     print(f"  - {msg}")
 
 
+def is_bcrypt_hash(password):
+    """判断密码是否为BCrypt哈希值"""
+    if not password:
+        return False
+    return str(password).startswith('$2a$') or str(password).startswith('$2b$') or str(password).startswith('$2y$')
+
+
 def init_database():
-    """执行数据库初始化操作"""
+    """执行数据库完整初始化操作"""
     print_header()
     
     try:
         # 连接数据库
-        print("\n[步骤 1/3] 连接数据库...")
+        print("\n[步骤 1/4] 连接数据库...")
         connection = pymysql.connect(**DB_CONFIG)
         print_success(f"数据库连接成功: {DB_CONFIG['host']}:{DB_CONFIG['port']}/{DB_CONFIG['database']}")
         
         cursor = connection.cursor()
         
         # 创建所有表
-        print("\n[步骤 2/3] 创建/验证数据表...")
+        print("\n[步骤 2/4] 创建/验证数据表...")
         created_count = 0
         existed_count = 0
         
@@ -337,8 +355,41 @@ def init_database():
         
         print(f"\n  统计: 新建 {created_count} 个表, 已存在 {existed_count} 个表")
         
+        # 检查并更新PSU表版本号字段（兼容已有表的情况）
+        print("\n[步骤 2.5/4] 检查PSU表版本号字段...")
+        cursor.execute("""
+            SELECT COUNT(*) 
+            FROM information_schema.COLUMNS 
+            WHERE TABLE_SCHEMA = %s 
+            AND TABLE_NAME = 'ai_prompt_psu' 
+            AND COLUMN_NAME = 'major_version'
+        """, (DB_CONFIG['database'],))
+        
+        major_version_exists = cursor.fetchone()[0] > 0
+        
+        if not major_version_exists:
+            print_info("正在添加版本号字段到ai_prompt_psu表...")
+            alter_sqls = [
+                "ALTER TABLE ai_prompt_psu ADD COLUMN major_version INT NOT NULL DEFAULT 0 COMMENT '主版本号' AFTER creator_id",
+                "ALTER TABLE ai_prompt_psu ADD COLUMN minor_version INT NOT NULL DEFAULT 0 COMMENT '次版本号' AFTER major_version",
+                "ALTER TABLE ai_prompt_psu ADD COLUMN patch_version INT NOT NULL DEFAULT 0 COMMENT '修订版本号' AFTER minor_version"
+            ]
+            
+            for sql in alter_sqls:
+                try:
+                    cursor.execute(sql)
+                    connection.commit()
+                    print_success(f"字段添加成功: {sql[:60]}...")
+                except Exception as e:
+                    if "Duplicate column" in str(e):
+                        print_info(f"字段已存在，跳过: {sql[:60]}...")
+                    else:
+                        print_error(f"字段添加失败: {sql[:60]}... - {str(e)}")
+        else:
+            print_info("PSU表已包含版本号字段，无需更新")
+        
         # 插入初始化数据
-        print("\n[步骤 3/3] 插入默认初始化数据...")
+        print("\n[步骤 3/4] 插入默认初始化数据...")
         
         # 插入默认用户
         try:
@@ -356,7 +407,44 @@ def init_database():
         except Exception as e:
             print_error(f"默认系统配置插入失败: {str(e)}")
         
+        # 更新密码为明文（兼容历史加密密码）
+        print("\n[步骤 3.5/4] 检查并更新密码为明文...")
+        try:
+            cursor.execute("SELECT id, username, password FROM ai_prompt_users")
+            users = cursor.fetchall()
+            
+            updated_count = 0
+            skipped_count = 0
+            
+            for user_id, username, current_password in users:
+                try:
+                    # 判断是否为加密密码
+                    if is_bcrypt_hash(current_password):
+                        # 是加密密码，需要更新
+                        if username in DEFAULT_PASSWORDS:
+                            new_password = DEFAULT_PASSWORDS[username]
+                            cursor.execute(
+                                "UPDATE ai_prompt_users SET password = %s WHERE id = %s",
+                                (new_password, user_id)
+                            )
+                            connection.commit()
+                            print_success(f"用户 {username}: 已更新为明文密码")
+                            updated_count += 1
+                        else:
+                            print_info(f"用户 {username}: 非默认账号，跳过更新")
+                            skipped_count += 1
+                    else:
+                        print_info(f"用户 {username}: 已是明文密码，跳过")
+                        skipped_count += 1
+                except Exception as e:
+                    print_error(f"用户 {username} 更新失败: {str(e)}")
+            
+            print(f"\n  密码更新统计: 已更新 {updated_count} 个, 已跳过 {skipped_count} 个")
+        except Exception as e:
+            print_error(f"密码更新检查失败: {str(e)}")
+        
         # 验证所有表
+        print("\n[步骤 4/4] 验证数据库初始化结果...")
         print("\n" + "=" * 70)
         print("数据库表验证结果:")
         print("-" * 70)
@@ -394,6 +482,8 @@ def init_database():
         
         cursor.close()
         connection.close()
+        
+        print("\n✓ 数据库完整初始化完成！")
         
     except pymysql.Error as e:
         print(f"\n数据库错误: {str(e)}")

@@ -27,6 +27,21 @@
         </el-select>
       </div>
 
+      <!-- Schema信息展示 -->
+      <el-card v-if="selectedPsuId && schemaInfo" class="schema-info" style="margin-top: 20px;">
+        <template #header>
+          <span>Schema结构信息</span>
+        </template>
+        <div class="schema-content">
+          <SchemaVariablePanel
+            :schema-fields="schemaFields"
+            :search-query="varSearch"
+            @insert-variable="insertVariable"
+            @update:search-query="varSearch = $event"
+          />
+        </div>
+      </el-card>
+
       <!-- Prompt片段表格 -->
       <el-table
         v-if="selectedPsuId"
@@ -86,11 +101,10 @@
             </el-select>
           </el-form-item>
           <el-form-item label="内容">
-            <el-input
-              v-model="currentPrompt.content"
-              type="textarea"
-              :rows="6"
-              placeholder="请输入Prompt内容"
+            <PromptTextEditor
+              v-model:content="currentPrompt.content"
+              :readonly="!currentPrompt.editable"
+              ref="editorRef"
             />
           </el-form-item>
           <el-form-item label="可编辑">
@@ -136,14 +150,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { api, promptApi } from '@/services/api'
+import { api, promptApi, schemaApi } from '@/services/api'
+import SchemaVariablePanel from '@/components/composer/SchemaVariablePanel.vue'
+import PromptTextEditor from '@/components/composer/PromptTextEditor.vue'
 
 // 响应式数据
 const selectedPsuId = ref(null)
 const psuList = ref([])
 const promptFragments = ref([])
+const schemaInfo = ref(null)
+const schemaFields = ref([])
 const dialogVisible = ref(false)
 const isEdit = ref(false)
 const currentPrompt = ref({
@@ -156,6 +174,8 @@ const currentPrompt = ref({
 })
 const testInput = ref('')
 const testResult = ref('')
+const varSearch = ref('')
+const editorRef = ref(null)
 
 // 获取PSU列表
 const loadPsuList = async () => {
@@ -168,10 +188,14 @@ const loadPsuList = async () => {
   }
 }
 
-// PSU变化时加载对应的Prompt片段
+// PSU变化时加载对应的Prompt片段和Schema
 const onPsuChange = async () => {
   if (selectedPsuId.value) {
-    await loadPromptFragments()
+    await Promise.all([
+      loadPromptFragments(),
+      loadSchemaInfo(),
+      loadSchemaFields()
+    ])
   }
 }
 
@@ -183,6 +207,87 @@ const loadPromptFragments = async () => {
   } catch (error) {
     console.error('获取Prompt片段失败:', error)
     ElMessage.error('获取Prompt片段失败')
+  }
+}
+
+// 加载Schema信息
+const loadSchemaInfo = async () => {
+  try {
+    const response = await api.get(`/api/schemas/${selectedPsuId.value}`)
+    schemaInfo.value = response.data
+  } catch (error) {
+    console.error('获取Schema信息失败:', error)
+    // Schema获取失败不影响Prompt编辑功能
+  }
+}
+
+// 加载Schema字段信息
+const loadSchemaFields = async () => {
+  try {
+    const response = await schemaApi.getSchema(selectedPsuId.value)
+    let schemaContent = response.data.schemaContent || '{}'
+    if (typeof schemaContent === 'string') {
+      schemaContent = JSON.parse(schemaContent)
+    }
+    schemaFields.value = parseSchemaFields(schemaContent)
+  } catch (error) {
+    console.error('获取Schema字段失败:', error)
+    schemaFields.value = []
+  }
+}
+
+// 解析Schema字段(支持标准JSON Schema格式和扁平JSON格式)
+function parseSchemaFields(schema) {
+  const fields = []
+  
+  // 标准JSON Schema格式: { properties: { ... }, required: [...] }
+  if (schema.properties) {
+    for (const [name, prop] of Object.entries(schema.properties)) {
+      fields.push({
+        name,
+        type: prop.type || 'string',
+        required: (schema.required || []).includes(name),
+        description: prop.description || ''
+      })
+    }
+  } 
+  // 扁平JSON格式: { key1: value1, key2: value2, ... }
+  else {
+    for (const [name, value] of Object.entries(schema)) {
+      fields.push({
+        name,
+        type: inferType(value),
+        required: false,
+        description: ''
+      })
+    }
+  }
+  
+  return fields
+}
+
+// 推断JSON值的类型
+function inferType(value) {
+  if (value === null || value === undefined) return 'null'
+  if (Array.isArray(value)) return 'array'
+  const type = typeof value
+  if (type === 'number') return 'number'
+  if (type === 'boolean') return 'boolean'
+  if (type === 'object') return 'object'
+  return 'string'
+}
+
+// 插入变量到编辑器
+function insertVariable(field) {
+  if (editorRef.value && typeof editorRef.value.insertAtCursor === 'function') {
+    editorRef.value.insertAtCursor(`{{${field.name}}}`)
+  } else {
+    // 如果ref还没准备好，稍后再尝试
+    nextTick(() => {
+      if (editorRef.value && typeof editorRef.value.insertAtCursor === 'function') {
+        editorRef.value.insertAtCursor(`{{${field.name}}}`)
+      }
+    })
   }
 }
 
@@ -212,6 +317,12 @@ const editPrompt = (row) => {
 const savePrompt = async () => {
   try {
     if (isEdit.value) {
+      // 检查ID是否有效
+      if (!currentPrompt.value?.id) {
+        ElMessage.warning('无效的片段ID')
+        return
+      }
+      
       // 更新现有Prompt
       await promptApi.updatePromptFragment(currentPrompt.value.id, {
         content: currentPrompt.value.content
@@ -352,8 +463,21 @@ onMounted(async () => {
   margin-bottom: 20px;
 }
 
+.schema-info {
+  font-family: monospace;
+}
+
+.schema-content {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
 .test-card {
   margin-top: 20px;
+}
+
+.test-section, .submit-section {
+  padding: 10px 0;
 }
 
 .test-result {
@@ -366,5 +490,48 @@ onMounted(async () => {
 
 .dialog-footer {
   text-align: right;
+}
+
+/* 新增样式 */
+.variable-panel {
+  padding: 15px;
+  border: 1px solid #dcdfe6;
+  border-radius: 4px;
+  background-color: #fafafa;
+}
+
+.variable-item {
+  padding: 8px 12px;
+  margin: 5px 0;
+  background-color: white;
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.variable-item:hover {
+  background-color: #f0f9ff;
+  border-color: #b3d8ff;
+}
+
+.variable-name {
+  font-weight: bold;
+  color: #409eff;
+}
+
+.variable-description {
+  font-size: 12px;
+  color: #909399;
+  margin-top: 4px;
+}
+
+.search-box {
+  margin-bottom: 15px;
+}
+
+.insert-btn {
+  margin-left: 10px;
+  font-size: 12px;
 }
 </style>

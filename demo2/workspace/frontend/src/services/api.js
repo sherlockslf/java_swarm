@@ -139,6 +139,8 @@ export const configApi = {
   getAllConfigs: () => api.get('/configs'),
   // 根据配置键获取配置
   getConfigByKey: (configKey) => api.get(`/configs/${configKey}`),
+  // 获取DashScope测试用API Key
+  getDashscopeKey: () => api.get('/configs/dashscope-key'),
   // 创建或更新系统配置
   saveConfig: (data) => api.post('/configs', data),
   // 删除系统配置
@@ -161,6 +163,6 @@ export const compositionApi = {
 }
 
 export const testRunApi = {
-  runTest: (psuId, datasetId) => api.post('/test-runs', null, { params: { psuId, datasetId } }),
+  runTest: (psuId, datasetId, data = {}) => api.post('/test-runs', data, { params: { psuId, datasetId } }),
   getTestRun: (runId) => api.get(`/test-runs/${runId}`)
 }

@@ -7,7 +7,7 @@
       clearable
       size="small"
       style="margin-bottom: 12px"
-      @update:model-value="$emit('update:searchQuery', $event)"
+      @update:model-value="$emit('update:search-query', $event)"
     />
     <el-tree
       :data="treeData"
@@ -37,7 +37,7 @@ const props = defineProps({
   searchQuery: { type: String, default: '' }
 })
 
-const emit = defineEmits(['insert-variable', 'update:searchQuery'])
+const emit = defineEmits(['insert-variable', 'update:search-query'])
 
 const localSearch = ref(props.searchQuery)
 const treeRef = ref(null)

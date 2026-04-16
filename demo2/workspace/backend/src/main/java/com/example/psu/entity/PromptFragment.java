@@ -1,5 +1,6 @@
 package com.example.psu.entity;
 
+import com.example.psu.enums.FragmentType;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -59,13 +60,5 @@ public class PromptFragment {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
-    }
-    
-    /**
-     * Prompt片段类型枚举
-     */
-    public enum FragmentType {
-        CORE_RULES,        // 核心规则片段
-        MESSAGE_TEMPLATE   // 消息模板片段
     }
 }

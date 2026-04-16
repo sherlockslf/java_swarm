@@ -1,14 +1,22 @@
 package com.example.psu.controller;
 
-import com.example.psu.entity.SystemConfig;
-import com.example.psu.service.SystemConfigService;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-import java.util.Map;
+import com.example.psu.entity.SystemConfig;
+import com.example.psu.enums.ConfigType;
+import com.example.psu.service.SystemConfigService;
 
 /**
  * 系统配置控制器（仅管理员使用）
@@ -42,6 +50,16 @@ public class SystemConfigController {
         SystemConfig config = systemConfigService.getConfigByKey(configKey);
         return ResponseEntity.ok(config);
     }
+
+    /**
+     * 获取一个可用的DashScope API Key（用于在线模型测试）
+     * @return API Key
+     */
+    @GetMapping("/dashscope-key")
+    @PreAuthorize("hasAnyRole('ADMIN','DEVELOPER','BUSINESS')")
+    public ResponseEntity<Map<String, String>> getDashscopeKey() {
+        return ResponseEntity.ok(Map.of("apiKey", systemConfigService.getAnyDashscopeApiKey()));
+    }
     
     /**
      * 创建或更新系统配置（仅管理员）
@@ -58,7 +76,7 @@ public class SystemConfigController {
         SystemConfig config = systemConfigService.saveConfig(
                 configKey, 
                 configValue, 
-                SystemConfig.ConfigType.valueOf(configType.toUpperCase())
+                ConfigType.fromCode(configType.toUpperCase())
         );
         return ResponseEntity.ok(config);
     }
@@ -72,6 +90,6 @@ public class SystemConfigController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteConfig(@PathVariable Long id) {
         systemConfigService.deleteConfig(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
 }

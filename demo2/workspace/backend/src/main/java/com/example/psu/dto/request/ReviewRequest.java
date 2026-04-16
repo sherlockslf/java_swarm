@@ -1,25 +1,19 @@
 package com.example.psu.dto.request;
 
+import com.example.psu.enums.RejectionType;
+import jakarta.validation.constraints.Size;
+import lombok.Data;
+
 /**
  * 审核请求类
  */
+@Data
 public class ReviewRequest {
+    
     private boolean approved;
+    
+    @Size(max = 500, message = "驳回原因长度不能超过500个字符")
     private String rejectionReason;
-    
-    public boolean isApproved() {
-        return approved;
-    }
-    
-    public void setApproved(boolean approved) {
-        this.approved = approved;
-    }
-    
-    public String getRejectionReason() {
-        return rejectionReason;
-    }
-    
-    public void setRejectionReason(String rejectionReason) {
-        this.rejectionReason = rejectionReason;
-    }
+
+    private RejectionType rejectionType;
 }

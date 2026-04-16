@@ -89,6 +89,9 @@ CREATE TABLE IF NOT EXISTS ai_prompt_version_reviews (
     reviewed_at DATETIME COMMENT '审核时间',
     git_commit_hash VARCHAR(64) COMMENT 'Git提交哈希',
     code_content LONGTEXT COMMENT '生成的代码内容',
+    composition_id BIGINT NULL COMMENT '关联编排ID',
+    composition_revision_no INT NULL COMMENT '关联编排快照版本',
+    rejection_type ENUM('BACK_TO_DEV', 'BACK_TO_BIZ') NULL COMMENT '驳回类型',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     
@@ -151,10 +154,12 @@ CREATE TABLE IF NOT EXISTS ai_prompt_test_datasets (
 CREATE TABLE IF NOT EXISTS ai_prompt_compositions (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     psu_id BIGINT NOT NULL COMMENT '关联PSU ID',
+    schema_version INT NOT NULL DEFAULT 1 COMMENT '绑定Schema版本',
     status ENUM('DRAFT', 'SUBMITTED', 'DEV_REVIEWING', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'DRAFT' COMMENT '状态',
     content LONGTEXT COMMENT '编辑器原始内容',
     spec_json LONGTEXT COMMENT '编排规格JSON',
-    schema_version VARCHAR(50) NOT NULL DEFAULT '1' COMMENT '关联Schema版本',
+    created_by BIGINT NOT NULL DEFAULT 0 COMMENT '创建人',
+    updated_by BIGINT NOT NULL DEFAULT 0 COMMENT '更新人',
     rejection_reason VARCHAR(500) COMMENT '驳回原因',
     rejection_type VARCHAR(20) COMMENT '驳回类型: BACK_TO_DEV/BACK_TO_BIZ',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -172,14 +177,16 @@ CREATE TABLE IF NOT EXISTS ai_prompt_composition_revisions (
     composition_id BIGINT NOT NULL COMMENT '关联编排ID',
     revision_no INT NOT NULL COMMENT '版本号',
     psu_id BIGINT NOT NULL COMMENT '关联PSU ID',
-    status ENUM('DRAFT', 'SUBMITTED', 'DEV_REVIEWING', 'APPROVED', 'REJECTED') NOT NULL COMMENT '状态',
-    content LONGTEXT COMMENT '编排内容快照',
-    spec_json LONGTEXT COMMENT '编排规格快照',
-    schema_version VARCHAR(50) NOT NULL COMMENT 'Schema版本快照',
+    status_at_time ENUM('DRAFT', 'SUBMITTED', 'DEV_REVIEWING', 'APPROVED', 'REJECTED') NOT NULL COMMENT '状态',
+    schema_version INT NOT NULL COMMENT 'Schema版本（兼容历史字段）',
+    schema_version_at_time INT NOT NULL COMMENT 'Schema版本快照',
+    content_snapshot LONGTEXT NOT NULL COMMENT '编排内容快照',
+    spec_json_snapshot LONGTEXT NOT NULL COMMENT '编排规格快照',
+    created_by BIGINT NOT NULL DEFAULT 0 COMMENT '创建人',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
-    INDEX idx_revisions_composition_id (composition_id),
-    INDEX idx_revisions_revision_no (revision_no)
+    UNIQUE KEY uk_comp_rev (composition_id, revision_no),
+    INDEX idx_comp_rev_psu_id (psu_id)
 ) COMMENT 'AI Prompt编排版本快照表';
 
 -- 创建测试运行记录表
@@ -188,9 +195,11 @@ CREATE TABLE IF NOT EXISTS ai_prompt_test_runs (
     psu_id BIGINT NOT NULL COMMENT '关联PSU ID',
     dataset_id BIGINT NOT NULL COMMENT '关联测试集ID',
     composition_id BIGINT NOT NULL COMMENT '关联编排ID',
+    composition_revision_no INT NULL COMMENT '关联快照版本',
     total_cases INT NOT NULL DEFAULT 0 COMMENT '总用例数',
     success_cases INT NOT NULL DEFAULT 0 COMMENT '成功用例数',
     failed_cases INT NOT NULL DEFAULT 0 COMMENT '失败用例数',
+    created_by BIGINT NOT NULL DEFAULT 0 COMMENT '执行人',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
     INDEX idx_test_runs_psu_id (psu_id),
@@ -201,17 +210,18 @@ CREATE TABLE IF NOT EXISTS ai_prompt_test_runs (
 CREATE TABLE IF NOT EXISTS ai_prompt_test_run_items (
     id BIGINT PRIMARY KEY AUTO_INCREMENT,
     run_id BIGINT NOT NULL COMMENT '关联运行记录ID',
-    case_id BIGINT NOT NULL COMMENT '用例ID',
+    case_id VARCHAR(100) NOT NULL COMMENT '用例ID',
     case_name VARCHAR(200) NOT NULL COMMENT '用例名称',
     input_json LONGTEXT COMMENT '输入参数JSON',
     rendered_prompt LONGTEXT COMMENT '渲染后的Prompt',
     model_output LONGTEXT COMMENT '模型输出',
     error_message TEXT COMMENT '错误信息',
     success TINYINT(1) NOT NULL COMMENT '是否成功',
-    latency_ms BIGINT NOT NULL COMMENT '耗时(毫秒)',
+    latency_ms INT NULL COMMENT '耗时(毫秒)',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     
-    INDEX idx_run_items_run_id (run_id)
+    INDEX idx_test_run_items_run_id (run_id),
+    INDEX idx_test_run_items_case_id (case_id)
 ) COMMENT 'AI Prompt测试运行用例明细表';
 
 -- 初始化预置用户（每种角色一个）

@@ -141,3 +141,10 @@ demo2/workspace/backend/lib/tomcat-embed-websocket-10.1.16.jar
 demo2/workspace/backend/lib/txw2-4.0.4.jar
 demo2/workspace/backend/lib/xmlunit-core-2.9.1.jar
 example/
+demo2/workspace/frontend/node_modules/
+demo2/workspace/frontend/node_modules
+demo2/workspace/frontend/package-lock.json
+demo2/workspace/frontend/package.json
+demo2/workspace/frontend/vite.config.js
+demo2/workspace/frontend/.npm-cache/
+demo2/workspace/frontend/.npm-cache

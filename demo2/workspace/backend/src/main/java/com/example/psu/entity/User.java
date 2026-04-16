@@ -1,5 +1,6 @@
 package com.example.psu.entity;
 
+import com.example.psu.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -57,14 +58,5 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
-    }
-    
-    /**
-     * 用户角色枚举
-     */
-    public enum UserRole {
-        ADMIN,        // 超级管理员
-        DEVELOPER,    // 研发人员
-        BUSINESS      // 产品/运营人员
     }
 }

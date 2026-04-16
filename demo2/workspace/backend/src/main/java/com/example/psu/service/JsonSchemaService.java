@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.example.psu.entity.JsonSchema;
 import com.example.psu.entity.PsuUnit;
 import com.example.psu.entity.User;
+import com.example.psu.enums.UserRole;
 import com.example.psu.repository.JsonSchemaRepository;
 import com.example.psu.repository.PsuRepository;
 import com.example.psu.repository.UserRepository;
@@ -48,7 +49,7 @@ public class JsonSchemaService {
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
         
         // 业务用户只能查看，不能编辑
-        if (user.getRole() == User.UserRole.BUSINESS) {
+        if (user.getRole() == UserRole.BUSINESS) {
             // 业务用户只能查看，这里返回只读版本
             return jsonSchemaRepository.findTopByPsuIdOrderByVersionDesc(psuId)
                     .orElseThrow(() -> new RuntimeException("Schema not found for PSU: " + psuId));
@@ -72,7 +73,7 @@ public class JsonSchemaService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
         
-        if (user.getRole() != User.UserRole.DEVELOPER) {
+        if (user.getRole() != UserRole.DEVELOPER) {
             throw new RuntimeException("Only developers can edit schema");
         }
         

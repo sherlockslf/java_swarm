@@ -1,5 +1,7 @@
 package com.example.psu.entity;
 
+import com.example.psu.enums.ReviewStatus;
+import com.example.psu.enums.RejectionType;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
@@ -59,6 +61,13 @@ public class VersionReview {
     
     @Column(columnDefinition = "LONGTEXT")
     private String codeContent;        // 生成的代码内容
+
+    private Long compositionId;        // 关联编排ID
+
+    private Integer compositionRevisionNo; // 关联编排快照版本号
+
+    @Enumerated(EnumType.STRING)
+    private RejectionType rejectionType;   // 驳回类型
     
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;   // 创建时间
@@ -76,14 +85,5 @@ public class VersionReview {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
-    }
-    
-    /**
-     * 审核状态枚举
-     */
-    public enum ReviewStatus {
-        PENDING,     // 待审核
-        APPROVED,    // 已通过
-        REJECTED     // 已驳回
     }
 }

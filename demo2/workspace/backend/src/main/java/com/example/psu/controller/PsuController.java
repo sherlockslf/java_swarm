@@ -1,11 +1,5 @@
 package com.example.psu.controller;
 
-import com.example.psu.dto.PsuCreateRequest;
-import com.example.psu.entity.PsuUnit;
-import com.example.psu.entity.User;
-import com.example.psu.repository.UserRepository;
-import com.example.psu.service.PsuService;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +7,24 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.example.psu.dto.PsuCreateRequest;
+import com.example.psu.dto.response.PsuResponse;
+import com.example.psu.entity.PsuUnit;
+import com.example.psu.entity.User;
+import com.example.psu.repository.UserRepository;
+import com.example.psu.service.PsuService;
+
+import jakarta.validation.Valid;
 
 /**
  * PSU管理控制器
@@ -35,10 +46,11 @@ public class PsuController {
      */
     @PostMapping
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<PsuUnit> createPsu(@Valid @RequestBody PsuCreateRequest request) {
+    public ResponseEntity<PsuResponse> createPsu(@Valid @RequestBody PsuCreateRequest request) {
         Long currentUserId = getCurrentUserId();
         PsuUnit psu = psuService.createPsu(request, currentUserId);
-        return ResponseEntity.ok(psu);
+        PsuResponse response = psuService.convertToResponse(psu);
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -48,11 +60,12 @@ public class PsuController {
      * @return 分页结果
      */
     @GetMapping
-    public ResponseEntity<Page<PsuUnit>> getPsus(
+    public ResponseEntity<Page<PsuResponse>> getPsus(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         Page<PsuUnit> psus = psuService.getPsus(page, size);
-        return ResponseEntity.ok(psus);
+        Page<PsuResponse> responsePage = psus.map(psuService::convertToResponse);
+        return ResponseEntity.ok(responsePage);
     }
     
     /**
@@ -63,9 +76,10 @@ public class PsuController {
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('DEVELOPER')")
-    public ResponseEntity<PsuUnit> updatePsu(@PathVariable Long id, @Valid @RequestBody PsuCreateRequest request) {
+    public ResponseEntity<PsuResponse> updatePsu(@PathVariable Long id, @Valid @RequestBody PsuCreateRequest request) {
         PsuUnit psu = psuService.updatePsu(id, request);
-        return ResponseEntity.ok(psu);
+        PsuResponse response = psuService.convertToResponse(psu);
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -74,9 +88,10 @@ public class PsuController {
      * @return PSU信息
      */
     @GetMapping("/{id}")
-    public ResponseEntity<PsuUnit> getPsuById(@PathVariable Long id) {
+    public ResponseEntity<PsuResponse> getPsuById(@PathVariable Long id) {
         PsuUnit psu = psuService.getPsuById(id);
-        return ResponseEntity.ok(psu);
+        PsuResponse response = psuService.convertToResponse(psu);
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -85,9 +100,10 @@ public class PsuController {
      * @return PSU信息
      */
     @GetMapping("/by-psu-id/{psuId}")
-    public ResponseEntity<PsuUnit> getPsuByPsuId(@PathVariable String psuId) {
+    public ResponseEntity<PsuResponse> getPsuByPsuId(@PathVariable String psuId) {
         PsuUnit psu = psuService.getPsuByPsuId(psuId);
-        return ResponseEntity.ok(psu);
+        PsuResponse response = psuService.convertToResponse(psu);
+        return ResponseEntity.ok(response);
     }
     
     /**
@@ -99,7 +115,7 @@ public class PsuController {
     @PreAuthorize("hasRole('DEVELOPER')")
     public ResponseEntity<Void> deletePsu(@PathVariable Long id) {
         psuService.deletePsu(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok().build();
     }
     
     /**
