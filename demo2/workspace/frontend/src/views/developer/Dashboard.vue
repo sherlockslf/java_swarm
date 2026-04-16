@@ -192,6 +192,14 @@
               </template>
             </el-table-column>
           </el-table>
+          <el-pagination
+            v-model:current-page="versionReviewPagination.page"
+            :page-size="versionReviewPagination.size"
+            :total="versionReviewPagination.total"
+            layout="total, prev, pager, next"
+            @current-change="handleVersionReviewPageChange"
+            style="margin-top: 20px; justify-content: flex-end;">
+          </el-pagination>
         </div>
         
         <!-- 代码生成 -->
@@ -372,6 +380,11 @@ const editingPromptFragment = ref({})
 
 // 版本审核数据
 const versionReviews = ref([])
+const versionReviewPagination = reactive({
+  page: 1,
+  size: 10,
+  total: 0
+})
 
 // 代码生成数据
 const selectedCodeGenPsuId = ref('')
@@ -788,12 +801,19 @@ const loadPsus = async () => {
 // 加载版本审核列表
 const loadVersionReviews = async () => {
   try {
-    const response = await versionReviewApi.getVersionReviews()
-    versionReviews.value = response.data
+    const response = await versionReviewApi.getVersionReviews(null, versionReviewPagination.page, versionReviewPagination.size)
+    versionReviews.value = response.data.content
+    versionReviewPagination.total = response.data.totalElements
   } catch (error) {
     console.error('加载版本审核列表失败:', error)
     versionReviews.value = []
   }
+}
+
+// 版本审核分页切换
+const handleVersionReviewPageChange = (page) => {
+  versionReviewPagination.page = page
+  loadVersionReviews()
 }
 
 onMounted(() => {

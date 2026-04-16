@@ -51,10 +51,10 @@ onMounted(async () => {
   loading.value = true
   try {
     const [reviewRes, compositionRes] = await Promise.all([
-      versionReviewApi.getVersionReviews(psuId.value),
+      versionReviewApi.getVersionReviews(psuId.value, 1, 100),
       compositionApi.getComposition(psuId.value)
     ])
-    review.value = (reviewRes.data || []).find(item => item.id === reviewId.value) || null
+    review.value = (reviewRes.data.content || []).find(item => item.id === reviewId.value) || null
     content.value = compositionRes.data?.content || ''
     compositionStatus.value = compositionRes.data?.status || 'DRAFT'
   } catch (e) {

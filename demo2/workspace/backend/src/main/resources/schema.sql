@@ -97,10 +97,12 @@ CREATE TABLE IF NOT EXISTS ai_prompt_version_reviews (
     
     INDEX idx_version_reviews_psu_id (psu_id),
     INDEX idx_version_reviews_status (status),
+    INDEX idx_version_reviews_psu_status (psu_id, status),
     INDEX idx_version_reviews_submitter (submitter_id),
     INDEX idx_version_reviews_reviewer (reviewer_id),
     INDEX idx_version_reviews_submitted (submitted_at),
     INDEX idx_version_reviews_git_hash (git_commit_hash),
+    INDEX idx_version_reviews_comp_rev_status (composition_id, composition_revision_no, status),
     
     CONSTRAINT uk_version_reviews_version UNIQUE (psu_id, major_version, minor_version, patch_version)
 ) COMMENT 'AI Prompt版本审核表';

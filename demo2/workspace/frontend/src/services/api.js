@@ -144,15 +144,23 @@ export const testDatasetApi = {
 }
 
 export const versionReviewApi = {
-  // 获取版本审核列表
-  getVersionReviews: (psuId) => {
+  // 获取版本审核列表（分页）
+  getVersionReviews: (psuId, page = 1, size = 10) => {
     if (psuId && !isValidPsuId(psuId)) {
       return Promise.reject(new Error(`Invalid PSU ID: ${psuId}`));
     }
+    const params = { page, size };
     if (psuId) {
-      return api.get('/versions', { params: { psuId } })
+      params.psuId = psuId;
     }
-    return api.get('/versions')
+    return api.get('/versions', { params })
+  },
+  // 获取特定版本审核记录
+  getVersionReview: (reviewId) => {
+    if (!isValidPsuId(reviewId)) {
+      return Promise.reject(new Error(`Invalid Review ID: ${reviewId}`));
+    }
+    return api.get(`/versions/${reviewId}`)
   },
   // 提交版本审核
   submitVersion: (psuId) => {

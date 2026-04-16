@@ -642,7 +642,7 @@ async function runDashscopeTest() {
           }
         ],
         stream: false,
-        enable_thinking: true
+        enable_thinking: false
       })
     })
     const data = await response.json()
