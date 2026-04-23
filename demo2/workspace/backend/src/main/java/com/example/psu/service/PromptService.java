@@ -3,11 +3,8 @@ package com.example.psu.service;
 import com.example.psu.dto.request.CreatePromptRequest;
 import com.example.psu.entity.PromptFragment;
 import com.example.psu.entity.PsuUnit;
-import com.example.psu.entity.User;
-import com.example.psu.enums.UserRole;
 import com.example.psu.repository.PromptFragmentRepository;
 import com.example.psu.repository.PsuRepository;
-import com.example.psu.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,9 +24,6 @@ public class PromptService {
     
     @Autowired
     private PsuRepository psuRepository;
-    
-    @Autowired
-    private UserRepository userRepository;
     
     /**
      * 获取Prompt片段
@@ -52,16 +46,8 @@ public class PromptService {
      */
     public PromptFragment createPromptFragment(CreatePromptRequest request, Long userId) {
         // 检查PSU是否存在
-        PsuUnit psu = psuRepository.findById(request.getPsuId())
+        psuRepository.findById(request.getPsuId())
                 .orElseThrow(() -> new RuntimeException("PSU not found: " + request.getPsuId()));
-        
-        // 检查用户权限（仅研发可创建）
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
-        
-        if (user.getRole() != UserRole.DEVELOPER) {
-            throw new RuntimeException("只有研发人员可以创建Prompt片段");
-        }
         
         // 检查fragmentKey是否已存在
         Optional<PromptFragment> existingFragment = promptFragmentRepository
@@ -96,11 +82,7 @@ public class PromptService {
         // 获取片段
         PromptFragment fragment = promptFragmentRepository.findById(fragmentId)
                 .orElseThrow(() -> new RuntimeException("Prompt fragment not found: " + fragmentId));
-        
-        // 检查用户权限
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
-        
+
         // 已定版的Prompt（editable=false）所有人不可修改
         if (!fragment.getEditable()) {
             throw new RuntimeException("Prompt已定版，不允许修改");
@@ -131,15 +113,7 @@ public class PromptService {
         // 获取片段
         PromptFragment fragment = promptFragmentRepository.findById(fragmentId)
                 .orElseThrow(() -> new RuntimeException("Prompt fragment not found: " + fragmentId));
-        
-        // 检查用户权限（仅研发可删除）
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
-        
-        if (user.getRole() != UserRole.DEVELOPER) {
-            throw new RuntimeException("只有研发人员可以删除Prompt片段");
-        }
-        
+
         // 已定版的Prompt不能删除
         if (!fragment.getEditable()) {
             throw new RuntimeException("已定版的Prompt片段不允许删除");
@@ -158,15 +132,7 @@ public class PromptService {
         // 获取片段
         PromptFragment fragment = promptFragmentRepository.findById(fragmentId)
                 .orElseThrow(() -> new RuntimeException("Prompt fragment not found: " + fragmentId));
-        
-        // 检查用户权限（仅运营可定版）
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
-        
-        if (user.getRole() != UserRole.BUSINESS) {
-            throw new RuntimeException("只有运营人员可以定版Prompt");
-        }
-        
+
         // 如果已经定版，不允许重复定版
         if (!fragment.getEditable()) {
             throw new RuntimeException("Prompt已定版，无需重复操作");

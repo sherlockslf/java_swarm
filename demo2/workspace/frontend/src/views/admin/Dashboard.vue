@@ -211,15 +211,17 @@ onMounted(() => {
 
 <style scoped>
 .admin-dashboard {
-  height: 100vh;
+  --layout-header-height: 60px;
+  --layout-sidebar-offset: 16px;
+  min-height: calc(100vh - var(--layout-header-height));
 }
 
 .sidebar {
   background-color: #545c64;
   color: #fff;
-  height: 100vh;
+  height: calc(100vh - var(--layout-header-height) - var(--layout-sidebar-offset));
   position: fixed;
-  top: 0;
+  top: calc(var(--layout-header-height) + var(--layout-sidebar-offset));
   left: 0;
 }
 
@@ -229,7 +231,9 @@ onMounted(() => {
 
 .main-content {
   margin-left: 200px;
+  min-height: calc(100vh - var(--layout-header-height));
   padding: 20px;
+  overflow-y: auto;
 }
 
 .content-section {

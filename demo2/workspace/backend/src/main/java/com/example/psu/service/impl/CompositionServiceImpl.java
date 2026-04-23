@@ -377,24 +377,57 @@ public class CompositionServiceImpl implements CompositionService {
         }
         String normalized = rawPath.replaceAll("\\[(\\d+)\\]", ".$1");
         String[] parts = normalized.split("\\.");
-        JsonNode current = schemaRoot;
-        for (String part : parts) {
-            if (part.isBlank()) {
-                continue;
+        
+        // 首先尝试标准JSON Schema格式 (properties-based)
+        if (schemaRoot.has("properties")) {
+            JsonNode current = schemaRoot;
+            for (String part : parts) {
+                if (part.isBlank()) {
+                    continue;
+                }
+                JsonNode properties = current.get("properties");
+                if (properties == null || !properties.has(part)) {
+                    return false;
+                }
+                current = properties.get(part);
+                if (current == null) {
+                    return false;
+                }
+                if ("array".equals(current.path("type").asText()) && current.has("items")) {
+                    current = current.get("items");
+                }
             }
-            JsonNode properties = current.get("properties");
-            if (properties == null || !properties.has(part)) {
-                return false;
+            return true;
+        } 
+        // 如果不是标准格式，尝试简单JSON对象格式
+        else {
+            JsonNode current = schemaRoot;
+            for (String part : parts) {
+                if (part.isBlank()) {
+                    continue;
+                }
+                // 直接检查当前节点是否包含该字段
+                if (!current.has(part)) {
+                    return false;
+                }
+                current = current.get(part);
+                if (current == null) {
+                    return false;
+                }
+                // 如果当前节点是数组类型，继续向下查找
+                if (current.isArray() && current.size() > 0) {
+                    // 对于数组，我们假设第一个元素具有代表性
+                    current = current.get(0);
+                } else if (current.isObject()) {
+                    // 如果是对象，继续使用当前节点
+                    continue;
+                } else {
+                    // 如果是基本类型，无法进一步深入
+                    break;
+                }
             }
-            current = properties.get(part);
-            if (current == null) {
-                return false;
-            }
-            if ("array".equals(current.path("type").asText()) && current.has("items")) {
-                current = current.get("items");
-            }
+            return true;
         }
-        return true;
     }
 
     private Object getValueByPath(Map<String, Object> source, String rawPath) {

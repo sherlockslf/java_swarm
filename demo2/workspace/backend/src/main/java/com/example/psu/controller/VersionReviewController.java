@@ -1,19 +1,12 @@
 package com.example.psu.controller;
 
 import com.example.psu.dto.request.ReviewRequest;
-import com.example.psu.entity.User;
 import com.example.psu.entity.VersionReview;
-import com.example.psu.exception.BusinessException;
-import com.example.psu.exception.ErrorCode;
-import com.example.psu.repository.UserRepository;
 import com.example.psu.service.VersionReviewService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,12 +24,12 @@ import java.util.Map;
 @RequestMapping("/api/versions")
 public class VersionReviewController {
 
-    private final VersionReviewService versionReviewService;
-    private final UserRepository userRepository;
+    private static final Long DEFAULT_OPERATOR_ID = 0L;
 
-    public VersionReviewController(VersionReviewService versionReviewService, UserRepository userRepository) {
+    private final VersionReviewService versionReviewService;
+
+    public VersionReviewController(VersionReviewService versionReviewService) {
         this.versionReviewService = versionReviewService;
-        this.userRepository = userRepository;
     }
 
     /**
@@ -70,7 +63,7 @@ public class VersionReviewController {
      */
     @PostMapping("/{psuId}/submit")
     public ResponseEntity<VersionReview> submitVersion(@PathVariable Long psuId) {
-        return ResponseEntity.ok(versionReviewService.submitVersion(psuId, getCurrentUserId()));
+        return ResponseEntity.ok(versionReviewService.submitVersion(psuId, DEFAULT_OPERATOR_ID));
     }
 
     /**
@@ -79,7 +72,7 @@ public class VersionReviewController {
      */
     @PostMapping("/{reviewId}/review")
     public ResponseEntity<VersionReview> reviewVersion(@PathVariable Long reviewId, @RequestBody ReviewRequest request) {
-        return ResponseEntity.ok(versionReviewService.reviewVersion(reviewId, request, getCurrentUserId()));
+        return ResponseEntity.ok(versionReviewService.reviewVersion(reviewId, request, DEFAULT_OPERATOR_ID));
     }
 
     /**
@@ -101,17 +94,6 @@ public class VersionReviewController {
         @RequestBody Map<String, String> payload
     ) {
         String gitCommitHash = payload == null ? null : payload.get("gitCommitHash");
-        return ResponseEntity.ok(versionReviewService.registerGitCommit(reviewId, gitCommitHash, getCurrentUserId()));
-    }
-
-    private Long getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND, "用户不存在: " + username));
-            return user.getId();
-        }
-        throw new BusinessException(ErrorCode.UNAUTHORIZED, "未登录");
+        return ResponseEntity.ok(versionReviewService.registerGitCommit(reviewId, gitCommitHash, DEFAULT_OPERATOR_ID));
     }
 }

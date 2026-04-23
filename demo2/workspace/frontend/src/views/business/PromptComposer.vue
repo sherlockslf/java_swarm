@@ -4,7 +4,22 @@
       <el-header class="header">
         <div class="header-left">
           <el-button @click="goBack" icon="ArrowLeft">返回</el-button>
-          <span class="title">Prompt Composer - {{ psuName }}</span>
+          <span class="title">Prompt Composer - {{ psuName || '请选择PSU' }}</span>
+          <el-select
+            v-model="selectedPsuId"
+            filterable
+            clearable
+            class="psu-selector"
+            placeholder="请选择PSU"
+            @change="handlePsuChange"
+          >
+            <el-option
+              v-for="psu in availablePsus"
+              :key="psu.id"
+              :label="psu.name"
+              :value="psu.id"
+            />
+          </el-select>
         </div>
         <div class="header-right">
           <el-tag :type="statusTagType" size="large">{{ statusText }}</el-tag>
@@ -61,6 +76,11 @@
         </el-aside>
 
         <el-main class="center-panel">
+          <el-empty
+            v-if="!selectedPsuId"
+            description="请先选择PSU，再进行Prompt编排、渲染预览和接口测试"
+          />
+          <template v-else>
           <PromptTextEditor
             v-model:content="content"
             :readonly="isReadonly"
@@ -131,6 +151,7 @@
               :title="modelTestError"
             />
           </div>
+          </template>
         </el-main>
 
         <el-aside width="320px" class="right-panel">
@@ -187,7 +208,12 @@ import InjectionSummaryPanel from '@/components/composer/InjectionSummaryPanel.v
 
 const route = useRoute()
 const router = useRouter()
-const psuId = computed(() => Number(route.params.psuId))
+const psuId = computed(() => {
+  const id = Number(route.params.psuId)
+  return Number.isInteger(id) && id > 0 ? id : null
+})
+const selectedPsuId = ref(psuId.value)
+const availablePsus = ref([])
 
 const content = ref('')
 const compositionId = ref(null)
@@ -234,11 +260,9 @@ const statusText = computed(() => {
 })
 
 onMounted(async () => {
-  // 页面初始化时一次性加载编排、Schema与测试数据集
-  await loadPsuName()
-  await loadComposition()
-  await loadSchema()
-  await loadTestDatasets()
+  // 页面初始化先加载PSU列表，选定PSU后再加载编排上下文
+  await loadAvailablePsus()
+  await initializeBySelectedPsu()
   await loadDashscopeApiKey(false)
 })
 
@@ -251,6 +275,28 @@ watch(content, () => {
   hasUnsavedChanges.value = true
 })
 
+watch(psuId, async (newId) => {
+  if (newId && newId !== selectedPsuId.value) {
+    selectedPsuId.value = newId
+    await initializeBySelectedPsu()
+  }
+})
+
+watch(selectedPsuId, async (newId, oldId) => {
+  if (newId === oldId) return
+  if (!newId) {
+    resetComposerState()
+    if (route.params.psuId) {
+      router.replace('/business/composer')
+    }
+    return
+  }
+  if (Number(route.params.psuId) !== Number(newId)) {
+    router.replace(`/business/psus/${newId}/composer`)
+  }
+  await initializeBySelectedPsu()
+})
+
 const handleBeforeUnload = (e) => {
   if (hasUnsavedChanges.value && !isReadonly.value) {
     e.preventDefault()
@@ -261,18 +307,74 @@ const handleBeforeUnload = (e) => {
 window.addEventListener('beforeunload', handleBeforeUnload)
 
 async function loadPsuName() {
+  if (!selectedPsuId.value) {
+    psuName.value = ''
+    return
+  }
   try {
     const res = await psuApi.getPsus(1, 100)
-    const psu = res.data.content.find(p => p.id === psuId.value)
+    const psu = res.data.content.find(p => p.id === selectedPsuId.value)
     if (psu) psuName.value = psu.name
   } catch (e) {
     console.error('Failed to load PSU name', e)
   }
 }
 
-async function loadComposition() {
+async function loadAvailablePsus() {
   try {
-    const res = await compositionApi.getComposition(psuId.value)
+    const res = await psuApi.getPsus(1, 100)
+    availablePsus.value = Array.isArray(res.data?.content) ? res.data.content : []
+    if (!selectedPsuId.value && availablePsus.value.length === 1) {
+      selectedPsuId.value = availablePsus.value[0].id
+    }
+  } catch (e) {
+    console.error('Failed to load PSU list', e)
+    availablePsus.value = []
+  }
+}
+
+async function initializeBySelectedPsu() {
+  if (!selectedPsuId.value) {
+    resetComposerState()
+    return
+  }
+  await loadPsuName()
+  await loadComposition()
+  await loadSchema()
+  await loadTestDatasets()
+}
+
+function resetComposerState() {
+  content.value = ''
+  compositionId.value = null
+  tokens.value = []
+  injectionPlan.value = []
+  schemaFields.value = []
+  psuName.value = ''
+  status.value = 'DRAFT'
+  updatedAt.value = ''
+  validationErrors.value = []
+  validationWarnings.value = []
+  renderedPrompt.value = ''
+  missingVars.value = []
+  datasets.value = []
+  selectedDatasetId.value = null
+  selectedDatasetInput.value = {}
+  datasetPreviewExpanded.value = false
+  modelTestOutput.value = ''
+  modelTestError.value = ''
+  chatMessages.value = []
+  hasUnsavedChanges.value = false
+}
+
+function handlePsuChange() {
+  // 由selectedPsuId侦听器统一处理URL切换与数据加载
+}
+
+async function loadComposition() {
+  if (!selectedPsuId.value) return
+  try {
+    const res = await compositionApi.getComposition(selectedPsuId.value)
     if (res.data && res.data.content !== undefined) {
       compositionId.value = res.data.id
       content.value = res.data.content || ''
@@ -297,8 +399,9 @@ async function loadComposition() {
 }
 
 async function loadSchema() {
+  if (!selectedPsuId.value) return
   try {
-    const res = await schemaApi.getSchema(psuId.value)
+    const res = await schemaApi.getSchema(selectedPsuId.value)
     let schemaContent = res.data.schemaContent || '{}'
     if (typeof schemaContent === 'string') {
       schemaContent = JSON.parse(schemaContent)
@@ -311,10 +414,11 @@ async function loadSchema() {
 }
 
 async function loadTestDatasets() {
+  if (!selectedPsuId.value) return
   // 加载当前PSU的测试数据集供多选调试
   loadingDatasets.value = true
   try {
-    const res = await testDatasetApi.getTestDatasets(psuId.value)
+    const res = await testDatasetApi.getTestDatasets(selectedPsuId.value)
     datasets.value = Array.isArray(res.data) ? res.data : []
   } catch (e) {
     console.error('加载测试数据集失败:', e)
@@ -452,6 +556,10 @@ function onContentChange(newContent) {
 
 async function saveDraft() {
   if (isReadonly.value) return
+  if (!selectedPsuId.value) {
+    ElMessage.warning('请先选择PSU')
+    return
+  }
   saving.value = true
   try {
     const spec = {
@@ -460,10 +568,10 @@ async function saveDraft() {
       injectionPlan: injectionPlan.value,
       assembledFragments: []
     }
-    await compositionApi.saveDraft(psuId.value, spec)
+    await compositionApi.saveDraft(selectedPsuId.value, spec)
     ElMessage.success('草稿保存成功')
     hasUnsavedChanges.value = false
-    const res = await compositionApi.getComposition(psuId.value)
+    const res = await compositionApi.getComposition(selectedPsuId.value)
     if (res.data) updatedAt.value = res.data.updatedAt
   } catch (e) {
     ElMessage.error('保存失败: ' + (e.response?.data?.error || e.message))
@@ -473,6 +581,10 @@ async function saveDraft() {
 }
 
 async function runValidate() {
+  if (!selectedPsuId.value) {
+    ElMessage.warning('请先选择PSU')
+    return
+  }
   validating.value = true
   validationErrors.value = []
   validationWarnings.value = []
@@ -493,7 +605,7 @@ async function runValidate() {
       injectionPlan: injectionPlan.value,
       assembledFragments: []
     }
-    const res = await compositionApi.validate(psuId.value, spec)
+    const res = await compositionApi.validate(selectedPsuId.value, spec)
     if (res.data.errors) validationErrors.value.push(...res.data.errors)
     if (res.data.warnings) validationWarnings.value.push(...res.data.warnings)
 
@@ -700,6 +812,10 @@ function hasUnclosedBraces(text) {
 
 async function handleSubmit() {
   if (isReadonly.value) return
+  if (!selectedPsuId.value) {
+    ElMessage.warning('请先选择PSU')
+    return
+  }
 
   try {
     await ElMessageBox.confirm('提交后将锁定编排，业务侧不可再修改，确认提交？', '确认提交', {
@@ -718,11 +834,11 @@ async function handleSubmit() {
       ElMessage.error('请先修复校验错误后再提交')
       return
     }
-    await compositionApi.submit(psuId.value)
+    await compositionApi.submit(selectedPsuId.value)
     ElMessage.success('提交成功，编排已锁定')
     status.value = 'SUBMITTED'
     hasUnsavedChanges.value = false
-    const res = await compositionApi.getComposition(psuId.value)
+    const res = await compositionApi.getComposition(selectedPsuId.value)
     if (res.data) {
       compositionId.value = res.data.id
       status.value = res.data.status
@@ -739,26 +855,14 @@ function goBack() {
   if (hasUnsavedChanges.value && !isReadonly.value) {
     showLeaveDialog.value = true
   } else {
-    // 根据用户角色返回到相应页面
-    const userRole = localStorage.getItem('userRole')
-    if (userRole === 'DEVELOPER') {
-      router.push('/developer')
-    } else {
-      router.push('/business')
-    }
+    router.push('/business')
   }
 }
 
 function confirmLeave() {
   showLeaveDialog.value = false
   hasUnsavedChanges.value = false
-  // 根据用户角色返回到相应页面
-  const userRole = localStorage.getItem('userRole')
-  if (userRole === 'DEVELOPER') {
-    router.push('/developer')
-  } else {
-    router.push('/business')
-  }
+  router.push('/business')
 }
 
 function formatTime(timeStr) {
@@ -788,6 +892,10 @@ function formatTime(timeStr) {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.psu-selector {
+  width: 240px;
 }
 
 .title {

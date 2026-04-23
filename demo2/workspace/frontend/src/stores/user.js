@@ -30,15 +30,12 @@ export const useUserStore = defineStore('user', {
       }
       this.isAuthenticated = false
       localStorage.removeItem('token')
-      localStorage.removeItem('userRole')
     },
     
     initializeFromStorage() {
       const token = localStorage.getItem('token')
-      const role = localStorage.getItem('userRole')
-      if (token && role) {
+      if (token) {
         this.token = token
-        this.userInfo.role = role
         this.isAuthenticated = true
       }
     }

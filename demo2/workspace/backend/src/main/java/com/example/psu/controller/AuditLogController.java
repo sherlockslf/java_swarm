@@ -4,7 +4,6 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,7 +27,6 @@ public class AuditLogController {
      * 参数：无
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<AuditLog>> getAllAuditLogs() {
         List<AuditLog> logs = auditLogService.getAllAuditLogs();
         return ResponseEntity.ok(logs);
@@ -39,7 +37,6 @@ public class AuditLogController {
      * 参数：userId-用户数据库ID
      */
     @GetMapping("/user/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<AuditLog>> getAuditLogsByUserId(@PathVariable Long userId) {
         List<AuditLog> logs = auditLogService.getAuditLogsByUserId(userId);
         return ResponseEntity.ok(logs);

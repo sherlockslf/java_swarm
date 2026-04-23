@@ -5,7 +5,6 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,7 +32,6 @@ public class SystemConfigController {
      * 参数：无
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<SystemConfig>> getAllConfigs() {
         List<SystemConfig> configs = systemConfigService.getAllConfigs();
         return ResponseEntity.ok(configs);
@@ -44,7 +42,6 @@ public class SystemConfigController {
      * 参数：configKey-配置键名
      */
     @GetMapping("/{configKey}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SystemConfig> getConfigByKey(@PathVariable String configKey) {
         SystemConfig config = systemConfigService.getConfigByKey(configKey);
         return ResponseEntity.ok(config);
@@ -55,7 +52,6 @@ public class SystemConfigController {
      * 参数：无
      */
     @GetMapping("/dashscope-key")
-    @PreAuthorize("hasAnyRole('ADMIN','DEVELOPER','BUSINESS')")
     public ResponseEntity<Map<String, String>> getDashscopeKey() {
         return ResponseEntity.ok(Map.of("apiKey", systemConfigService.getAnyDashscopeApiKey()));
     }
@@ -65,7 +61,6 @@ public class SystemConfigController {
      * 参数：configKey-配置键，configValue-配置值，configType-配置类型
      */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<SystemConfig> saveConfig(@RequestBody Map<String, String> requestBody) {
         String configKey = requestBody.get("configKey");
         String configValue = requestBody.get("configValue");
@@ -84,7 +79,6 @@ public class SystemConfigController {
      * 参数：id-配置数据库ID
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteConfig(@PathVariable Long id) {
         systemConfigService.deleteConfig(id);
         return ResponseEntity.ok().build();

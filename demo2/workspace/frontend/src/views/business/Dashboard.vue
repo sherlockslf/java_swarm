@@ -32,11 +32,9 @@
                 </el-tag>
               </template>
             </el-table-column>
-            <el-table-column label="操作" width="240">
+            <el-table-column label="操作" width="120">
               <template #default="{ row }">
-                <el-button size="small" @click="selectPsu(row)">选择</el-button>
                 <el-button size="small" @click="viewSchema(row)">查看Schema</el-button>
-                <el-button size="small" type="primary" @click="goToPsuComposer(row)">编排Prompt</el-button>
               </template>
             </el-table-column>
           </el-table>
@@ -245,7 +243,7 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import api, { psuApi, schemaApi, promptApi, versionApi, versionReviewApi, testDatasetApi } from '@/services/api'
+import { psuApi, schemaApi, promptApi, versionApi, versionReviewApi, testDatasetApi } from '@/services/api'
 import { ElMessage } from 'element-plus'
 
 const router = useRouter()
@@ -284,17 +282,13 @@ const submitting = ref(false)
 // Prompt编辑状态
 const currentPromptEditable = ref(true)
 const currentPromptFragmentId = ref(null)
-const isBusinessUser = ref(false)
+const isBusinessUser = ref(true)
 
 // 菜单选择处理
 const handleMenuSelect = (index) => {
   if (index === '2') {
     // Prompt编排菜单项，导航到PromptComposer
-    if (selectedPsuId.value) {
-      router.push(`/business/psus/${selectedPsuId.value}/composer`)
-    } else {
-      ElMessage.warning('请先选择一个PSU')
-    }
+    router.push('/business/composer')
   } else {
     activeMenu.value = index
   }
@@ -304,19 +298,6 @@ const handleMenuSelect = (index) => {
 const handlePageChange = (page) => {
   psuPagination.page = page
   loadPsus()
-}
-
-// 选择PSU
-const selectPsu = (psu) => {
-  selectedPsuId.value = psu.id
-  selectedApiTestPsuId.value = psu.id
-  selectedVersionPsuId.value = psu.id
-  ElMessage.success(`已选择PSU: ${psu.name}`)
-}
-
-// 导航到PSU的Prompt Composer
-const goToPsuComposer = (psu) => {
-  router.push(`/business/psus/${psu.id}/composer`)
 }
 
 // 查看Schema
@@ -454,9 +435,6 @@ const loadPromptFragments = async () => {
       }
     }
     
-    // 检查当前用户角色
-    const profileResponse = await api.get('/auth/profile')
-    isBusinessUser.value = profileResponse.data.role === 'BUSINESS'
   } catch (error) {
     console.error('加载Prompt片段失败:', error)
     ElMessage.error('加载Prompt片段失败')
@@ -538,10 +516,10 @@ const finalizePrompt = async () => {
 
 const goToApiTestInComposer = () => {
   if (!selectedApiTestPsuId.value) {
-    ElMessage.warning('请先选择PSU')
-    return
+    router.push('/business/composer')
+  } else {
+    router.push(`/business/psus/${selectedApiTestPsuId.value}/composer`)
   }
-  router.push(`/business/psus/${selectedApiTestPsuId.value}/composer`)
 }
 
 // 提交版本
@@ -602,15 +580,17 @@ onMounted(() => {
 
 <style scoped>
 .business-dashboard {
-  height: 100vh;
+  --layout-header-height: 60px;
+  --layout-sidebar-offset: 16px;
+  min-height: calc(100vh - var(--layout-header-height));
 }
 
 .sidebar {
   background-color: #545c64;
   color: #fff;
-  height: 100vh;
+  height: calc(100vh - var(--layout-header-height) - var(--layout-sidebar-offset));
   position: fixed;
-  top: 0;
+  top: calc(var(--layout-header-height) + var(--layout-sidebar-offset));
   left: 0;
 }
 
@@ -620,7 +600,9 @@ onMounted(() => {
 
 .main-content {
   margin-left: 200px;
+  min-height: calc(100vh - var(--layout-header-height));
   padding: 20px;
+  overflow-y: auto;
 }
 
 .content-section {

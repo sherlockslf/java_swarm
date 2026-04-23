@@ -56,22 +56,11 @@ const handleLogin = async () => {
   try {
     const response = await axios.post('/api/auth/login', loginForm)
     const authData = response.data
-    const { token, role, username } = authData
+    const { token, username } = authData
     
     localStorage.setItem('token', token)
-    localStorage.setItem('userRole', role)
     localStorage.setItem('username', username) // 存储用户名
-    
-    // 根据角色跳转到相应页面
-    if (role === 'ADMIN') {
-      router.push('/admin')
-    } else if (role === 'DEVELOPER') {
-      router.push('/developer')
-    } else if (role === 'BUSINESS') {
-      router.push('/business')
-    } else {
-      router.push('/')
-    }
+    router.push('/business')
   } catch (error) {
     console.error('登录失败:', error)
     ElMessage.error('登录失败，请检查用户名和密码')

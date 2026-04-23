@@ -8,11 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.example.psu.entity.JsonSchema;
 import com.example.psu.entity.PsuUnit;
-import com.example.psu.entity.User;
-import com.example.psu.enums.UserRole;
 import com.example.psu.repository.JsonSchemaRepository;
 import com.example.psu.repository.PsuRepository;
-import com.example.psu.repository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -28,9 +25,6 @@ public class JsonSchemaService {
     private PsuRepository psuRepository;
     
     @Autowired
-    private UserRepository userRepository;
-    
-    @Autowired
     private ObjectMapper objectMapper;
     
     /**
@@ -41,21 +35,9 @@ public class JsonSchemaService {
      */
     public JsonSchema getSchemaByPsuId(Long psuId, Long userId) {
         // 检查PSU是否存在
-        PsuUnit psu = psuRepository.findById(psuId)
+        psuRepository.findById(psuId)
                 .orElseThrow(() -> new RuntimeException("PSU not found: " + psuId));
-        
-        // 检查用户权限
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
-        
-        // 业务用户只能查看，不能编辑
-        if (user.getRole() == UserRole.BUSINESS) {
-            // 业务用户只能查看，这里返回只读版本
-            return jsonSchemaRepository.findTopByPsuIdOrderByVersionDesc(psuId)
-                    .orElseThrow(() -> new RuntimeException("Schema not found for PSU: " + psuId));
-        }
-        
-        // 研发和管理员可以查看和编辑
+
         return jsonSchemaRepository.findTopByPsuIdOrderByVersionDesc(psuId)
                 .orElseThrow(() -> new RuntimeException("Schema not found for PSU: " + psuId));
     }
@@ -69,14 +51,6 @@ public class JsonSchemaService {
      * @return 更新后的Schema
      */
     public JsonSchema updateSchema(Long psuId, String schemaContent, Long userId, String changeLog) {
-        // 检查用户权限（只有研发可以编辑Schema）
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
-        
-        if (user.getRole() != UserRole.DEVELOPER) {
-            throw new RuntimeException("Only developers can edit schema");
-        }
-        
         // 检查PSU是否存在
         PsuUnit psu = psuRepository.findById(psuId)
                 .orElseThrow(() -> new RuntimeException("PSU not found: " + psuId));
@@ -97,7 +71,7 @@ public class JsonSchemaService {
         newSchema.setPsuId(psuId);
         newSchema.setSchemaContent(schemaContent);
         newSchema.setVersion(newVersion);
-        newSchema.setModifiedBy(userId);
+        newSchema.setModifiedBy(userId == null ? 0L : userId);
         newSchema.setChangeLog(changeLog);
         newSchema.setCreatedAt(LocalDateTime.now());
         

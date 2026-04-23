@@ -32,11 +32,9 @@ const username = ref('')
 
 const handleUserCommand = (command) => {
   if (command === 'logout') {
-    // 清除本地存储
+    // 清除本地存储后返回默认首页
     localStorage.removeItem('token')
-    localStorage.removeItem('userRole')
-    // 跳转到登录页
-    router.push('/login')
+    router.push('/business')
   }
 }
 

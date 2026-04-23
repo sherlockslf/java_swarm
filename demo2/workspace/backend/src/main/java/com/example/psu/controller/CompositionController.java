@@ -6,18 +6,11 @@ import com.example.psu.dto.response.CompositionRenderResponse;
 import com.example.psu.dto.response.CompositionResponse;
 import com.example.psu.dto.response.CompositionValidateResponse;
 import com.example.psu.entity.PromptComposition;
-import com.example.psu.entity.User;
-import com.example.psu.exception.BusinessException;
-import com.example.psu.exception.ErrorCode;
-import com.example.psu.repository.UserRepository;
 import com.example.psu.service.CompositionService;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -37,17 +30,16 @@ import java.util.Optional;
 @RequestMapping("/api/compositions")
 public class CompositionController {
 
+    private static final Long DEFAULT_OPERATOR_ID = 0L;
+
     private final CompositionService compositionService;
-    private final UserRepository userRepository;
     private final ObjectMapper objectMapper;
 
     public CompositionController(
         CompositionService compositionService,
-        UserRepository userRepository,
         ObjectMapper objectMapper
     ) {
         this.compositionService = compositionService;
-        this.userRepository = userRepository;
         this.objectMapper = objectMapper;
     }
 
@@ -70,7 +62,7 @@ public class CompositionController {
      */
     @PutMapping
     public ResponseEntity<?> saveDraft(@RequestParam Long psuId, @RequestBody CompositionSaveRequest request) {
-        PromptComposition saved = compositionService.saveDraft(psuId, request, getCurrentUserId());
+        PromptComposition saved = compositionService.saveDraft(psuId, request, DEFAULT_OPERATOR_ID);
         return ResponseEntity.ok(toResponse(saved));
     }
 
@@ -98,7 +90,7 @@ public class CompositionController {
      */
     @PostMapping("/submit")
     public ResponseEntity<?> submit(@RequestParam Long psuId) {
-        PromptComposition submitted = compositionService.submit(psuId, getCurrentUserId());
+        PromptComposition submitted = compositionService.submit(psuId, DEFAULT_OPERATOR_ID);
         return ResponseEntity.ok(toResponse(submitted));
     }
 
@@ -111,17 +103,6 @@ public class CompositionController {
         return compositionService.getLatestRevision(compositionId)
             .<ResponseEntity<?>>map(ResponseEntity::ok)
             .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Revision not found")));
-    }
-
-    private Long getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new BusinessException(ErrorCode.USER_NOT_FOUND, "用户不存在: " + username));
-            return user.getId();
-        }
-        throw new BusinessException(ErrorCode.UNAUTHORIZED, "未登录");
     }
 
     private CompositionResponse toResponse(PromptComposition composition) {

@@ -6,7 +6,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -38,7 +37,6 @@ public class UserController {
      * 参数：无
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<UserResponse>> getUsers() {
         List<User> users = userService.getAllUsers();
         List<UserResponse> responses = users.stream()
@@ -52,7 +50,6 @@ public class UserController {
      * 参数：username-用户名，password-密码，role-角色(ADMIN/DEVELOPER/BUSINESS)，enabled-是否启用
      */
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserCreateRequest request) {
         User user = new User();
         user.setUsername(request.getUsername());
@@ -70,7 +67,6 @@ public class UserController {
      * 参数：id-用户数据库ID
      */
     @PutMapping("/{id}/toggle-status")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserResponse> toggleUserStatus(@PathVariable Long id) {
         User user = userService.toggleUserStatus(id);
         UserResponse response = convertToResponse(user);

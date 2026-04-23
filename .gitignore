@@ -5,3 +5,4 @@ example
 example/demo.txt
 .vscode/settings.json
 dist/
+demo2/workspace/frontend/node_modules/.vite/deps/_metadata.json

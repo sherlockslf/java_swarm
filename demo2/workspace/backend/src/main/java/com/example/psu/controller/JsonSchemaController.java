@@ -6,10 +6,6 @@ import java.util.stream.Collectors;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -21,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.psu.dto.request.UpdateSchemaRequest;
 import com.example.psu.dto.response.JsonSchemaResponse;
 import com.example.psu.entity.JsonSchema;
-import com.example.psu.entity.User;
 import com.example.psu.repository.UserRepository;
 import com.example.psu.service.JsonSchemaService;
 
@@ -33,6 +28,8 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/schemas")
 public class JsonSchemaController {
+
+    private static final Long DEFAULT_OPERATOR_ID = 0L;
     
     @Autowired
     private JsonSchemaService jsonSchemaService;
@@ -46,8 +43,7 @@ public class JsonSchemaController {
      */
     @GetMapping("/{psuId}")
     public ResponseEntity<JsonSchemaResponse> getSchemaByPsuId(@PathVariable Long psuId) {
-        Long currentUserId = getCurrentUserId();
-        JsonSchema schema = jsonSchemaService.getSchemaByPsuId(psuId, currentUserId);
+        JsonSchema schema = jsonSchemaService.getSchemaByPsuId(psuId, DEFAULT_OPERATOR_ID);
         JsonSchemaResponse response = convertToResponse(schema);
         return ResponseEntity.ok(response);
     }
@@ -57,12 +53,10 @@ public class JsonSchemaController {
      * 参数：psuId-PSU数据库ID，schemaContent-Schema JSON内容，changeLog-变更日志
      */
     @PutMapping("/{psuId}")
-    @PreAuthorize("hasRole('DEVELOPER')")
     public ResponseEntity<JsonSchemaResponse> updateSchema(
             @PathVariable Long psuId, 
             @Valid @RequestBody UpdateSchemaRequest requestBody) {
-        Long currentUserId = getCurrentUserId();
-        JsonSchema schema = jsonSchemaService.updateSchema(psuId, requestBody.getSchemaContent(), currentUserId, requestBody.getChangeLog());
+        JsonSchema schema = jsonSchemaService.updateSchema(psuId, requestBody.getSchemaContent(), DEFAULT_OPERATOR_ID, requestBody.getChangeLog());
         JsonSchemaResponse response = convertToResponse(schema);
         return ResponseEntity.ok(response);
     }
@@ -78,21 +72,6 @@ public class JsonSchemaController {
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
-    }
-    
-    /**
-     * 从SecurityContext获取当前用户ID
-     * @return 用户ID
-     */
-    private Long getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found: " + username));
-            return user.getId();
-        }
-        return null;
     }
     
     /**

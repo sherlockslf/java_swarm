@@ -2,7 +2,6 @@ package com.example.psu.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,8 +39,8 @@ public class AuthController {
      * 参数：无（从SecurityContext自动获取）
      */
     @GetMapping("/profile")
-    public ResponseEntity<AuthResponse> getProfile(Authentication authentication) {
-        AuthResponse response = userService.getCurrentUser(authentication);
+    public ResponseEntity<AuthResponse> getProfile() {
+        AuthResponse response = userService.getCurrentUser(null);
         return ResponseEntity.ok(response);
     }
 }

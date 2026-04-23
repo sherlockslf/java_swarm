@@ -420,13 +420,7 @@ const handleMenuSelect = (index) => {
       router.push(`/business/psus/${selectedPsuId.value}/composer`)
       return
     }
-    if (psus.value.length > 0) {
-      const fallbackPsu = psus.value[0]
-      selectedPsuId.value = fallbackPsu.id
-      router.push(`/business/psus/${fallbackPsu.id}/composer`)
-      return
-    }
-    ElMessage.warning('请先创建或选择一个PSU后再进入动态容器页面')
+    router.push('/business/composer')
     return
   }
   activeMenu.value = index
@@ -824,15 +818,17 @@ onMounted(() => {
 
 <style scoped>
 .developer-dashboard {
-  height: 100vh;
+  --layout-header-height: 60px;
+  --layout-sidebar-offset: 16px;
+  min-height: calc(100vh - var(--layout-header-height));
 }
 
 .sidebar {
   background-color: #545c64;
   color: #fff;
-  height: 100vh;
+  height: calc(100vh - var(--layout-header-height) - var(--layout-sidebar-offset));
   position: fixed;
-  top: 0;
+  top: calc(var(--layout-header-height) + var(--layout-sidebar-offset));
   left: 0;
 }
 
@@ -842,7 +838,9 @@ onMounted(() => {
 
 .main-content {
   margin-left: 200px;
+  min-height: calc(100vh - var(--layout-header-height));
   padding: 20px;
+  overflow-y: auto;
 }
 
 .content-section {

@@ -9,37 +9,6 @@ const api = axios.create({
   }
 })
 
-// 请求拦截器
-api.interceptors.request.use(
-  config => {
-    // 添加认证token
-    const token = localStorage.getItem('token')
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-  },
-  error => {
-    return Promise.reject(error)
-  }
-)
-
-// 响应拦截器
-api.interceptors.response.use(
-  response => {
-    return response
-  },
-  error => {
-    // 处理认证失败
-    if (error.response && error.response.status === 401) {
-      localStorage.removeItem('token')
-      localStorage.removeItem('userRole')
-      window.location.href = '/login'
-    }
-    return Promise.reject(error)
-  }
-)
-
 export default api
 
 // API接口定义

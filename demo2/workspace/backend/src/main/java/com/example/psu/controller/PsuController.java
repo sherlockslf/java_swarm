@@ -3,10 +3,6 @@ package com.example.psu.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,8 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.psu.dto.PsuCreateRequest;
 import com.example.psu.dto.response.PsuResponse;
 import com.example.psu.entity.PsuUnit;
-import com.example.psu.entity.User;
-import com.example.psu.repository.UserRepository;
 import com.example.psu.service.PsuService;
 
 import jakarta.validation.Valid;
@@ -32,22 +26,19 @@ import jakarta.validation.Valid;
 @RestController
 @RequestMapping("/api/psus")
 public class PsuController {
+
+    private static final Long DEFAULT_OPERATOR_ID = 0L;
     
     @Autowired
     private PsuService psuService;
-    
-    @Autowired
-    private UserRepository userRepository;
     
     /**
      * 开发侧PSU管理页面创建新PSU
      * 参数：psuId-全局唯一PSU标识，name-PSU名称，description-描述
      */
     @PostMapping
-    @PreAuthorize("hasRole('DEVELOPER')")
     public ResponseEntity<PsuResponse> createPsu(@Valid @RequestBody PsuCreateRequest request) {
-        Long currentUserId = getCurrentUserId();
-        PsuUnit psu = psuService.createPsu(request, currentUserId);
+        PsuUnit psu = psuService.createPsu(request, DEFAULT_OPERATOR_ID);
         PsuResponse response = psuService.convertToResponse(psu);
         return ResponseEntity.ok(response);
     }
@@ -70,7 +61,6 @@ public class PsuController {
      * 参数：id-PSU数据库ID，psuId/name/description-更新字段
      */
     @PutMapping("/{id}")
-    @PreAuthorize("hasRole('DEVELOPER')")
     public ResponseEntity<PsuResponse> updatePsu(@PathVariable Long id, @Valid @RequestBody PsuCreateRequest request) {
         PsuUnit psu = psuService.updatePsu(id, request);
         PsuResponse response = psuService.convertToResponse(psu);
@@ -104,24 +94,8 @@ public class PsuController {
      * 参数：id-PSU数据库ID
      */
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('DEVELOPER')")
     public ResponseEntity<Void> deletePsu(@PathVariable Long id) {
         psuService.deletePsu(id);
         return ResponseEntity.ok().build();
-    }
-    
-    /**
-     * 从SecurityContext获取当前用户ID
-     * @return 用户ID
-     */
-    private Long getCurrentUserId() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication != null && authentication.getPrincipal() instanceof UserDetails) {
-            String username = authentication.getName();
-            User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found: " + username));
-            return user.getId();
-        }
-        return null;
     }
 }
