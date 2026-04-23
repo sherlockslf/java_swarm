@@ -1,5 +1,0 @@
-[
-  {"id":"A","name":"A 商家","type":"shopping","promptPath":"baonuanneiyi/prompts/seller_a.txt","enabled":true},
-  {"id":"B","name":"B 商家","type":"shopping","promptPath":"baonuanneiyi/prompts/seller_b.txt","enabled":true},
-  {"id":"C","name":"C 商家","type":"shopping","promptPath":"baonuanneiyi/prompts/seller_c.txt","enabled":true}
-]

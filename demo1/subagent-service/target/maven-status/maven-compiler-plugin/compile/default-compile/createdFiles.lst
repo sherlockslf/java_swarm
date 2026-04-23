@@ -1,6 +1,0 @@
-com\example\subagentservice\model\SubAgentDef.class
-com\example\subagentservice\config\FastjsonConfig.class
-com\example\subagentservice\SubAgentServiceApplication.class
-com\example\subagentservice\Config.class
-com\example\subagentservice\web\SubAgentController.class
-com\example\subagentservice\repo\SubAgentRepository.class
