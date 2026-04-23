@@ -1,8 +1,6 @@
 demo2/workspace/backend/target/
 demo2/workspace/backend/target
-example/
-example
-example/demo.txt
+/example/
 .vscode/settings.json
 dist/
 demo2/workspace/frontend/node_modules/.vite/deps/_metadata.json
